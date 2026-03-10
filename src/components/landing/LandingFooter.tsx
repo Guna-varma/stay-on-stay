@@ -1,0 +1,81 @@
+import { Heart } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { BrandLogo } from "@/components/BrandLogo";
+
+const LandingFooter = () => {
+  const { t } = useI18n();
+
+  const footerLinks: Record<string, { label: string; href: string }[]> = {
+    [t("footer.platform")]: [
+      { label: t("nav.hotels"), href: "#hotels" },
+      { label: t("nav.hospitals"), href: "#hospitals" },
+      { label: t("nav.services"), href: "#services" },
+    ],
+    [t("footer.support")]: [
+      { label: "Help Center", href: "#support" },
+      { label: "Contact Us", href: "#support" },
+      { label: "WhatsApp Support", href: "#support" },
+    ],
+    [t("footer.company")]: [
+      { label: "About Us", href: "#" },
+      { label: "Careers", href: "#" },
+      { label: "Partners", href: "#" },
+    ],
+    [t("footer.legal")]: [
+      { label: "Privacy Policy", href: "#" },
+      { label: "Terms of Service", href: "#" },
+    ],
+  };
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("#") && href.length > 1) {
+      e.preventDefault();
+      document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  return (
+    <footer id="support" className="bg-card border-t border-border">
+      <div className="max-w-page py-12 lg:py-16">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+          <div className="col-span-2 md:col-span-1">
+            <div className="mb-4">
+              <BrandLogo variant="footer" />
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {t("footer.tagline")}
+            </p>
+          </div>
+
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title}>
+              <h4 className="text-sm font-semibold text-foreground mb-4">{title}</h4>
+              <ul className="space-y-2.5">
+                {links.map((link) => (
+                  <li key={link.label}>
+                    <a
+                      href={link.href}
+                      onClick={(e) => handleClick(e, link.href)}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-150"
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t border-border mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">{t("footer.rights")}</p>
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            {t("footer.made")} <Heart className="h-3 w-3 text-destructive fill-destructive" /> {t("footer.for")}
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default LandingFooter;
