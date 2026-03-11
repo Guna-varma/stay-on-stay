@@ -1,82 +1,64 @@
-# Welcome to your Lovable project
+# StayOnStay
 
-## Project info
+Hotel management application for medical travelers and hospitality operations.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Project overview
 
-## How can I edit this code?
+StayOnStay helps guests find and book stays near healthcare facilities, with support for reception, housekeeping, transport, finance, and compliance workflows.
 
-There are several ways of editing your application.
+## Getting started
 
-**Use Lovable**
+### Prerequisites
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- Node.js & npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Run locally
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Clone the repository
+git clone https://github.com/Guna-varma/stay-on-stay.git
+cd stay-on-stay
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies (required before first run).
+# Install dependencies
 npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-If `npm run dev` fails with "Cannot find package '@vitejs/plugin-react-swc'", run `npm install` in the project root and try again.
+If `npm run dev` fails with "Cannot find package '@vitejs/plugin-react-swc'", run `npm install` again and retry.
 
-### Deploy to Vercel
+### Edit in your IDE
+
+Clone the repo, make changes locally, then commit and push to GitHub.
+
+### Edit on GitHub
+
+1. Open the file you want to change.
+2. Click the "Edit" button (pencil icon).
+3. Save and commit your changes.
+
+### GitHub Codespaces
+
+1. Open the repository on GitHub.
+2. Click "Code" → "Codespaces" → "New codespace".
+3. Edit in the Codespace, then commit and push when done.
+
+## Tech stack
+
+- **Vite** — build tool
+- **TypeScript** — type-safe JavaScript
+- **React** — UI
+- **shadcn/ui** — components
+- **Tailwind CSS** — styling
+
+## Deploy to Vercel
 
 1. Push your code to GitHub and import the repo in [Vercel](https://vercel.com).
 2. Vercel will detect the Vite app and use `npm run build` with output in `dist`.
-3. Client-side routes work via the `vercel.json` rewrite: all requests serve `index.html`.
-4. Optional: set **Build Command** to `npm run build` and **Output Directory** to `dist` if not auto-detected.
+3. Client-side routes are handled by the `vercel.json` rewrite (all requests serve `index.html`).
+4. If needed, set **Build Command** to `npm run build` and **Output Directory** to `dist`.
 
-**Edit a file directly in GitHub**
+## License
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+© 2026 StayOnStay. All rights reserved.
