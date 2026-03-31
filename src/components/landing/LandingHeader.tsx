@@ -24,7 +24,7 @@ const navLinks = [
   { key: "nav.hospitals", href: "/#hospitals" },
   { key: "nav.medicalTourism", to: "/med-tourism" },
   { key: "nav.services", href: "/#services" },
-  { key: "nav.support", href: "/#support" },
+  { key: "nav.support", to: "/help-center" },
 ] as const;
 
 const LandingHeader = () => {
