@@ -1,30 +1,139 @@
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BOOKINGS, HOTELS, SERVICE_REQUESTS } from "@/data/mock-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, XCircle, Clock, BedDouble, ShieldCheck, AlertTriangle, Users } from "lucide-react";
+import { CheckCircle, BedDouble, Building2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useAuth } from "@/lib/auth";
+import {
+  getManagerAssignedHotel,
+  isSupabaseConfigured,
+  listRoomsByHotel,
+  updateRoomStatus,
+  type HotelRecord,
+  type RoomRecord,
+  type RoomStatus,
+} from "@/lib/supabase";
 
-const statusColors: Record<string, string> = { confirmed: "bg-info/10 text-info", checked_in: "bg-success/10 text-success", checked_out: "bg-muted text-muted-foreground", no_show: "bg-warning/10 text-warning" };
+const statusStyles: Record<RoomStatus, string> = {
+  available: "bg-success/10 text-success border-success/20 hover:bg-success/20",
+  occupied: "bg-destructive/10 text-destructive border-destructive/20",
+  maintenance: "bg-warning/10 text-warning border-warning/20",
+  cleaning: "bg-info/10 text-info border-info/20",
+};
 
 export default function ReceptionDashboard() {
-  const todayCheckIns = BOOKINGS.filter(b => b.checkIn === "2026-03-10" || b.status === "confirmed");
-  const todayCheckOuts = BOOKINGS.filter(b => b.status === "checked_in");
-  const pendingVerifications = BOOKINGS.filter(b => b.status === "confirmed");
-  const allRooms = HOTELS.flatMap(h => h.rooms);
+  const { user } = useAuth();
+  const hasSupabase = isSupabaseConfigured();
+  const [loading, setLoading] = useState(true);
+  const [hotel, setHotel] = useState<HotelRecord | null>(null);
+  const [rooms, setRooms] = useState<RoomRecord[]>([]);
+  const [savingRoomId, setSavingRoomId] = useState<string | null>(null);
 
-  const stats = [
-    { label: "Today Check-ins", value: todayCheckIns.length, icon: CheckCircle, color: "text-success" },
-    { label: "Today Check-outs", value: todayCheckOuts.length, icon: XCircle, color: "text-info" },
-    { label: "Pending Verifications", value: pendingVerifications.length, icon: Clock, color: "text-warning" },
-    { label: "Available Rooms", value: allRooms.filter(r => r.status === "available").length, icon: BedDouble, color: "text-primary" },
-  ];
+  const refreshData = async () => {
+    if (!user?.id || !hasSupabase) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const assigned = await getManagerAssignedHotel(user.id);
+    if (assigned.error) {
+      toast.error(assigned.error.message || "Failed to load assigned hotel");
+      setLoading(false);
+      return;
+    }
+
+    if (!assigned.data) {
+      setHotel(null);
+      setRooms([]);
+      setLoading(false);
+      return;
+    }
+
+    setHotel(assigned.data);
+    const roomRes = await listRoomsByHotel(assigned.data.id);
+    if (roomRes.error) {
+      toast.error(roomRes.error.message || "Failed to load rooms");
+      setLoading(false);
+      return;
+    }
+
+    setRooms(roomRes.data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    refreshData();
+  }, [user?.id, hasSupabase]);
+
+  const stats = useMemo(() => {
+    const available = rooms.filter((r) => r.status === "available").length;
+    const occupied = rooms.filter((r) => r.status === "occupied").length;
+    const maintenance = rooms.filter((r) => r.status === "maintenance").length;
+    const cleaning = rooms.filter((r) => r.status === "cleaning").length;
+
+    return [
+      { label: "Total Rooms", value: rooms.length, icon: BedDouble, color: "text-primary" },
+      { label: "Available", value: available, icon: CheckCircle, color: "text-success" },
+      { label: "Occupied", value: occupied, icon: Building2, color: "text-destructive" },
+      { label: "Needs Attention", value: maintenance + cleaning, icon: AlertTriangle, color: "text-warning" },
+    ];
+  }, [rooms]);
+
+  const cycleStatus = async (room: RoomRecord) => {
+    const order: RoomStatus[] = ["available", "occupied", "cleaning", "maintenance"];
+    const currentIndex = order.indexOf(room.status);
+    const nextStatus = order[(currentIndex + 1) % order.length];
+
+    setSavingRoomId(room.id);
+    const { error } = await updateRoomStatus(room.id, nextStatus);
+    setSavingRoomId(null);
+
+    if (error) {
+      toast.error(error.message || "Unable to update room status");
+      return;
+    }
+
+    setRooms((prev) => prev.map((r) => (r.id === room.id ? { ...r, status: nextStatus } : r)));
+    toast.success(`Room ${room.room_number} set to ${nextStatus}`);
+  };
+
+  if (!hasSupabase) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-heading font-bold">Manager Dashboard</h1>
+        <Card><CardContent className="p-6 text-sm text-muted-foreground">Supabase is not configured. Manager hotel APIs are disabled.</CardContent></Card>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-heading font-bold">Manager Dashboard</h1>
+        <Card><CardContent className="p-6 text-sm text-muted-foreground">Loading assigned hotel...</CardContent></Card>
+      </div>
+    );
+  }
+
+  if (!hotel) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-heading font-bold">Manager Dashboard</h1>
+        <Card><CardContent className="p-6 text-sm text-muted-foreground">No hotel is assigned to this manager account.</CardContent></Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-heading font-bold">Reception Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-heading font-bold">Manager Dashboard</h1>
+        <Badge className="bg-primary/10 text-primary">{hotel.name}</Badge>
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s, i) => (
@@ -37,98 +146,37 @@ export default function ReceptionDashboard() {
         ))}
       </div>
 
-      <Tabs defaultValue="checkins">
+      <Tabs defaultValue="rooms">
         <TabsList>
-          <TabsTrigger value="checkins">Check-ins</TabsTrigger>
-          <TabsTrigger value="checkouts">Check-outs</TabsTrigger>
           <TabsTrigger value="rooms">Room Grid</TabsTrigger>
-          <TabsTrigger value="requests">Service Requests</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="checkins" className="mt-4 space-y-3">
-          {todayCheckIns.map(b => (
-            <Card key={b.id}>
-              <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-xs text-muted-foreground">{b.id}</span>
-                    <Badge className={statusColors[b.status]}>{b.status.replace("_", " ")}</Badge>
-                  </div>
-                  <p className="font-medium">{b.guestName} <span className="text-xs text-muted-foreground">· {b.nationality}</span></p>
-                  <p className="text-xs text-muted-foreground">Passport: {b.passportNumber} · Room: {b.roomId}</p>
-                  {b.companions.length > 0 && <p className="text-xs text-muted-foreground mt-1"><Users className="h-3 w-3 inline mr-1" />{b.companions.length} companion(s): {b.companions.map(c => c.name).join(", ")}</p>}
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="gap-1" onClick={() => toast.success("Passport verified")}><ShieldCheck className="h-3 w-3" /> Verify</Button>
-                  <Button size="sm" className="gap-1" onClick={() => toast.success(`${b.guestName} checked in!`)}><CheckCircle className="h-3 w-3" /> Check In</Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="checkouts" className="mt-4 space-y-3">
-          {todayCheckOuts.map(b => (
-            <Card key={b.id}>
-              <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex-1">
-                  <p className="font-medium">{b.guestName}</p>
-                  <p className="text-xs text-muted-foreground">Room: {b.roomId} · Check-out: {b.checkOut}</p>
-                  <p className="text-xs text-muted-foreground">Balance: ₹{(b.totalAmount - b.paidAmount).toLocaleString()}</p>
-                </div>
-                <Button size="sm" onClick={() => toast.success(`${b.guestName} checked out!`)}>Process Check-out</Button>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
 
         <TabsContent value="rooms" className="mt-4">
           <Card>
-            <CardHeader><CardTitle className="text-base">Live Room Status</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">{hotel.name} - Live Room Status</CardTitle></CardHeader>
             <CardContent>
-              {HOTELS.slice(0, 2).map(hotel => (
-                <div key={hotel.id} className="mb-6">
-                  <h4 className="text-sm font-medium mb-3">{hotel.name}</h4>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                    {hotel.rooms.map(room => (
-                      <div key={room.id} className={`p-2 rounded-lg text-center text-xs font-mono cursor-pointer transition-colors ${
-                        room.status === "available" ? "bg-success/10 text-success border border-success/20 hover:bg-success/20" :
-                        room.status === "booked" ? "bg-destructive/10 text-destructive border border-destructive/20" :
-                        "bg-muted text-muted-foreground border"
-                      }`}>
-                        {room.number}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <div className="flex gap-4 text-xs mt-4">
-                <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-success/20 border border-success/30" /> Available</span>
-                <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-destructive/20 border border-destructive/30" /> Booked</span>
-                <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-muted border" /> Maintenance</span>
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                {rooms.map((room) => (
+                  <button
+                    key={room.id}
+                    className={`rounded-lg border p-2 text-center text-xs font-mono transition-colors ${statusStyles[room.status]}`}
+                    onClick={() => cycleStatus(room)}
+                    disabled={savingRoomId === room.id}
+                    title="Click to cycle status"
+                  >
+                    {savingRoomId === room.id ? "..." : room.room_number}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                <span>Click a room tile to cycle status in order: available, occupied, cleaning, maintenance</span>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="requests" className="mt-4 space-y-3">
-          {SERVICE_REQUESTS.map(r => (
-            <Card key={r.id}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge variant="secondary">{r.type}</Badge>
-                    <Badge className={r.priority === "high" ? "bg-destructive/10 text-destructive" : "bg-info/10 text-info"}>{r.priority}</Badge>
-                  </div>
-                  <p className="text-sm">{r.description}</p>
-                  <p className="text-xs text-muted-foreground">Room {r.roomNumber} · {r.guestName}</p>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => toast.success("Request handled")}>Resolve</Button>
-              </CardContent>
-            </Card>
-          ))}
         </TabsContent>
       </Tabs>
     </div>
   );
 }
+
+

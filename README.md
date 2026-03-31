@@ -52,6 +52,8 @@ Clone the repo, make changes locally, then commit and push to GitHub.
 - **shadcn/ui** — components
 - **Tailwind CSS** — styling
 
+Backend, auth, payments, and the full roadmap are documented in **[ARCHITECTURE.md](./ARCHITECTURE.md)** (Supabase, Twilio, Razorpay, premium upgrades).
+
 ## Deploy to Vercel
 
 1. Push your code to GitHub and import the repo in [Vercel](https://vercel.com).

@@ -1,45 +1,47 @@
 import {
   Home, Search, CalendarDays, Bell, Phone, ClipboardList, Users, BedDouble,
-  CheckCircle, ShieldCheck, Truck, Globe, DollarSign, BarChart3, Settings,
-  FileText, AlertTriangle, Building, UserCog, CreditCard, Activity, Lock,
-  Sparkles, Star
+  CheckCircle, ShieldCheck, FileText, Activity, Lock, Sparkles, Star, User,
+  BarChart3, Building, UserCog, CreditCard, AlertTriangle, Settings
 } from "lucide-react";
 import type { UserRole } from "./auth";
 
 export interface NavItem {
   title: string;
   path: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   customer: "Customer",
-  receptionist: "Receptionist",
-  senior_receptionist: "Senior Receptionist",
-  housekeeping: "Housekeeping Staff",
-  transport: "Transport Manager",
-  finance: "Finance Manager",
   owner: "Hotel Owner",
+  manager: "Manager",
   admin: "Platform Admin",
 };
 
+/** Manager = merged Receptionist + Senior Receptionist: all front-desk and reporting. */
 export const ROLE_NAV: Record<UserRole, NavItem[]> = {
   customer: [
-    { title: "Dashboard", path: "/dashboard", icon: Home },
-    { title: "Search Hotels", path: "/hotels", icon: Search },
+    { title: "Hotels", path: "/hotels", icon: Search },
+    { title: "Orders", path: "/dashboard", icon: Home },
     { title: "My Bookings", path: "/bookings", icon: CalendarDays },
     { title: "Service Requests", path: "/services", icon: ClipboardList },
     { title: "Notifications", path: "/notifications", icon: Bell },
     { title: "Emergency", path: "/emergency", icon: Phone },
+    { title: "Profile", path: "/profile", icon: User },
+    { title: "Checkout", path: "/checkout", icon: CreditCard },
+    { title: "Booking Status", path: "/booking", icon: CalendarDays },
   ],
-  receptionist: [
+  owner: [
     { title: "Dashboard", path: "/dashboard", icon: Home },
-    { title: "Check-In / Out", path: "/checkin", icon: CheckCircle },
-    { title: "Room Status", path: "/rooms", icon: BedDouble },
-    { title: "Verifications", path: "/verifications", icon: ShieldCheck },
-    { title: "Service Requests", path: "/services", icon: ClipboardList },
+    { title: "Revenue Analytics", path: "/analytics/revenue", icon: BarChart3 },
+    { title: "Occupancy", path: "/analytics/occupancy", icon: Activity },
+    { title: "Expenses", path: "/analytics/expenses", icon: Lock },
+    { title: "Forecasting", path: "/analytics/forecast", icon: Sparkles },
+    { title: "Room Performance", path: "/analytics/rooms", icon: Star },
+    { title: "Compliance", path: "/compliance", icon: Lock },
+    { title: "Profile", path: "/profile", icon: User },
   ],
-  senior_receptionist: [
+  manager: [
     { title: "Dashboard", path: "/dashboard", icon: Home },
     { title: "Check-In / Out", path: "/checkin", icon: CheckCircle },
     { title: "Room Status", path: "/rooms", icon: BedDouble },
@@ -47,34 +49,7 @@ export const ROLE_NAV: Record<UserRole, NavItem[]> = {
     { title: "Staff Assignment", path: "/staff", icon: Users },
     { title: "Reports", path: "/reports", icon: FileText },
     { title: "Service Requests", path: "/services", icon: ClipboardList },
-  ],
-  housekeeping: [
-    { title: "Dashboard", path: "/dashboard", icon: Home },
-    { title: "Cleaning Tasks", path: "/tasks", icon: ClipboardList },
-    { title: "Room Status", path: "/rooms", icon: BedDouble },
-  ],
-  transport: [
-    { title: "Dashboard", path: "/dashboard", icon: Home },
-    { title: "Trips", path: "/trips", icon: Truck },
-    { title: "Drivers", path: "/drivers", icon: Users },
-    { title: "Vehicles", path: "/vehicles", icon: Truck },
-    { title: "Vendors", path: "/vendors", icon: DollarSign },
-  ],
-  finance: [
-    { title: "Dashboard", path: "/dashboard", icon: Home },
-    { title: "Revenue", path: "/revenue", icon: BarChart3 },
-    { title: "Invoices", path: "/invoices", icon: FileText },
-    { title: "Expenses", path: "/expenses", icon: DollarSign },
-    { title: "Settlements", path: "/settlements", icon: CreditCard },
-  ],
-  owner: [
-    { title: "Dashboard", path: "/dashboard", icon: Home },
-    { title: "Revenue Analytics", path: "/analytics/revenue", icon: BarChart3 },
-    { title: "Occupancy", path: "/analytics/occupancy", icon: Activity },
-    { title: "Expenses", path: "/analytics/expenses", icon: DollarSign },
-    { title: "Forecasting", path: "/analytics/forecast", icon: Sparkles },
-    { title: "Room Performance", path: "/analytics/rooms", icon: Star },
-    { title: "Compliance", path: "/compliance", icon: Lock },
+    { title: "Profile", path: "/profile", icon: User },
   ],
   admin: [
     { title: "Dashboard", path: "/dashboard", icon: Home },
@@ -86,6 +61,7 @@ export const ROLE_NAV: Record<UserRole, NavItem[]> = {
     { title: "System Logs", path: "/logs", icon: FileText },
     { title: "Incidents", path: "/incidents", icon: AlertTriangle },
     { title: "Settings", path: "/settings", icon: Settings },
+    { title: "Profile", path: "/profile", icon: User },
   ],
 };
 

@@ -1,0 +1,10 @@
+# Supabase CLI — https://supabase.com/docs/guides/cli/config
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.verify-checkout-session]
+verify_jwt = false

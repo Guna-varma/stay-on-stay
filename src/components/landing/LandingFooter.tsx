@@ -1,37 +1,34 @@
 import { Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { BrandLogo } from "@/components/BrandLogo";
+
+type FooterLink = { label: string; to: string } | { label: string; href: string };
 
 const LandingFooter = () => {
   const { t } = useI18n();
 
-  const footerLinks: Record<string, { label: string; href: string }[]> = {
+  const footerLinks: Record<string, FooterLink[]> = {
     [t("footer.platform")]: [
-      { label: t("nav.hotels"), href: "#hotels" },
-      { label: t("nav.hospitals"), href: "#hospitals" },
-      { label: t("nav.services"), href: "#services" },
+      { label: t("nav.hotels"), to: "/#hotels" },
+      { label: t("nav.hospitals"), to: "/#hospitals" },
+      { label: t("nav.medicalTourism"), to: "/med-tourism" },
+      { label: t("nav.services"), to: "/#services" },
     ],
     [t("footer.support")]: [
-      { label: "Help Center", href: "#support" },
-      { label: "Contact Us", href: "#support" },
-      { label: "WhatsApp Support", href: "#support" },
+      { label: "Help Center", to: "/help-center" },
+      { label: "Contact Us", to: "/contact-us" },
+      { label: "WhatsApp Support", to: "/whatsapp-support" },
     ],
     [t("footer.company")]: [
-      { label: "About Us", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "Partners", href: "#" },
+      { label: "About Us", to: "/about" },
+      { label: "Careers", to: "/careers" },
+      { label: "Partners", to: "/partners" },
     ],
     [t("footer.legal")]: [
-      { label: "Privacy Policy", href: "#" },
-      { label: "Terms of Service", href: "#" },
+      { label: "Privacy Policy", to: "/privacy" },
+      { label: "Terms of Service", to: "/terms" },
     ],
-  };
-
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.startsWith("#") && href.length > 1) {
-      e.preventDefault();
-      document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
-    }
   };
 
   return (
@@ -53,13 +50,21 @@ const LandingFooter = () => {
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      onClick={(e) => handleClick(e, link.href)}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors duration-150"
-                    >
-                      {link.label}
-                    </a>
+                    {"to" in link ? (
+                      <Link
+                        to={link.to}
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors duration-150"
+                      >
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors duration-150"
+                      >
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

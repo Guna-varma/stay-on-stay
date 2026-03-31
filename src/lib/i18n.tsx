@@ -15,6 +15,7 @@ const translations: Record<Language, Record<string, string>> = {
   en: {
     "nav.hotels": "Hotels",
     "nav.hospitals": "Hospitals",
+    "nav.medicalTourism": "Medical Tourism",
     "nav.services": "Services",
     "nav.support": "Support",
     "nav.login": "Login",
@@ -71,6 +72,7 @@ const translations: Record<Language, Record<string, string>> = {
   rw: {
     "nav.hotels": "Amahoteri",
     "nav.hospitals": "Ibitaro",
+    "nav.medicalTourism": "Ingendo z'Ubuvuzi",
     "nav.services": "Serivisi",
     "nav.support": "Ubufasha",
     "nav.login": "Injira",
@@ -127,6 +129,7 @@ const translations: Record<Language, Record<string, string>> = {
   hi: {
     "nav.hotels": "होटल",
     "nav.hospitals": "अस्पताल",
+    "nav.medicalTourism": "चिकित्सा पर्यटन",
     "nav.services": "सेवाएं",
     "nav.support": "सहायता",
     "nav.login": "लॉगिन",
@@ -183,6 +186,7 @@ const translations: Record<Language, Record<string, string>> = {
   fr: {
     "nav.hotels": "Hôtels",
     "nav.hospitals": "Hôpitaux",
+    "nav.medicalTourism": "Tourisme médical",
     "nav.services": "Services",
     "nav.support": "Assistance",
     "nav.login": "Connexion",
@@ -239,6 +243,7 @@ const translations: Record<Language, Record<string, string>> = {
   es: {
     "nav.hotels": "Hoteles",
     "nav.hospitals": "Hospitales",
+    "nav.medicalTourism": "Turismo médico",
     "nav.services": "Servicios",
     "nav.support": "Soporte",
     "nav.login": "Iniciar Sesión",
@@ -295,6 +300,7 @@ const translations: Record<Language, Record<string, string>> = {
   ar: {
     "nav.hotels": "الفنادق",
     "nav.hospitals": "المستشفيات",
+    "nav.medicalTourism": "السياحة العلاجية",
     "nav.services": "الخدمات",
     "nav.support": "الدعم",
     "nav.login": "تسجيل الدخول",
