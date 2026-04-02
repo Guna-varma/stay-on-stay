@@ -18,6 +18,7 @@ import { CartButton } from "@/components/CartButton";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useAuth } from "@/lib/auth";
 import { ROLE_LABELS } from "@/lib/roles";
+import { WHATSAPP_RW_NUMBER } from "@/lib/whatsappContact";
 
 const navLinks = [
   { key: "nav.medicalTourism", to: "/med-tourism" },
@@ -69,7 +70,7 @@ const LandingHeader = () => {
   };
 
   const openContactChat = () => {
-    const number = "250788944143";
+    const number = WHATSAPP_RW_NUMBER;
     const message = encodeURIComponent(
       "Hello, I need help with medical treatment in India.",
     );
@@ -138,8 +139,16 @@ const LandingHeader = () => {
                 <span className="absolute inset-0 bg-white/15 opacity-0 hover:opacity-100 transition-opacity" />
                 <span className="relative inline-flex items-center gap-2">
                   <MessageCircle className="h-4 w-4" />
-                  Contact Us
+                  {t("nav.contactUs")}
                 </span>
+              </Button>
+            )}
+            {!isMedTourismPage && (
+              <Button variant="outline" size="sm" className="shrink-0" asChild>
+                <Link to="/contact-us">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  {t("nav.contactUs")}
+                </Link>
               </Button>
             )}
             {!isMedTourismPage &&
@@ -210,7 +219,25 @@ const LandingHeader = () => {
               ))}
           </div>
 
-          <div className="flex items-center gap-1 md:hidden">
+          <div className="flex items-center gap-1.5 shrink-0 md:hidden">
+            <LanguageSwitcher compact />
+            {isMedTourismPage ? (
+              <Button
+                type="button"
+                size="icon"
+                className="h-10 w-10 shrink-0 rounded-lg bg-gradient-to-r from-primary via-sky-500 to-cyan-500 text-primary-foreground shadow-md hover:opacity-95"
+                onClick={openContactChat}
+                aria-label={t("nav.contactUs")}
+              >
+                <MessageCircle className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-lg" asChild>
+                <Link to="/contact-us" aria-label={t("nav.contactUs")}>
+                  <MessageCircle className="h-5 w-5" />
+                </Link>
+              </Button>
+            )}
             {!isMedTourismPage && <CartButton onProceedToCheckout={openAuth} />}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
@@ -246,18 +273,6 @@ const LandingHeader = () => {
                       </a>
                     ),
                   )}
-                  <div className="flex items-center gap-2 pt-2">
-                    <LanguageSwitcher />
-                    {isMedTourismPage && (
-                      <Button
-                        onClick={() => { setMobileOpen(false); openContactChat(); }}
-                        className="rounded-full px-4 py-2 text-primary-foreground bg-gradient-to-r from-primary via-sky-500 to-cyan-500"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Contact Us
-                      </Button>
-                    )}
-                  </div>
                   {!isMedTourismPage && (
                     <div className="flex flex-col gap-2 pt-2">
                       {user ? (

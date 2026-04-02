@@ -37,6 +37,7 @@ import {
   useI18n,
 } from "@/lib/i18n";
 import { useMtText } from "@/lib/medTourismText";
+import { WHATSAPP_RW_NUMBER } from "@/lib/whatsappContact";
 import { WhyIndiaScreens } from "@/components/landing/WhyIndiaScreens";
 
 const HERO_IMG =
@@ -231,13 +232,15 @@ const testimonials = [
   },
 ];
 
+/** ISO2 + flag images (emoji flags fail on many Windows/Android setups). */
 const africaFlags = [
-  { flag: "🇳🇬", name: "Nigeria" },
-  { flag: "🇰🇪", name: "Kenya" },
-  { flag: "🇬🇭", name: "Ghana" },
-  { flag: "🇿🇦", name: "South Africa" },
-  { flag: "🇺🇬", name: "Uganda" },
-  { flag: "🇹🇿", name: "Tanzania" },
+  { code: "NG", flagUrl: "https://flagcdn.com/w80/ng.png", label: "Nigeria" as const },
+  { code: "KE", flagUrl: "https://flagcdn.com/w80/ke.png", label: "Kenya" as const },
+  { code: "GH", flagUrl: "https://flagcdn.com/w80/gh.png", label: "Ghana" as const },
+  { code: "ZA", flagUrl: "https://flagcdn.com/w80/za.png", label: "South Africa" as const },
+  { code: "UG", flagUrl: "https://flagcdn.com/w80/ug.png", label: "Uganda" as const },
+  { code: "RW", flagUrl: "https://flagcdn.com/w80/rw.png", label: "Rwanda" as const },
+  { code: "TZ", flagUrl: "https://flagcdn.com/w80/tz.png", label: "Tanzania" as const },
 ];
 
 function AnimatedNumber({ value, inView }: { value: number; inView: boolean }) {
@@ -327,7 +330,7 @@ function MTHero() {
               <ArrowRight className="w-4 h-4" />
             </motion.a>
             <motion.a
-              href="https://wa.me/1234567890"
+              href={`https://wa.me/${WHATSAPP_RW_NUMBER}`}
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.03 }}
@@ -885,14 +888,24 @@ function AfricaTrustBlock() {
         >
           {africaFlags.map((f, i) => (
             <motion.div
-              key={f.name}
+              key={f.code}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={inView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.3, delay: 0.3 + i * 0.08 }}
-              className="flex flex-col items-center gap-2"
+              className="flex flex-col items-center gap-2 min-w-[4.75rem] sm:min-w-[5.5rem]"
             >
-              <span className="text-5xl">{f.flag}</span>
-              <span className="text-xs font-medium text-muted-foreground">{f.name}</span>
+              <img
+                src={f.flagUrl}
+                alt={tx(f.label)}
+                width={64}
+                height={43}
+                className="h-9 w-14 sm:h-11 sm:w-[4.5rem] rounded-[3px] object-cover shadow-md border border-border/60 bg-muted/30"
+                loading="lazy"
+                decoding="async"
+              />
+              <span className="text-sm sm:text-base font-semibold text-foreground text-center leading-tight px-0.5 max-w-[6.5rem]">
+                {tx(f.label)}
+              </span>
             </motion.div>
           ))}
         </motion.div>
@@ -909,7 +922,7 @@ function AfricaTrustBlock() {
             <p className="text-sm text-muted-foreground">{tx("Get instant support from a care guide in your region.")}</p>
           </div>
           <a
-            href="https://wa.me/1234567890"
+            href={`https://wa.me/${WHATSAPP_RW_NUMBER}`}
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 bg-green-600 text-white font-medium text-sm px-6 py-2.5 rounded-xl hover:bg-green-700 transition-colors"
@@ -958,7 +971,7 @@ function CTABlock() {
               <ArrowRight className="w-4 h-4" />
             </motion.a>
             <motion.a
-              href="https://wa.me/1234567890"
+              href={`https://wa.me/${WHATSAPP_RW_NUMBER}`}
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.03 }}

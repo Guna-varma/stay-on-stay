@@ -8,19 +8,33 @@ import {
 import { useI18n, LANGUAGE_OPTIONS } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-const LanguageSwitcher = () => {
+const LanguageSwitcher = ({ compact }: { compact?: boolean }) => {
   const { language, setLanguage, t } = useI18n();
   const current = LANGUAGE_OPTIONS.find((l) => l.code === language);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+        <Button
+          variant="ghost"
+          size={compact ? "icon" : "sm"}
+          className={cn(
+            compact
+              ? "h-10 w-10 shrink-0 rounded-lg border border-border/60 bg-background/80 text-foreground hover:bg-muted/80"
+              : "gap-2 text-muted-foreground",
+          )}
+          aria-label={t("lang.pageLanguage")}
+          aria-haspopup="menu"
+        >
           {current ? (
-            <span className="flex items-center gap-2">
-              <img src={current.flagUrl} alt="" className="h-3.5 w-5 shrink-0 rounded-[2px]" loading="lazy" />
-              <span className="text-xs font-semibold tracking-wide">{t(`lang.${current.code}.label`)}</span>
-            </span>
+            compact ? (
+              <img src={current.flagUrl} alt="" className="h-5 w-7 shrink-0 rounded-[2px]" loading="lazy" />
+            ) : (
+              <span className="flex items-center gap-2">
+                <img src={current.flagUrl} alt="" className="h-3.5 w-5 shrink-0 rounded-[2px]" loading="lazy" />
+                <span className="text-xs font-semibold tracking-wide">{t(`lang.${current.code}.label`)}</span>
+              </span>
+            )
           ) : (
             <span className="text-xs font-semibold tracking-wide">English</span>
           )}

@@ -1,4 +1,5 @@
 import { I18nProvider } from "@/lib/i18n";
+import { WHATSAPP_RW_NUMBER } from "@/lib/whatsappContact";
 import LandingHeader from "@/components/landing/LandingHeader";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { Card } from "@/components/ui/card";
@@ -17,7 +18,7 @@ export default function WhatsAppSupport() {
                 Chat directly with a care guide for hospital-side stays, airport pickup, and recovery support.
               </p>
               <Button asChild>
-                <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">
+                <a href={`https://wa.me/${WHATSAPP_RW_NUMBER}`} target="_blank" rel="noopener noreferrer">
                   Open WhatsApp Chat
                 </a>
               </Button>

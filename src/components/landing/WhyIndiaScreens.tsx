@@ -47,6 +47,7 @@ import {
   pathForJourneyContext,
   type JourneyContext,
 } from "@/lib/medTourismTopicPaths";
+import { WHATSAPP_RW_NUMBER } from "@/lib/whatsappContact";
 import { cn } from "@/lib/utils";
 
 type Country = "nigeria" | "kenya" | "ghana" | "south-africa";
@@ -921,7 +922,7 @@ function LeadRoutingModal({
     if (!name.trim() || isIndia === null) return;
     setSubmitting(true);
     const country = detectedCountry || (isIndia ? "India" : "International");
-    const number = isIndia ? "919312972981" : "250788944143";
+    const number = isIndia ? "919312972981" : WHATSAPP_RW_NUMBER;
     const message = encodeURIComponent(
       `${getCountryMessage(country)} My name is ${name.trim()}.${phone ? ` My phone is ${phone.trim()}.` : ""} ${getContextLine()}`,
     );
@@ -1107,7 +1108,7 @@ function TreatmentPlanModal({
       `Stay & Travel Request\nName: ${payload.name}\nPhone: ${payload.phone}\nEmail: ${payload.email || "-"}\nCountry: ${payload.country || "-"}\nTravel Dates: ${payload.travelStart || "-"} to ${payload.travelEnd || "-"}\nTreatment Duration: ${payload.treatmentDuration || "-"}\nPersons: ${payload.persons}\nRooms: ${payload.rooms}\nRoom Type: ${payload.roomType}\nAmenities: ${payload.amenities.join(", ") || "-"}\nCab: ${payload.cabNeeded}\nVehicle: ${payload.vehicleType || "-"}\nSupport: ${payload.supportServices.join(", ") || "-"}\nNotes: ${payload.notes || "-"}\nEstimated Cost: $${payload.estimatedMin} - $${payload.estimatedMax}`,
     );
     onOpenChange(false);
-    window.open(`https://wa.me/250788944143?text=${message}`, "_blank");
+    window.open(`https://wa.me/${WHATSAPP_RW_NUMBER}?text=${message}`, "_blank");
     setSubmitting(false);
   };
 
@@ -1363,7 +1364,7 @@ export function MedTourismTopicContent({ topic }: { topic: JourneyContext }) {
     if (alreadySubmitted) {
       const savedCountry = localStorage.getItem("leadCountry") || "International";
       const isIndia = savedCountry === "India";
-      const number = isIndia ? "919312972981" : "250788944143";
+      const number = isIndia ? "919312972981" : WHATSAPP_RW_NUMBER;
       const message = encodeURIComponent(
         `Hello, I am back for more guidance. I am from ${savedCountry}. I need help with the ${topic} journey.`,
       );
