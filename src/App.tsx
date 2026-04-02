@@ -11,6 +11,7 @@ import React from "react";
 
 import Landing from "./pages/Landing";
 import MedTourism from "./pages/MedTourism";
+import MedTourismTopic from "./pages/MedTourismTopic";
 import About from "./pages/About";
 import Careers from "./pages/Careers";
 import Partners from "./pages/Partners";
@@ -69,6 +70,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/med-tourism" element={<MedTourism />} />
+            <Route path="/med-tourism/:topic" element={<MedTourismTopic />} />
             <Route path="/about" element={<About />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/partners" element={<Partners />} />

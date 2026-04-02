@@ -19,7 +19,7 @@ export default function ScrollManager() {
       if (!id) return;
       const t = window.setTimeout(() => {
         document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 0);
+      }, 120);
       return () => window.clearTimeout(t);
     }
 

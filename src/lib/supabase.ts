@@ -751,6 +751,24 @@ export async function listCustomersForOwnerPromotion(ownerId: string, hotelId: s
   return { data: (data ?? []) as OwnerPromotableUser[], error: null };
 }
 
+export async function findPromotableCustomerByEmail(
+  ownerId: string,
+  hotelId: string,
+  email: string
+): Promise<{ data: OwnerPromotableUser | null; error: Error | null }> {
+  if (!ownerId || !hotelId) return { data: null, error: new Error("ownerId and hotelId are required") };
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return { data: null, error: new Error("email is required") };
+
+  const { data, error } = await supabase.rpc("owner_find_promotable_customer_by_email", {
+    target_hotel_id: hotelId,
+    target_email: normalized,
+  });
+  if (error) return { data: null, error };
+  const row = ((data ?? []) as OwnerPromotableUser[])[0] ?? null;
+  return { data: row, error: null };
+}
+
 export async function listManagersForOwner(ownerId: string, hotelId: string, searchEmail?: string): Promise<{ data: OwnerManagerAssignment[]; error: Error | null }> {
   if (!ownerId || !hotelId) return { data: [], error: new Error("ownerId and hotelId are required") };
 

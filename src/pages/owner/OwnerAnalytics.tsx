@@ -39,6 +39,7 @@ import {
   isSupabaseConfigured,
   listAmenities,
   createAmenity,
+  findPromotableCustomerByEmail,
   listCustomersForOwnerPromotion,
   listManagersForOwner,
   listOwnerHotels,
@@ -133,10 +134,13 @@ export default function OwnerAnalytics() {
   const [promoting, setPromoting] = useState(false);
   const [demotingUserId, setDemotingUserId] = useState<string | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
+  const [customerEmailLookup, setCustomerEmailLookup] = useState("");
   const [managerSearch, setManagerSearch] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [promotableUsers, setPromotableUsers] = useState<OwnerPromotableUser[]>([]);
   const [managers, setManagers] = useState<OwnerManagerAssignment[]>([]);
+  const [teamError, setTeamError] = useState<string | null>(null);
+  const [findingCustomer, setFindingCustomer] = useState(false);
 
   // Hotel creation
   const [hotelName, setHotelName] = useState("");
@@ -191,18 +195,56 @@ export default function OwnerAnalytics() {
 
   // Team refresh
   const refreshTeamData = async () => {
-    if (!user?.id || !selectedHotelId) { setPromotableUsers([]); setManagers([]); return; }
+    if (!user?.id || !selectedHotelId) { setPromotableUsers([]); setManagers([]); setTeamError(null); return; }
     setTeamLoading(true);
+    setTeamError(null);
     const [customersRes, managersRes] = await Promise.all([
       listCustomersForOwnerPromotion(user.id, selectedHotelId, customerSearch),
       listManagersForOwner(user.id, selectedHotelId, managerSearch),
     ]);
     setTeamLoading(false);
-    if (customersRes.error) { toast.error(customersRes.error.message); return; }
-    if (managersRes.error) { toast.error(managersRes.error.message); return; }
+    if (customersRes.error) {
+      const msg = customersRes.error.message;
+      setTeamError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (managersRes.error) {
+      const msg = managersRes.error.message;
+      setTeamError(msg);
+      toast.error(msg);
+      return;
+    }
     setPromotableUsers(customersRes.data);
     setManagers(managersRes.data);
     if (!customersRes.data.some((c) => c.user_id === selectedCustomerId)) setSelectedCustomerId("");
+  };
+
+  const handleFindCustomerByEmail = async () => {
+    if (!user?.id || !selectedHotelId) {
+      toast.error("Select a hotel first.");
+      return;
+    }
+    const email = customerEmailLookup.trim();
+    if (!email) {
+      toast.error("Enter customer email.");
+      return;
+    }
+    setFindingCustomer(true);
+    const { data, error } = await findPromotableCustomerByEmail(user.id, selectedHotelId, email);
+    setFindingCustomer(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (!data) {
+      toast.error("No promotable customer found for that email.");
+      return;
+    }
+    setPromotableUsers((prev) => (prev.some((p) => p.user_id === data.user_id) ? prev : [data, ...prev]));
+    setSelectedCustomerId(data.user_id);
+    setCustomerSearch(data.email ?? "");
+    toast.success("Customer found and selected.");
   };
 
   useEffect(() => { if (selectedHotelId && user?.id) refreshTeamData(); }, [selectedHotelId, user?.id]);
@@ -738,6 +780,15 @@ export default function OwnerAnalytics() {
                         <Input value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="name@example.com" />
                       </div>
                       <div className="space-y-2">
+                        <Label>Find exact email (recommended)</Label>
+                        <div className="flex gap-2">
+                          <Input value={customerEmailLookup} onChange={(e) => setCustomerEmailLookup(e.target.value)} placeholder="customer@example.com" />
+                          <Button type="button" variant="outline" onClick={handleFindCustomerByEmail} disabled={findingCustomer || !customerEmailLookup.trim()}>
+                            {findingCustomer ? "Finding..." : "Find"}
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
                         <Label>Select customer</Label>
                         <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
                           <SelectTrigger><SelectValue placeholder="Choose" /></SelectTrigger>
@@ -749,6 +800,12 @@ export default function OwnerAnalytics() {
                       <Button type="button" className="w-full gap-2" disabled={promoting || !selectedCustomerId} onClick={handlePromote}>
                         <UserCog className="h-4 w-4" /> {promoting ? "Promoting..." : "Promote to Manager"}
                       </Button>
+                      {promotableUsers.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          No eligible customers yet. Ask the user to sign up/login as a customer first, then use
+                          search or exact email find.
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                   <Card>
@@ -779,6 +836,7 @@ export default function OwnerAnalytics() {
                   </Card>
                 </div>
               )}
+              {teamError && <p className="text-sm text-destructive">{teamError}</p>}
             </CardContent>
           </Card>
         </TabsContent>

@@ -1,18 +1,213 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 
-export type Language = "en" | "rw" | "hi" | "fr" | "es" | "ar";
+/**
+ * This system uses region-based localization.
+ * Displayed language is conversational for user trust; actual translations use fallback
+ * languages (mostly English, plus French where noted in REGION_CONFIG).
+ *
+ * UI language ≠ translation bundle — that split is intentional for trust and MVP speed.
+ */
+/** UI language codes: global + African core languages + existing Asian/European */
+export type LanguageCode =
+  | "en"
+  | "sw"
+  | "am"
+  | "rw"
+  | "yo"
+  | "zu"
+  | "so"
+  | "lg"
+  | "ln"
+  | "pt"
+  | "hi"
+  | "ar"
+  | "fr"
+  | "es";
 
-export const LANGUAGES: { code: Language; label: string; flag: string }[] = [
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "rw", label: "Kinyarwanda", flag: "🇷🇼" },
-  { code: "hi", label: "हिन्दी", flag: "🇮🇳" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "ar", label: "العربية", flag: "🇸🇦" },
+export type TranslationKey = LanguageCode;
+
+/** ISO-style region / market selector — country codes, not spoken languages */
+export type RegionCode =
+  | "ng"
+  | "ke"
+  | "gh"
+  | "za"
+  | "rw"
+  | "cd"
+  | "so"
+  | "ug"
+  | "ao"
+  | "et";
+
+/**
+ * Per market: `uiLanguage` is what we show in the selector (conversational trust).
+ * `translationFallback` is the string bundle `t()` uses — often English, or the closest full pack (e.g. fr for CD).
+ */
+export const REGION_CONFIG = {
+  ng: {
+    label: "Nigeria",
+    countryCode: "NG",
+    flagUrl: "https://flagcdn.com/w40/ng.png",
+    uiLanguage: "English (Pidgin supported)",
+    translationFallback: "en" as const,
+  },
+  ke: {
+    label: "Kenya",
+    countryCode: "KE",
+    flagUrl: "https://flagcdn.com/w40/ke.png",
+    uiLanguage: "English + Swahili (mix)",
+    translationFallback: "en" as const,
+  },
+  gh: {
+    label: "Ghana",
+    countryCode: "GH",
+    flagUrl: "https://flagcdn.com/w40/gh.png",
+    uiLanguage: "English (local dialect friendly)",
+    translationFallback: "en" as const,
+  },
+  za: {
+    label: "South Africa",
+    countryCode: "ZA",
+    flagUrl: "https://flagcdn.com/w40/za.png",
+    uiLanguage: "English + Zulu (mix)",
+    translationFallback: "en" as const,
+  },
+  rw: {
+    label: "Rwanda",
+    countryCode: "RW",
+    flagUrl: "https://flagcdn.com/w40/rw.png",
+    uiLanguage: "English + Kinyarwanda",
+    translationFallback: "en" as const,
+  },
+  cd: {
+    label: "Congo",
+    countryCode: "CD",
+    flagUrl: "https://flagcdn.com/w40/cd.png",
+    uiLanguage: "Lingala (with English support)",
+    /** Lingala in UI; French bundle is the closest available full translation */
+    translationFallback: "fr" as const,
+  },
+  so: {
+    label: "Somalia",
+    countryCode: "SO",
+    flagUrl: "https://flagcdn.com/w40/so.png",
+    uiLanguage: "Somali + English",
+    translationFallback: "en" as const,
+  },
+  ug: {
+    label: "Uganda",
+    countryCode: "UG",
+    flagUrl: "https://flagcdn.com/w40/ug.png",
+    uiLanguage: "English + Luganda",
+    translationFallback: "en" as const,
+  },
+  ao: {
+    label: "Angola",
+    countryCode: "AO",
+    flagUrl: "https://flagcdn.com/w40/ao.png",
+    uiLanguage: "Portuguese + English",
+    translationFallback: "pt" as const,
+  },
+  et: {
+    label: "Ethiopia",
+    countryCode: "ET",
+    flagUrl: "https://flagcdn.com/w40/et.png",
+    uiLanguage: "Amharic + English",
+    translationFallback: "am" as const,
+  },
+} satisfies Record<
+  RegionCode,
+  {
+    label: string;
+    countryCode: string;
+    flagUrl: string;
+    uiLanguage: string;
+    translationFallback: TranslationKey;
+  }
+>;
+
+const REGION_ORDER: RegionCode[] = ["ng", "ke", "gh", "za", "rw", "cd", "so", "ug", "ao", "et"];
+
+/** Conversational “how we talk with you” lines (shared with med-tourism country picker) */
+export const VIEWER_LOCALE_LINES: Record<RegionCode, string> = Object.fromEntries(
+  REGION_ORDER.map((code) => [code, REGION_CONFIG[code].uiLanguage]),
+) as Record<RegionCode, string>;
+
+export const LANGUAGE_OPTIONS: {
+  code: LanguageCode;
+  label: string;
+  nativeLabel: string;
+  countryCode: string;
+  flagUrl: string;
+  languageLine: string;
+}[] = [
+  { code: "en", label: "English", nativeLabel: "English", countryCode: "US", flagUrl: "https://flagcdn.com/w40/us.png", languageLine: "Global default" },
+  { code: "sw", label: "Swahili", nativeLabel: "Kiswahili", countryCode: "KE", flagUrl: "https://flagcdn.com/w40/ke.png", languageLine: "East & Central Africa" },
+  { code: "am", label: "Amharic", nativeLabel: "አማርኛ", countryCode: "ET", flagUrl: "https://flagcdn.com/w40/et.png", languageLine: "Ethiopia" },
+  { code: "rw", label: "Kinyarwanda", nativeLabel: "Ikinyarwanda", countryCode: "RW", flagUrl: "https://flagcdn.com/w40/rw.png", languageLine: "Rwanda" },
+  { code: "yo", label: "Yoruba", nativeLabel: "Yorùbá", countryCode: "NG", flagUrl: "https://flagcdn.com/w40/ng.png", languageLine: "Nigeria" },
+  { code: "zu", label: "Zulu", nativeLabel: "isiZulu", countryCode: "ZA", flagUrl: "https://flagcdn.com/w40/za.png", languageLine: "South Africa" },
+  { code: "so", label: "Somali", nativeLabel: "Soomaali", countryCode: "SO", flagUrl: "https://flagcdn.com/w40/so.png", languageLine: "Somalia" },
+  { code: "lg", label: "Luganda", nativeLabel: "Luganda", countryCode: "UG", flagUrl: "https://flagcdn.com/w40/ug.png", languageLine: "Uganda" },
+  { code: "ln", label: "Lingala", nativeLabel: "Lingála", countryCode: "CD", flagUrl: "https://flagcdn.com/w40/cd.png", languageLine: "DR Congo" },
+  { code: "pt", label: "Portuguese", nativeLabel: "Português", countryCode: "AO", flagUrl: "https://flagcdn.com/w40/ao.png", languageLine: "Angola & Lusophone Africa" },
+  { code: "hi", label: "Hindi", nativeLabel: "हिंदी", countryCode: "IN", flagUrl: "https://flagcdn.com/w40/in.png", languageLine: "Hindi" },
+  { code: "ar", label: "Arabic", nativeLabel: "العربية", countryCode: "SA", flagUrl: "https://flagcdn.com/w40/sa.png", languageLine: "Arabic" },
+  { code: "fr", label: "French", nativeLabel: "Français", countryCode: "FR", flagUrl: "https://flagcdn.com/w40/fr.png", languageLine: "French" },
+  { code: "es", label: "Spanish", nativeLabel: "Español", countryCode: "ES", flagUrl: "https://flagcdn.com/w40/es.png", languageLine: "Spanish" },
 ];
 
-const translations: Record<Language, Record<string, string>> = {
-  en: {
+/** Header + footer copy for the header language menu (see LanguageSwitcher) */
+const LANG_UI_EN: Record<string, string> = {
+    "lang.pageLanguage": "Your page language",
+    "lang.footer":
+      "We use simple, easy-to-understand language for your comfort. You can switch anytime.",
+    "lang.en.label": "English",
+    "lang.en.native": "English",
+    "lang.en.line": "Global default",
+    "lang.hi.label": "Hindi",
+    "lang.hi.native": "हिंदी",
+    "lang.hi.line": "Simple Hindi — common English words where it helps",
+    "lang.ar.label": "Arabic",
+    "lang.ar.native": "العربية",
+    "lang.ar.line": "Arabic",
+    "lang.fr.label": "French",
+    "lang.fr.native": "Français",
+    "lang.fr.line": "French",
+    "lang.es.label": "Spanish",
+    "lang.es.native": "Español",
+    "lang.es.line": "Spanish",
+    "lang.sw.label": "Swahili",
+    "lang.sw.native": "Kiswahili",
+    "lang.sw.line": "East & Central Africa — English words where helpful",
+    "lang.am.label": "Amharic",
+    "lang.am.native": "አማርኛ",
+    "lang.am.line": "Ethiopia — Amharic + English where helpful",
+    "lang.rw.label": "Kinyarwanda",
+    "lang.rw.native": "Ikinyarwanda",
+    "lang.rw.line": "Rwanda — Kinyarwanda + English",
+    "lang.yo.label": "Yoruba",
+    "lang.yo.native": "Yorùbá",
+    "lang.yo.line": "Nigeria — Yoruba + English",
+    "lang.zu.label": "Zulu",
+    "lang.zu.native": "isiZulu",
+    "lang.zu.line": "South Africa — Zulu + English",
+    "lang.so.label": "Somali",
+    "lang.so.native": "Soomaali",
+    "lang.so.line": "Somali + English",
+    "lang.lg.label": "Luganda",
+    "lang.lg.native": "Luganda",
+    "lang.lg.line": "Uganda — Luganda + English",
+    "lang.ln.label": "Lingala",
+    "lang.ln.native": "Lingála",
+    "lang.ln.line": "DR Congo — Lingala + French/English",
+    "lang.pt.label": "Portuguese",
+    "lang.pt.native": "Português",
+    "lang.pt.line": "Angola & Lusophone Africa — Portuguese + English",
+};
+
+const LANDING_EN: Record<string, string> = {
+    ...LANG_UI_EN,
     "nav.hotels": "Hotels",
     "nav.hospitals": "Hospitals",
     "nav.medicalTourism": "Medical Tourism",
@@ -68,8 +263,20 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.rights": "© 2026 StayOnStay. All rights reserved.",
     "footer.made": "Made with",
     "footer.for": "for medical travelers",
-  },
+};
+
+const translations: Record<TranslationKey, Record<string, string>> = {
+  en: LANDING_EN,
+  sw: LANDING_EN,
+  am: LANDING_EN,
+  yo: LANDING_EN,
+  zu: LANDING_EN,
+  lg: LANDING_EN,
+  ln: LANDING_EN,
+  so: LANDING_EN,
+  pt: LANDING_EN,
   rw: {
+    ...LANG_UI_EN,
     "nav.hotels": "Amahoteri",
     "nav.hospitals": "Ibitaro",
     "nav.medicalTourism": "Ingendo z'Ubuvuzi",
@@ -127,6 +334,52 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.for": "ku barwayi bagenda",
   },
   hi: {
+    ...LANG_UI_EN,
+    "lang.pageLanguage": "आपकी भाषा (पेज)",
+    "lang.footer":
+      "हम आसान, समझने वाली भाषा use करते हैं। कभी भी बदल सकते हैं।",
+    "lang.en.label": "English",
+    "lang.en.native": "English",
+    "lang.en.line": "Default — English",
+    "lang.hi.label": "हिंदी",
+    "lang.hi.native": "हिंदी",
+    "lang.hi.line": "आसान हिंदी — ज़रूरत हो तो English शब्द",
+    "lang.ar.label": "Arabic",
+    "lang.ar.native": "العربية",
+    "lang.ar.line": "Arabic",
+    "lang.fr.label": "French",
+    "lang.fr.native": "Français",
+    "lang.fr.line": "French",
+    "lang.es.label": "Spanish",
+    "lang.es.native": "Español",
+    "lang.es.line": "Spanish",
+    "lang.sw.label": "Swahili",
+    "lang.sw.native": "Kiswahili",
+    "lang.sw.line": "पूर्वी अफ्रीका — ज़रूरत हो तो English शब्द",
+    "lang.am.label": "Amharic",
+    "lang.am.native": "አማርኛ",
+    "lang.am.line": "इथियोपिया — አማርኛ + English",
+    "lang.rw.label": "Kinyarwanda",
+    "lang.rw.native": "Ikinyarwanda",
+    "lang.rw.line": "रवांडा — Ikinyarwanda + English",
+    "lang.yo.label": "Yoruba",
+    "lang.yo.native": "Yorùbá",
+    "lang.yo.line": "नाइजीरिया — Yorùbá + English",
+    "lang.zu.label": "Zulu",
+    "lang.zu.native": "isiZulu",
+    "lang.zu.line": "दक्षिण अफ्रीका — isiZulu + English",
+    "lang.so.label": "Somali",
+    "lang.so.native": "Soomaali",
+    "lang.so.line": "Soomaali + English",
+    "lang.lg.label": "Luganda",
+    "lang.lg.native": "Luganda",
+    "lang.lg.line": "युगांडा — Luganda + English",
+    "lang.ln.label": "Lingala",
+    "lang.ln.native": "Lingála",
+    "lang.ln.line": "Lingála + French/English",
+    "lang.pt.label": "Portuguese",
+    "lang.pt.native": "Português",
+    "lang.pt.line": "अंगोला — Português + English",
     "nav.hotels": "होटल",
     "nav.hospitals": "अस्पताल",
     "nav.medicalTourism": "चिकित्सा पर्यटन",
@@ -184,6 +437,15 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.for": "चिकित्सा यात्रियों के लिए प्यार से",
   },
   fr: {
+    ...LANG_UI_EN,
+    "lang.pageLanguage": "Langue de la page",
+    "lang.footer":
+      "Nous utilisons un langage simple pour votre confort. Vous pouvez changer à tout moment.",
+    "lang.en.line": "Par défaut — anglais",
+    "lang.hi.line": "Hindi — mots anglais courants si utile",
+    "lang.ar.line": "Arabe",
+    "lang.fr.line": "Français",
+    "lang.es.line": "Espagnol",
     "nav.hotels": "Hôtels",
     "nav.hospitals": "Hôpitaux",
     "nav.medicalTourism": "Tourisme médical",
@@ -241,6 +503,15 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.for": "pour les voyageurs médicaux",
   },
   es: {
+    ...LANG_UI_EN,
+    "lang.pageLanguage": "Idioma de la página",
+    "lang.footer":
+      "Usamos un lenguaje sencillo para su comodidad. Puede cambiar cuando quiera.",
+    "lang.en.line": "Predeterminado — inglés",
+    "lang.hi.line": "Hindi — palabras en inglés si ayuda",
+    "lang.ar.line": "Árabe",
+    "lang.fr.line": "Francés",
+    "lang.es.line": "Español",
     "nav.hotels": "Hoteles",
     "nav.hospitals": "Hospitales",
     "nav.medicalTourism": "Turismo médico",
@@ -298,6 +569,15 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.for": "para viajeros médicos",
   },
   ar: {
+    ...LANG_UI_EN,
+    "lang.pageLanguage": "لغة الصفحة",
+    "lang.footer":
+      "نستخدم لغة بسيطة وسهلة الفهم لراحتك. يمكنك التبديل في أي وقت.",
+    "lang.en.line": "الافتراضي — الإنجليزية",
+    "lang.hi.line": "الهندية — كلمات إنجليزية شائعة عند الحاجة",
+    "lang.ar.line": "العربية",
+    "lang.fr.line": "الفرنسية",
+    "lang.es.line": "الإسبانية",
     "nav.hotels": "الفنادق",
     "nav.hospitals": "المستشفيات",
     "nav.medicalTourism": "السياحة العلاجية",
@@ -357,19 +637,23 @@ const translations: Record<Language, Record<string, string>> = {
 };
 
 interface I18nContextType {
-  language: Language;
-  setLanguage: (lang: Language) => void;
+  /** Selected UI language for translations */
+  language: LanguageCode;
+  setLanguage: (language: LanguageCode) => void;
   t: (key: string) => string;
 }
 
 const I18nContext = createContext<I18nContextType | null>(null);
 
 export const I18nProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguage] = useState<LanguageCode>("en");
 
   const t = useCallback(
-    (key: string) => translations[language]?.[key] || translations.en[key] || key,
-    [language]
+    (key: string) => {
+      const pack = language;
+      return translations[pack]?.[key] || translations.en[key] || key;
+    },
+    [language],
   );
 
   return (

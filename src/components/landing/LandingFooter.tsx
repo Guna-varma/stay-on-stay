@@ -33,7 +33,7 @@ const LandingFooter = () => {
 
   return (
     <footer id="support" className="bg-card border-t border-border">
-      <div className="max-w-page py-12 lg:py-16">
+      <div className="max-w-page py-12 lg:py-20">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           <div className="col-span-2 md:col-span-1">
             <div className="mb-4">

@@ -11,7 +11,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-16 lg:py-24">
+    <section className="py-12 lg:py-20">
       <div className="max-w-page">
         <div className="text-center mb-12">
           <h2 className="text-foreground mb-3">{t("how.title")}</h2>

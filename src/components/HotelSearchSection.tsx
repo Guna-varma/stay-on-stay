@@ -174,5 +174,5 @@ export function HotelSearchSection({ standalone = false, sectionId = "hotels" }:
     </div>
   );
   if (standalone) return content;
-  return <section id={sectionId} className="py-12 lg:py-16 bg-muted/30"><div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8">{content}</div></section>;
+  return <section id={sectionId} className="py-12 lg:py-20 bg-muted/30"><div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8">{content}</div></section>;
 }

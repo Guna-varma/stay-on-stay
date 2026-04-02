@@ -107,7 +107,7 @@ const ncrPlaces = [
 
 export default function HospitalsTourismSection() {
   return (
-    <section id="hospitals" className="py-16 lg:py-24 bg-muted/40">
+    <section id="hospitals" className="py-12 lg:py-20 bg-muted/40">
       <div className="max-w-page">
         <div className="text-center mb-12">
           <h2 className="text-foreground mb-3">Hospitals and Nearby Visiting Places</h2>
