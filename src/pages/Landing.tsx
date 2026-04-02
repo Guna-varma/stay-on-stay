@@ -3,11 +3,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import LandingHeader from "@/components/landing/LandingHeader";
 import HeroSearch from "@/components/landing/HeroSearch";
+import TrustBar from "@/components/landing/TrustBar";
 import { HotelSearchSection } from "@/components/HotelSearchSection";
-import HospitalsTourismSection from "@/components/landing/HospitalsTourismSection";
-import HowItWorks from "@/components/landing/HowItWorks";
+import PatientJourneySection from "@/components/landing/PatientJourneySection";
+import MedTourismStrip from "@/components/landing/MedTourismStrip";
 import ServicesSection from "@/components/landing/ServicesSection";
+import PackagesPricingSection from "@/components/landing/PackagesPricingSection";
 import Testimonials from "@/components/landing/Testimonials";
+import LandingCtaBanner from "@/components/landing/LandingCtaBanner";
+import LandingContactSection from "@/components/landing/LandingContactSection";
+import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
 import LandingFooter from "@/components/landing/LandingFooter";
 
 export default function Landing() {
@@ -47,15 +52,20 @@ export default function Landing() {
   // When logged in, show landing with authenticated header (no redirect so / shows username + role)
   return (
     <I18nProvider>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-24 lg:pb-28">
         <LandingHeader />
         <HeroSearch />
-        <HotelSearchSection sectionId="hotels" />
-        <HospitalsTourismSection />
-        <HowItWorks />
+        <TrustBar />
         <ServicesSection />
+        <PatientJourneySection />
+        <HotelSearchSection sectionId="hotels" />
+        <MedTourismStrip />
+        <PackagesPricingSection />
         <Testimonials />
+        <LandingCtaBanner />
+        <LandingContactSection />
         <LandingFooter />
+        <FloatingWhatsApp />
       </div>
     </I18nProvider>
   );

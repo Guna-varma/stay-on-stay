@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, CalendarDays, Users, Locate } from "lucide-react";
+import { Search, CalendarDays, Users, Locate, MessageCircle, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +10,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { HERO_IMAGE } from "@/lib/airbnb-images";
 import { useI18n } from "@/lib/i18n";
 import { useSearchParams } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import {
+  inferVisitorIndiaLikely,
+  setStoredWhatsAppRegion,
+  WHATSAPP_IN_NUMBER,
+  WHATSAPP_RW_NUMBER,
+  whatsappMeUrl,
+} from "@/lib/whatsappContact";
 
 const GUEST_OPTIONS = [
   { value: "1", label: "1 Room, 1 Guest" },
   { value: "2", label: "1 Room, 2 Guests" },
   { value: "3", label: "2 Rooms, 3 Guests" },
+] as const;
+
+const QUICK_COUNTRIES = [
+  { value: "nigeria", labelKey: "quick.country.nigeria" },
+  { value: "kenya", labelKey: "quick.country.kenya" },
+  { value: "rwanda", labelKey: "quick.country.rwanda" },
+  { value: "ghana", labelKey: "quick.country.ghana" },
+  { value: "south-africa", labelKey: "quick.country.southafrica" },
+  { value: "uganda", labelKey: "quick.country.uganda" },
+  { value: "india", labelKey: "quick.country.india" },
+  { value: "other", labelKey: "quick.country.other" },
 ] as const;
 
 const defaultCheckIn = new Date(2026, 2, 10);
@@ -29,6 +46,9 @@ const HeroSearch = () => {
   const [checkOut, setCheckOut] = useState<Date | undefined>(defaultCheckOut);
   const [guests, setGuests] = useState(searchParams.get("guests") ?? "1");
   const [nearMeLoading, setNearMeLoading] = useState(false);
+
+  const [quickName, setQuickName] = useState("");
+  const [quickCountry, setQuickCountry] = useState<string>("rwanda");
 
   const handleNearMe = () => {
     if (!navigator.geolocation) {
@@ -44,7 +64,7 @@ const HeroSearch = () => {
       () => {
         setSearchQuery("Near me");
         setNearMeLoading(false);
-      }
+      },
     );
   };
 
@@ -63,122 +83,218 @@ const HeroSearch = () => {
     document.getElementById("hotels")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const scrollToHotels = () => {
+    document.getElementById("hotels")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const openWhatsAppQuick = () => {
+    const opt = QUICK_COUNTRIES.find((c) => c.value === quickCountry);
+    const countryLabel = opt ? t(opt.labelKey) : quickCountry;
+    const region = quickCountry === "india" ? "in" : "intl";
+    setStoredWhatsAppRegion(region);
+    const n = quickCountry === "india" ? WHATSAPP_IN_NUMBER : WHATSAPP_RW_NUMBER;
+    const namePart = quickName.trim() ? quickName.trim() : t("quick.anonymous");
+    const msg = t("quick.prefill").replace("{name}", namePart).replace("{country}", countryLabel);
+    window.open(whatsappMeUrl(n, msg), "_blank", "noopener,noreferrer");
+  };
+
   return (
-    <section className="relative min-h-[420px] sm:min-h-[480px] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[480px] sm:min-h-[520px] flex items-center justify-center overflow-hidden">
       <img
         src={HERO_IMAGE}
-        alt="Medical hospitality"
+        alt=""
         className="absolute inset-0 w-full h-full object-cover"
+        fetchPriority="high"
+        decoding="async"
       />
-      <div
-        className="absolute inset-0"
-        style={{ background: "var(--hero-overlay)" }}
-      />
+      <div className="absolute inset-0" style={{ background: "var(--hero-overlay)" }} />
 
-      <div className="relative z-10 max-w-page w-full py-6 sm:py-10 md:py-14 text-center px-3 sm:px-4">
-        <h1 className="text-primary-foreground mb-2 sm:mb-3 text-2xl sm:text-3xl md:text-4xl lg:text-[40px] animate-fade-in">
-          {t("hero.title")}
-        </h1>
-        <p className="text-primary-foreground/85 text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-6 sm:mb-8 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-          {t("hero.subtitle")}
-        </p>
+      <div className="relative z-10 max-w-page w-full py-8 sm:py-12 md:py-14 px-3 sm:px-4">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
+          <h1 className="text-primary-foreground text-2xl sm:text-3xl md:text-4xl lg:text-[2.5rem] font-semibold tracking-tight leading-tight mb-3">
+            {t("hero.title")}
+          </h1>
+          <p className="text-primary-foreground/90 text-sm sm:text-base md:text-lg leading-relaxed">
+            {t("hero.subtitle")}
+          </p>
+          <p className="text-primary-foreground/80 text-xs sm:text-sm mt-3 italic">{t("hero.promise")}</p>
+        </div>
 
-        <form
-          onSubmit={handleSearch}
-          className="bg-card rounded-xl p-3 sm:p-4 shadow-card-hover max-w-5xl mx-auto animate-fade-in"
-          style={{ animationDelay: "0.2s" }}
-        >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-2">
-            {/* Search by area, landmark or hotel name + Near me */}
-            <div className="flex-1 min-w-0 flex flex-col gap-1">
-              <Label className="text-[11px] font-medium text-muted-foreground uppercase sm:pl-1">Search</Label>
-              <div className="flex items-center gap-2 bg-muted rounded-lg pl-3 pr-1.5 py-1 h-11 sm:h-12 focus-within:shadow-search-glow focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search by area, landmark or hotel name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent border-0 shadow-none focus-visible:ring-0 h-auto py-0 text-sm placeholder:text-muted-foreground min-w-0 flex-1"
-                />
-                <button
-                  type="button"
-                  onClick={handleNearMe}
-                  disabled={nearMeLoading}
-                  className="shrink-0 flex items-center gap-1.5 rounded-full bg-muted-foreground/15 hover:bg-muted-foreground/25 text-foreground px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60"
-                >
-                  <Locate className="h-3.5 w-3.5" />
-                  {nearMeLoading ? "…" : "Near me"}
-                </button>
-              </div>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center max-w-xl sm:max-w-2xl mx-auto mb-8">
+          <Button
+            type="button"
+            size="lg"
+            className="h-12 sm:h-14 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md"
+            onClick={scrollToHotels}
+          >
+            {t("hero.bookNow")}
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            className="h-12 sm:h-14 text-base font-semibold bg-[#25D366] hover:bg-[#20BD5A] text-white shadow-md"
+            onClick={() => {
+              const n = inferVisitorIndiaLikely() ? WHATSAPP_IN_NUMBER : WHATSAPP_RW_NUMBER;
+              window.open(whatsappMeUrl(n, t("hero.whatsappPrefill")), "_blank", "noopener,noreferrer");
+            }}
+          >
+            <MessageCircle className="mr-2 h-5 w-5" aria-hidden />
+            {t("hero.whatsappCta")}
+          </Button>
+        </div>
+
+        <div className="max-w-xl mx-auto mb-8 rounded-2xl bg-card/95 backdrop-blur-sm border border-border/50 p-4 sm:p-5 shadow-lg">
+          <p className="text-sm font-semibold text-foreground text-center mb-3">{t("quick.title")}</p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1 space-y-1">
+              <Label htmlFor="quick-name" className="text-xs text-muted-foreground">
+                {t("quick.name")}
+              </Label>
+              <Input
+                id="quick-name"
+                value={quickName}
+                onChange={(e) => setQuickName(e.target.value)}
+                placeholder={t("quick.namePlaceholder")}
+                className="h-11"
+                autoComplete="name"
+              />
             </div>
-
-            {/* Check-in */}
-            <div className="flex flex-col gap-1 sm:w-[130px]">
-              <Label className="text-[11px] font-medium text-muted-foreground uppercase sm:pl-1">Check-in</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <div className="flex items-center gap-2 bg-muted rounded-lg px-3 h-11 sm:h-12 cursor-pointer focus-within:shadow-search-glow focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                    <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="text-sm">{checkIn ? format(checkIn, "dd-MM-yyyy") : "Add date"}</span>
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={checkIn} onSelect={setCheckIn} initialFocus />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Check-out */}
-            <div className="flex flex-col gap-1 sm:w-[130px]">
-              <Label className="text-[11px] font-medium text-muted-foreground uppercase sm:pl-1">Check-out</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <div className="flex items-center gap-2 bg-muted rounded-lg px-3 h-11 sm:h-12 cursor-pointer focus-within:shadow-search-glow focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                    <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="text-sm">{checkOut ? format(checkOut, "dd-MM-yyyy") : "Add date"}</span>
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={checkOut} onSelect={setCheckOut} initialFocus />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Guests */}
-            <div className="flex flex-col gap-1 sm:w-[160px]">
-              <Label className="text-[11px] font-medium text-muted-foreground uppercase sm:pl-1">Guests</Label>
-              <Select value={guests} onValueChange={setGuests}>
-                <SelectTrigger className="h-11 sm:h-12 bg-muted border-0 shadow-none focus:ring-1 focus:ring-primary/30 rounded-lg px-3 [&>span]:text-sm">
-                  <span className="flex items-center gap-2 min-w-0">
-                    <Users className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <SelectValue placeholder="Guests" />
-                  </span>
+            <div className="flex-1 space-y-1">
+              <Label htmlFor="quick-country" className="text-xs text-muted-foreground">
+                {t("quick.country")}
+              </Label>
+              <Select value={quickCountry} onValueChange={setQuickCountry}>
+                <SelectTrigger id="quick-country" className="h-11">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {GUEST_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-sm">
-                      {opt.label}
+                  {QUICK_COUNTRIES.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {t(c.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Search button - green */}
             <Button
-              type="submit"
-              className="h-11 sm:h-12 px-6 bg-green-600 hover:bg-green-700 text-white font-medium text-sm sm:text-base shrink-0"
+              type="button"
+              className="h-11 w-full sm:w-auto shrink-0 bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold px-6"
+              onClick={openWhatsAppQuick}
             >
-              Search
+              {t("quick.submit")}
             </Button>
           </div>
-        </form>
+        </div>
 
-        <div className="flex flex-wrap justify-center gap-6 mt-6 sm:mt-8 animate-fade-in" style={{ animationDelay: "0.35s" }}>
+        <details className="max-w-5xl mx-auto group">
+          <summary className="list-none cursor-pointer flex items-center justify-center gap-2 text-primary-foreground/95 text-sm font-medium py-2 select-none [&::-webkit-details-marker]:hidden">
+            <Search className="h-4 w-4 shrink-0" aria-hidden />
+            {t("hero.searchToggle")}
+            <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
+          </summary>
+          <form
+            onSubmit={handleSearch}
+            className="bg-card rounded-xl p-3 sm:p-4 shadow-card-hover mt-2"
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-2">
+              <div className="flex-1 min-w-0 flex flex-col gap-1">
+                <Label className="text-[11px] font-medium text-muted-foreground uppercase sm:pl-1">
+                  {t("hero.search")}
+                </Label>
+                <div className="flex items-center gap-2 bg-muted rounded-lg pl-3 pr-1.5 py-1 h-11 sm:h-12 focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                  <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder={t("hero.location.placeholder")}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-transparent border-0 shadow-none focus-visible:ring-0 h-auto py-0 text-sm min-w-0 flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleNearMe}
+                    disabled={nearMeLoading}
+                    className="shrink-0 flex items-center gap-1.5 rounded-full bg-muted-foreground/15 hover:bg-muted-foreground/25 text-foreground px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60"
+                  >
+                    <Locate className="h-3.5 w-3.5" />
+                    {nearMeLoading ? "…" : t("hero.nearMe")}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1 sm:w-[130px]">
+                <Label className="text-[11px] font-medium text-muted-foreground uppercase sm:pl-1">
+                  {t("hero.checkin")}
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <div className="flex items-center gap-2 bg-muted rounded-lg px-3 h-11 sm:h-12 cursor-pointer focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                      <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="text-sm">
+                        {checkIn ? format(checkIn, "dd-MM-yyyy") : t("hero.date.placeholder")}
+                      </span>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={checkIn} onSelect={setCheckIn} initialFocus />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="flex flex-col gap-1 sm:w-[130px]">
+                <Label className="text-[11px] font-medium text-muted-foreground uppercase sm:pl-1">
+                  {t("hero.checkout")}
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <div className="flex items-center gap-2 bg-muted rounded-lg px-3 h-11 sm:h-12 cursor-pointer focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                      <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="text-sm">
+                        {checkOut ? format(checkOut, "dd-MM-yyyy") : t("hero.date.placeholder")}
+                      </span>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={checkOut} onSelect={setCheckOut} initialFocus />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="flex flex-col gap-1 sm:w-[160px]">
+                <Label className="text-[11px] font-medium text-muted-foreground uppercase sm:pl-1">
+                  {t("hero.guestsLabel")}
+                </Label>
+                <Select value={guests} onValueChange={setGuests}>
+                  <SelectTrigger className="h-11 sm:h-12 bg-muted border-0 shadow-none focus:ring-1 focus:ring-primary/30 rounded-lg px-3 [&>span]:text-sm">
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Users className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <SelectValue placeholder={t("hero.guestsLabel")} />
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GUEST_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-sm">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                type="submit"
+                className="h-11 sm:h-12 px-6 bg-green-600 hover:bg-green-700 text-white font-medium text-sm sm:text-base shrink-0"
+              >
+                {t("hero.search")}
+              </Button>
+            </div>
+          </form>
+        </details>
+
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-6 text-center">
           {[t("hero.badge1"), t("hero.badge2"), t("hero.badge3")].map((badge) => (
-            <span key={badge} className="text-sm text-primary-foreground/75 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+            <span key={badge} className="text-xs sm:text-sm text-primary-foreground/80 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" aria-hidden />
               {badge}
             </span>
           ))}

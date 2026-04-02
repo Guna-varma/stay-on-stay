@@ -18,7 +18,7 @@ import { CartButton } from "@/components/CartButton";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useAuth } from "@/lib/auth";
 import { ROLE_LABELS } from "@/lib/roles";
-import { WHATSAPP_RW_NUMBER } from "@/lib/whatsappContact";
+import { whatsappMeUrl, whatsappNumberForVisitor } from "@/lib/whatsappContact";
 
 const navLinks = [
   { key: "nav.medicalTourism", to: "/med-tourism" },
@@ -26,6 +26,7 @@ const navLinks = [
   { key: "nav.services", href: "/#services" },
   { key: "nav.support", to: "/help-center" },
   { key: "nav.hotels", href: "/#hotels" },
+  { key: "nav.exploreIndia", to: "/explore-india" },
 ] as const;
 
 const LandingHeader = () => {
@@ -70,16 +71,18 @@ const LandingHeader = () => {
   };
 
   const openContactChat = () => {
-    const number = WHATSAPP_RW_NUMBER;
-    const message = encodeURIComponent(
-      "Hello, I need help with medical treatment in India.",
+    const n = whatsappNumberForVisitor();
+    window.open(
+      whatsappMeUrl(n, "Hello, I need help with medical treatment in India."),
+      "_blank",
+      "noopener,noreferrer",
     );
-    window.open(`https://wa.me/${number}?text=${message}`, "_blank");
   };
 
   const activeNavKey = useMemo(() => {
     if (location.pathname === "/med-tourism" || location.pathname.startsWith("/med-tourism/")) return "nav.medicalTourism";
     if (location.pathname === "/help-center") return "nav.support";
+    if (location.pathname === "/explore-india") return "nav.exploreIndia";
 
     if (location.pathname === "/") {
       const hash = (location.hash || "").toLowerCase();

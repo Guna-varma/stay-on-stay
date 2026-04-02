@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useI18n } from "@/lib/i18n";
 
-const testimonials = [
+const allTestimonials = [
   {
     name: "Aisha Mbabazi",
     location: "Kigali, Rwanda",
@@ -48,26 +48,27 @@ const testimonials = [
   },
 ];
 
+/** Conversion-focused homepage: show a few strong, believable stories. */
+const testimonials = allTestimonials.slice(0, 3);
+
 const Testimonials = () => {
   const { t } = useI18n();
 
   return (
-    <section className="py-12 lg:py-20">
-      <div className="max-w-page">
-        <div className="text-center mb-12">
-          <h2 className="text-foreground mb-3">{t("testimonials.title")}</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+    <section id="testimonials" className="py-12 lg:py-20">
+      <div className="max-w-page mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10">
+          <h2 className="text-foreground text-2xl sm:text-3xl font-semibold tracking-tight mb-3">
+            {t("testimonials.title")}
+          </h2>
+          <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
             {t("testimonials.subtitle")}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {testimonials.map((item, i) => (
-            <Card
-              key={item.name}
-              className="group p-6 shadow-card hover:shadow-card-hover border-0 transition-all duration-220 animate-fade-in"
-              style={{ animationDelay: `${i * 0.08}s` }}
-            >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+          {testimonials.map((item) => (
+            <Card key={item.name} className="p-6 shadow-card border border-border/60">
               <Quote className="h-8 w-8 text-primary/20 mb-3" />
               <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                 "{item.text}"

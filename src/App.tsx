@@ -20,6 +20,7 @@ import TermsOfService from "./pages/TermsOfService";
 import HelpCenter from "./pages/HelpCenter";
 import ContactUs from "./pages/ContactUs";
 import WhatsAppSupport from "./pages/WhatsAppSupport";
+import ExploreIndia from "./pages/ExploreIndia";
 import Login from "./pages/Login";
 import AccessDenied from "./pages/AccessDenied";
 import NotFound from "./pages/NotFound";
@@ -79,6 +80,7 @@ const App = () => (
             <Route path="/help-center" element={<HelpCenter />} />
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="/whatsapp-support" element={<WhatsAppSupport />} />
+            <Route path="/explore-india" element={<ExploreIndia />} />
             <Route path="/login" element={<Login />} />
             <Route path="/access-denied" element={<AccessDenied />} />
 
