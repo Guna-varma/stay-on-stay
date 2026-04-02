@@ -13,7 +13,7 @@ import {
   useTransform,
   type Variants,
 } from "framer-motion";
-import { ChevronLeft, ChevronRight, MessageCircle, MapPin, VolumeX } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, MessageCircle, MapPin, VolumeX } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import {
   EXPLORE_CATEGORIES,
@@ -815,55 +815,79 @@ export default function ExploreIndiaView() {
         </motion.p>
       </section>
 
-      {/* Final CTA — glass */}
+      {/* Final CTA — same visual language as /med-tourism healing journey card (trust + action) */}
       <section
-        className="py-20 md:py-28 px-5"
+        className="relative py-20 md:py-28 px-4 sm:px-6 lg:px-8"
         style={{
           background: `radial-gradient(ellipse 120% 80% at 50% 100%, ${C.inkMid} 0%, ${C.ink} 70%)`,
         }}
       >
         <motion.div
-          className="max-w-2xl mx-auto text-center rounded-[2rem] p-10 md:p-14 border border-white/10 relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)",
-            boxShadow: `0 0 0 1px rgba(45,212,191,0.12), 0 40px 100px -40px rgba(0,0,0,0.8)`,
-          }}
+          className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-white/15 px-1 py-1 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.55)] sm:rounded-[2.25rem]"
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={springGentle}
         >
           <div
-            className="absolute -top-24 left-1/2 -translate-x-1/2 w-[120%] h-48 blur-3xl opacity-40 pointer-events-none"
-            style={{ background: `radial-gradient(circle, ${C.tealGlow} 0%, transparent 70%)` }}
+            className="absolute inset-0 rounded-[1.85rem] sm:rounded-[2.1rem]"
+            style={{
+              background: "linear-gradient(135deg, hsl(var(--primary)) 0%, #0ea5e9 42%, #059669 100%)",
+            }}
           />
-          <h3 className="relative text-2xl md:text-3xl font-bold text-white mb-4">{t("explore.cta.title")}</h3>
-          <p className="relative text-white/60 max-w-md mx-auto mb-10 leading-relaxed">{t("explore.cta.body")}</p>
-          <div className="relative flex flex-col sm:flex-row gap-4 justify-center">
-            <motion.button
-              type="button"
-              onClick={openPlanWhatsApp}
-              className="rounded-full px-10 py-4 text-base font-semibold text-white flex items-center justify-center gap-2"
-              style={{
-                background: `linear-gradient(135deg, #25D366 0%, #128C7E 100%)`,
-                boxShadow: "0 16px 48px -12px rgba(37,211,102,0.45)",
-              }}
-              whileHover={{ scale: 1.04, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              transition={springSnappy}
-            >
-              <MessageCircle className="h-5 w-5" />
-              {t("explore.cta.whatsapp")}
-            </motion.button>
-            <MotionLink
-              to="/#hotels"
-              className="rounded-full px-10 py-4 text-base font-semibold text-center border border-white/25 text-white hover:bg-white/10"
-              whileHover={{ scale: 1.04, borderColor: "rgba(255,255,255,0.45)" }}
-              whileTap={{ scale: 0.97 }}
-              transition={springSnappy}
-            >
-              {t("explore.cta.stays")}
-            </MotionLink>
+          <div
+            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/20 blur-3xl"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -bottom-28 -left-20 h-80 w-80 rounded-full bg-emerald-300/30 blur-3xl"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-0 rounded-[1.85rem] ring-1 ring-inset ring-white/20 sm:rounded-[2.1rem]"
+            aria-hidden
+          />
+
+          <div className="relative z-10 px-6 py-12 text-center sm:px-10 sm:py-14 md:px-14 md:py-16">
+            <h3 className="font-heading text-balance text-3xl font-black tracking-tight text-white drop-shadow-sm sm:text-4xl md:text-[2.35rem] md:leading-[1.12]">
+              {t("explore.cta.title")}
+            </h3>
+            <p className="mx-auto mt-5 max-w-xl text-base font-medium leading-relaxed text-white/95 sm:text-lg">
+              {t("explore.cta.body")}
+            </p>
+
+            <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+              <MotionLink
+                to="/med-tourism"
+                className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-white px-8 text-base font-bold text-primary shadow-xl shadow-black/15 sm:w-auto"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={springSnappy}
+              >
+                {t("explore.cta.medTourism")}
+                <ArrowRight className="h-5 w-5 shrink-0" />
+              </MotionLink>
+              <motion.button
+                type="button"
+                onClick={openPlanWhatsApp}
+                className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-white/35 bg-[#25D366] px-8 text-base font-bold text-white shadow-lg ring-2 ring-white/15 hover:bg-[#20bd5a] sm:w-auto"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={springSnappy}
+              >
+                <MessageCircle className="h-5 w-5 shrink-0" />
+                {t("explore.cta.whatsapp")}
+              </motion.button>
+              <MotionLink
+                to="/#hotels"
+                className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl border-2 border-white/40 bg-white/10 px-8 text-base font-bold text-white backdrop-blur-sm hover:bg-white/15 sm:w-auto"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={springSnappy}
+              >
+                {t("explore.cta.stays")}
+              </MotionLink>
+            </div>
           </div>
         </motion.div>
       </section>

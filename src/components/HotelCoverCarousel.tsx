@@ -45,7 +45,13 @@ export function HotelCoverCarousel({
   if (urls.length === 1) {
     return (
       <div className={cn("relative overflow-hidden", className)}>
-        <img src={urls[0]} alt={alt} className={cn("relative z-0 h-full w-full object-cover", imageClassName)} />
+        <img
+          src={urls[0]}
+          alt={alt}
+          className={cn("relative z-0 h-full w-full object-cover", imageClassName)}
+          loading="eager"
+          decoding="async"
+        />
         {gradientEl}
       </div>
     );
@@ -58,6 +64,8 @@ export function HotelCoverCarousel({
           key={`${src}-${i}`}
           src={src}
           alt={i === idx ? alt : ""}
+          loading={i === 0 ? "eager" : "lazy"}
+          decoding="async"
           className={cn(
             "absolute inset-0 h-full w-full object-cover transition-opacity duration-500",
             i === idx ? "z-10 opacity-100" : "z-0 opacity-0",

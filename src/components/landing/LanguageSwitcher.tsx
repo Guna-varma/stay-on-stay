@@ -21,7 +21,7 @@ const LanguageSwitcher = ({ compact }: { compact?: boolean }) => {
           className={cn(
             compact
               ? "h-10 w-10 shrink-0 rounded-lg border border-border/60 bg-background/80 text-foreground hover:bg-muted/80"
-              : "gap-2 text-muted-foreground",
+              : "h-9 gap-1.5 rounded-lg border border-border/70 bg-background px-2.5 text-xs font-semibold text-foreground/85 shadow-sm hover:bg-muted/50 hover:text-foreground sm:h-10 sm:gap-2 sm:px-3 sm:text-sm",
           )}
           aria-label={t("lang.pageLanguage")}
           aria-haspopup="menu"

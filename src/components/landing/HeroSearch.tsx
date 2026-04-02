@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Search, CalendarDays, Users, Locate, MessageCircle, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { HERO_IMAGE } from "@/lib/airbnb-images";
+import { HERO_HEALTHCARE_IMAGE } from "@/lib/healthcare-images";
 import { useI18n } from "@/lib/i18n";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -40,6 +41,7 @@ const defaultCheckOut = new Date(2026, 2, 11);
 
 const HeroSearch = () => {
   const { t } = useI18n();
+  const reduceMotion = useReducedMotion();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("location") ?? "");
   const [checkIn, setCheckIn] = useState<Date | undefined>(defaultCheckIn);
@@ -101,46 +103,29 @@ const HeroSearch = () => {
   return (
     <section className="relative min-h-[480px] sm:min-h-[520px] flex items-center justify-center overflow-hidden">
       <img
-        src={HERO_IMAGE}
+        src={HERO_HEALTHCARE_IMAGE}
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
         fetchPriority="high"
         decoding="async"
       />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/30 pointer-events-none" aria-hidden />
       <div className="absolute inset-0" style={{ background: "var(--hero-overlay)" }} />
 
-      <div className="relative z-10 max-w-page w-full py-8 sm:py-12 md:py-14 px-3 sm:px-4">
+      <motion.div
+        className="relative z-10 max-w-page w-full py-8 sm:py-12 md:py-14 px-3 sm:px-4"
+        initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
-          <h1 className="text-primary-foreground text-2xl sm:text-3xl md:text-4xl lg:text-[2.5rem] font-semibold tracking-tight leading-tight mb-3">
+          <h1 className="text-primary-foreground text-2xl sm:text-3xl md:text-4xl lg:text-[2.5rem] font-semibold tracking-tight leading-[1.15] mb-3 text-balance">
             {t("hero.title")}
           </h1>
-          <p className="text-primary-foreground/90 text-sm sm:text-base md:text-lg leading-relaxed">
+          <p className="text-primary-foreground/92 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
             {t("hero.subtitle")}
           </p>
-          <p className="text-primary-foreground/80 text-xs sm:text-sm mt-3 italic">{t("hero.promise")}</p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center max-w-xl sm:max-w-2xl mx-auto mb-8">
-          <Button
-            type="button"
-            size="lg"
-            className="h-12 sm:h-14 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md"
-            onClick={scrollToHotels}
-          >
-            {t("hero.bookNow")}
-          </Button>
-          <Button
-            type="button"
-            size="lg"
-            className="h-12 sm:h-14 text-base font-semibold bg-[#25D366] hover:bg-[#20BD5A] text-white shadow-md"
-            onClick={() => {
-              const n = inferVisitorIndiaLikely() ? WHATSAPP_IN_NUMBER : WHATSAPP_RW_NUMBER;
-              window.open(whatsappMeUrl(n, t("hero.whatsappPrefill")), "_blank", "noopener,noreferrer");
-            }}
-          >
-            <MessageCircle className="mr-2 h-5 w-5" aria-hidden />
-            {t("hero.whatsappCta")}
-          </Button>
+          <p className="text-emerald-100/95 text-xs sm:text-sm mt-4 font-medium">{t("hero.promise")}</p>
         </div>
 
         <div className="max-w-xl mx-auto mb-8 rounded-2xl bg-card/95 backdrop-blur-sm border border-border/50 p-4 sm:p-5 shadow-lg">
@@ -164,7 +149,10 @@ const HeroSearch = () => {
                 {t("quick.country")}
               </Label>
               <Select value={quickCountry} onValueChange={setQuickCountry}>
-                <SelectTrigger id="quick-country" className="h-11">
+                <SelectTrigger
+                id="quick-country"
+                className="h-11 focus:ring-2 focus:ring-primary/35 focus:border-primary/40 transition-shadow"
+              >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -178,12 +166,38 @@ const HeroSearch = () => {
             </div>
             <Button
               type="button"
-              className="h-11 w-full sm:w-auto shrink-0 bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold px-6"
+              variant="cta"
+              className="h-11 w-full sm:w-auto shrink-0 bg-[#25D366] hover:bg-[#20BD5A] text-white font-semibold px-6 border-0 shadow-md hover:shadow-lg"
               onClick={openWhatsAppQuick}
             >
               {t("quick.submit")}
             </Button>
           </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center max-w-xl sm:max-w-2xl mx-auto mb-8">
+          <Button
+            type="button"
+            size="lg"
+            variant="cta"
+            className="h-12 sm:h-14 text-base font-semibold bg-[#25D366] hover:bg-[#20BD5A] text-white border-0"
+            onClick={() => {
+              const n = inferVisitorIndiaLikely() ? WHATSAPP_IN_NUMBER : WHATSAPP_RW_NUMBER;
+              window.open(whatsappMeUrl(n, t("hero.whatsappPrefill")), "_blank", "noopener,noreferrer");
+            }}
+          >
+            <MessageCircle className="mr-2 h-5 w-5" aria-hidden />
+            {t("hero.whatsappCta")}
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            variant="cta"
+            className="h-12 sm:h-14 text-base font-semibold"
+            onClick={scrollToHotels}
+          >
+            {t("hero.bookNow")}
+          </Button>
         </div>
 
         <details className="max-w-5xl mx-auto group">
@@ -293,13 +307,13 @@ const HeroSearch = () => {
 
         <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-6 text-center">
           {[t("hero.badge1"), t("hero.badge2"), t("hero.badge3")].map((badge) => (
-            <span key={badge} className="text-xs sm:text-sm text-primary-foreground/80 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" aria-hidden />
+            <span key={badge} className="text-xs sm:text-sm text-primary-foreground/85 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 shadow-sm" aria-hidden />
               {badge}
             </span>
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

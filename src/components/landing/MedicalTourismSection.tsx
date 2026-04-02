@@ -1,16 +1,11 @@
-import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
+import { motion, useInView, useMotionValue, useTransform, animate, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   Shield,
   MessageCircle,
   Plane,
-  Hotel,
   Car,
   Stethoscope,
-  Globe,
-  MessageSquare,
-  ListChecks,
-  CalendarCheck,
   HeartPulse,
   Camera,
   Home,
@@ -19,14 +14,27 @@ import {
   Bone,
   Baby,
   Brain,
-  MapPin,
   Star,
   BadgeCheck,
   Headphones,
   Building2,
+  CalendarDays,
+  ListChecks,
   PlaneTakeoff,
   Quote,
+  Video,
+  FileText,
+  ShieldCheck,
+  ScrollText,
+  ExternalLink,
+  Activity,
+  Scale,
+  Sparkles,
+  Pill,
+  Ear,
+  Droplets,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,7 +45,15 @@ import {
   useI18n,
 } from "@/lib/i18n";
 import { useMtText } from "@/lib/medTourismText";
-import { WHATSAPP_RW_NUMBER } from "@/lib/whatsappContact";
+import {
+  MT_HERO_DISCLAIMER,
+  MT_HERO_SUBLINE_REST,
+  MT_HERO_SUBLINE_WE,
+} from "@/lib/medTourismCopy";
+import { WHATSAPP_CARE_GUIDE_PREFILL } from "@/lib/whatsappContact";
+import { useWhatsappHref } from "@/hooks/useWhatsappHref";
+import { AFRICA_COUNTRY_FLAGS, africaFlagUrl } from "@/lib/africaCountryFlags";
+import { GURUGRAM_PARTNER_HOSPITALS } from "@/lib/partnerHospitalsGurugram";
 import { WhyIndiaScreens } from "@/components/landing/WhyIndiaScreens";
 
 const HERO_IMG =
@@ -48,43 +64,356 @@ const glass =
   "rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-elevated";
 const glassHover = cn(glass, "transition-shadow duration-300 hover:shadow-premium");
 
-/* —— Why travel —— */
-const whyServices = [
-  { icon: Plane, title: "Help with flights", desc: "We help you pick flights and dates that fit your treatment." },
-  { icon: Hotel, title: "Hotel booking", desc: "We book hotels near your hospital. Good price. We do all booking." },
-  { icon: Car, title: "Airport pickup & drop", desc: "Our helper meets you at the airport and drives you to your hotel." },
-  { icon: Stethoscope, title: "Hospital help", desc: "We book doctor visits and help you talk to your hospital team." },
-  { icon: Globe, title: "Safe trip home", desc: "We help you plan going home and care after treatment." },
+/** Five trust steps before travel (replaces old service cards). `highlight` is shown prominently on step 3. */
+const trustProcessSteps: {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+  highlight?: string;
+}[] = [
+  {
+    icon: Video,
+    title: "Initial step: we speak with you online",
+    desc: "Tell us how you feel and what your doctor said. Our care team meets you on video or phone, calmly and in simple words.",
+  },
+  {
+    icon: FileText,
+    title: "You share the documents we request",
+    desc: "You upload reports on a clear checklist. We send them safely to experienced doctors in India.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Clear opinion and treatment cost from India",
+    desc: "Doctors in India review your file. They explain your condition and the full cost of care in plain language.",
+    highlight: "No commission from our team on your hospital quote. You see the real price.",
+  },
+  {
+    icon: ScrollText,
+    title: "Official letter on StayOnStay letterhead",
+    desc: "When you say yes, the hospital prepares your invitation letter. We coordinate it on official StayOnStay letterhead so the paperwork is easy to trust.",
+  },
+  {
+    icon: PlaneTakeoff,
+    title: "Visa and flights: we guide you",
+    desc: "We walk you through visa steps and suggest flight dates and routes that fit your treatment plan.",
+  },
 ];
 
-/* —— Journey —— */
-const journeySteps = [
-  { icon: MessageSquare, title: "Tell us your problem", desc: "Tell us what you need. We listen." },
-  { icon: ListChecks, title: "Get hospitals and prices", desc: "We send hospital names and clear prices." },
-  { icon: CalendarCheck, title: "We plan travel and stay", desc: "Flights, hotel, visa help — we fix it for you." },
-  { icon: Plane, title: "You fly to India", desc: "You land in India. Our helper meets you at the airport." },
-  { icon: HeartPulse, title: "Treatment and rest", desc: "Good treatment. Help by phone 24 hours a day." },
-  { icon: Camera, title: "Visit India (optional)", desc: "You can see places in India while you rest, if you want." },
-  { icon: Home, title: "Your trip home", desc: "We help you go home and get follow-up care." },
+/** Unsplash image base query — `ixlib` is required for stable CDN URLs (avoids 404s / blocks). */
+const u = (id: string) =>
+  `https://images.unsplash.com/${id}?w=800&q=80&auto=format&fit=crop&ixlib=rb-4.0.3`;
+
+/** Representative photos (Unsplash) — warm, real-world context for trust; not a specific patient or hospital. */
+const journeySteps: {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+  imageSrc: string;
+  imageAlt: string;
+}[] = [
+  {
+    icon: MessageCircle,
+    title: "Tell us your problem",
+    desc: "Tell us what you need. We listen.",
+    imageSrc: u("photo-1573497019940-1c28c88b4f3e"),
+    imageAlt: "Person on a video call with a laptop, suggesting a remote care conversation",
+  },
+  {
+    icon: ListChecks,
+    title: "Get hospitals and prices",
+    desc: "We send hospital names and clear prices.",
+    imageSrc: u("photo-1519494026892-80bbd2d6fd0d"),
+    imageAlt: "Bright, modern hospital building exterior",
+  },
+  {
+    icon: CalendarDays,
+    title: "We plan travel and stay",
+    desc: "Flights, hotel, visa help: we fix it for you.",
+    imageSrc: u("photo-1529074963764-98f45c47344b"),
+    imageAlt: "Passport, phone, and travel items on a desk, suggesting trip planning",
+  },
+  {
+    icon: Plane,
+    title: "You fly to India",
+    desc: "You land in India. Our helper meets you at the airport.",
+    imageSrc: u("photo-1563013544-824ae1b704d3"),
+    imageAlt: "Airport terminal with travelers and arrivals area",
+  },
+  {
+    icon: HeartPulse,
+    title: "Treatment and rest",
+    desc: "Good treatment. Help by phone 24 hours a day.",
+    imageSrc: u("photo-1579684385127-1ef15d508118"),
+    imageAlt: "Healthcare professional with patient in a calm clinical setting",
+  },
+  {
+    icon: Camera,
+    title: "Visit India (optional)",
+    desc: "You can see places in India while you rest, if you want.",
+    imageSrc: u("photo-1524492412937-b28074a5d7da"),
+    imageAlt: "India Gate monument in New Delhi on a clear day",
+  },
+  {
+    icon: Home,
+    title: "Your trip home",
+    desc: "We help you go home and get follow-up care.",
+    /** Replaced dead photo id (404); wing-over-clouds still reads as “heading home”. */
+    imageSrc: u("photo-1436491865332-7a61a109cc05"),
+    imageAlt: "View from above the clouds from an airplane, suggesting the journey home",
+  },
 ];
 
-/* —— Treatments —— */
-const treatments = [
-  { icon: Stethoscope, name: "Heart surgery", price: "From $6,000", tag: "Popular in Africa", badge: "High Success Rate" },
-  { icon: Smile, name: "Dental implants", price: "From $800", tag: null, badge: null },
-  { icon: Eye, name: "LASIK eye surgery", price: "From $1,200", tag: null, badge: "High Success Rate" },
-  { icon: Bone, name: "Bone and joint surgery", price: "From $5,500", tag: "Popular in Africa", badge: null },
-  { icon: Baby, name: "Fertility / IVF", price: "From $3,500", tag: "Popular in Africa", badge: null },
-  { icon: Brain, name: "Brain and nerve surgery", price: "From $8,000", tag: null, badge: "High Success Rate" },
+/* —— Treatments (photo + icon; Unsplash = illustrative only). Prices/stays = indicative USD ranges. —— */
+const treatments: {
+  icon: LucideIcon;
+  name: string;
+  specialty: string;
+  price: string;
+  stay: string;
+  tag: string | null;
+  badge: string | null;
+  imageSrc: string;
+  imageAlt: string;
+}[] = [
+  {
+    icon: HeartPulse,
+    name: "Angioplasty & Stenting (Coronary)",
+    specialty: "Interventional Cardiology",
+    price: "$2,400–$6,400",
+    stay: "7–14 days (incl. recovery)",
+    tag: "Popular in Africa",
+    badge: "High Success Rate",
+    imageSrc: u("photo-1551190822-a9333d879b1f"),
+    imageAlt: "Doctor and patient in a calm consultation",
+  },
+  {
+    icon: Bone,
+    name: "Arthroscopy (Knee/Shoulder)",
+    specialty: "Orthopaedics",
+    price: "$1,000–$3,000*",
+    stay: "5–7 days",
+    tag: "Popular in Africa",
+    badge: null,
+    imageSrc: u("photo-1582719478250-c89cae4dc85b"),
+    imageAlt: "Physiotherapy and joint care context",
+  },
+  {
+    icon: Scale,
+    name: "Bariatric (Weight-Loss) Surgery",
+    specialty: "Bariatric Surgery",
+    price: "$3,000–$6,000*",
+    stay: "10–14 days",
+    tag: null,
+    badge: null,
+    imageSrc: u("photo-1571019613454-1cb2f99b2d8b"),
+    imageAlt: "Wellness and healthy lifestyle context",
+  },
+  {
+    icon: Pill,
+    name: "Bone Marrow Transplant (Stem Cell)",
+    specialty: "Hematology/Oncology",
+    price: "$25,000–$50,000*",
+    stay: "4–6 weeks",
+    tag: null,
+    badge: "High Success Rate",
+    imageSrc: u("photo-1582719478250-c89cae4dc85b"),
+    imageAlt: "Hospital care and recovery setting",
+  },
+  {
+    icon: Activity,
+    name: "Breast/Lung/Colorectal Cancer (surgery/chemo/radiotherapy)",
+    specialty: "Oncology",
+    price: "$6,000–$15,000* (for major surgeries)",
+    stay: "10–21 days (surgery)",
+    tag: "Popular in Africa",
+    badge: null,
+    imageSrc: u("photo-1576091160399-112ba8d25d1d"),
+    imageAlt: "Modern hospital clinical environment",
+  },
+  {
+    icon: Eye,
+    name: "Cataract Surgery",
+    specialty: "Ophthalmology",
+    price: "$300–$1,000",
+    stay: "3–5 days",
+    tag: null,
+    badge: "High Success Rate",
+    imageSrc: u("photo-1579684385127-1ef15d508118"),
+    imageAlt: "Eye health and vision care context",
+  },
+  {
+    icon: Baby,
+    name: "Congenital Heart Surgery (e.g. ASD/VSD repair)",
+    specialty: "Pediatric Cardiology/Cardiac Surgery",
+    price: "$4,000–$8,000",
+    stay: "4–8 weeks",
+    tag: "Popular in Africa",
+    badge: null,
+    imageSrc: u("photo-1519494026892-80bbd2d6fd0d"),
+    imageAlt: "Children’s hospital and family-friendly care context",
+  },
+  {
+    icon: Sparkles,
+    name: "Cosmetic/Plastic Surgery (rhinoplasty, liposuction, etc.)",
+    specialty: "Plastic Surgery",
+    price: "$1,000–$5,000",
+    stay: "3–10 days",
+    tag: null,
+    badge: null,
+    imageSrc: u("photo-1576091160550-2173dba999ef"),
+    imageAlt: "Clinical consultation setting",
+  },
+  {
+    icon: Ear,
+    name: "Cochlear (Ear) Implant",
+    specialty: "ENT/Otolaryngology",
+    price: "$8,000–$12,000",
+    stay: "2–4 weeks",
+    tag: null,
+    badge: null,
+    imageSrc: u("photo-1559757175-0eb30cd8c063"),
+    imageAlt: "Medical technology and hearing health context",
+  },
+  {
+    icon: Smile,
+    name: "Dental Implants & Care",
+    specialty: "Dentistry",
+    price: "$500–$1,500 per implant",
+    stay: "5–7 days",
+    tag: "Popular in Africa",
+    badge: null,
+    imageSrc: u("photo-1606811841689-23dfddce3e95"),
+    imageAlt: "Dental care setting with modern equipment",
+  },
+  {
+    icon: Eye,
+    name: "Eye Surgery (LASIK, Retina)",
+    specialty: "Ophthalmology",
+    price: "$500–$2,000",
+    stay: "3–7 days",
+    tag: null,
+    badge: "High Success Rate",
+    imageSrc: u("photo-1576091160399-112ba8d25d1d"),
+    imageAlt: "Advanced eye surgery clinical setting",
+  },
+  {
+    icon: HeartPulse,
+    name: "Gynecological Surgery (hysterectomy, fibroids)",
+    specialty: "Obstetrics/Gynecology",
+    price: "$1,000–$5,000",
+    stay: "3–7 days",
+    tag: null,
+    badge: null,
+    imageSrc: u("photo-1579684385127-1ef15d508118"),
+    imageAlt: "Caring clinical consultation",
+  },
+  {
+    icon: Bone,
+    name: "Hip Replacement",
+    specialty: "Orthopaedics",
+    price: "$4,000–$8,000",
+    stay: "10–14 days",
+    tag: "Popular in Africa",
+    badge: null,
+    imageSrc: u("photo-1582719478250-c89cae4dc85b"),
+    imageAlt: "Joint recovery and mobility context",
+  },
+  {
+    icon: Baby,
+    name: "IVF and Fertility Treatment",
+    specialty: "Reproductive Medicine",
+    price: "$3,000–$5,000 (per cycle)",
+    stay: "2–3 weeks per cycle",
+    tag: "Popular in Africa",
+    badge: null,
+    imageSrc: u("photo-1515378791036-0648a3ef77b2"),
+    imageAlt: "Family and hope context",
+  },
+  {
+    icon: Bone,
+    name: "Knee Replacement",
+    specialty: "Orthopaedics",
+    price: "$4,000–$6,000",
+    stay: "10–14 days",
+    tag: "Popular in Africa",
+    badge: null,
+    imageSrc: u("photo-1582719478250-c89cae4dc85b"),
+    imageAlt: "Knee and mobility rehabilitation context",
+  },
+  {
+    icon: Droplets,
+    name: "Kidney Stone/Lithotripsy",
+    specialty: "Urology",
+    price: "$1,000–$3,000",
+    stay: "3–5 days",
+    tag: null,
+    badge: null,
+    imageSrc: u("photo-1576091160399-112ba8d25d1d"),
+    imageAlt: "Hospital treatment context",
+  },
+  {
+    icon: Activity,
+    name: "Kidney Transplant",
+    specialty: "Nephrology/Transplant",
+    price: "$12,000–$20,000",
+    stay: "4–6 weeks",
+    tag: "Popular in Africa",
+    badge: "High Success Rate",
+    imageSrc: u("photo-1519494026892-80bbd2d6fd0d"),
+    imageAlt: "Transplant and nephrology care setting",
+  },
+  {
+    icon: Stethoscope,
+    name: "Liver Transplant",
+    specialty: "Hepatology/Transplant",
+    price: "$30,000–$50,000",
+    stay: "6–8 weeks",
+    tag: null,
+    badge: null,
+    imageSrc: u("photo-1576091160550-2173dba999ef"),
+    imageAlt: "Major hospital specialty care",
+  },
+  {
+    icon: Brain,
+    name: "Neurosurgery (Brain Tumor, Spine)",
+    specialty: "Neurosurgery",
+    price: "$5,000–$15,000 (varies)",
+    stay: "10–21 days",
+    tag: "Popular in Africa",
+    badge: "High Success Rate",
+    imageSrc: u("photo-1576091160550-2173dba999ef"),
+    imageAlt: "Neurosurgery and advanced hospital care",
+  },
+  {
+    icon: Droplets,
+    name: "Obstructive Uropathy (e.g. Prostate surgery)",
+    specialty: "Urology",
+    price: "$1,000–$3,000",
+    stay: "5–7 days",
+    tag: null,
+    badge: null,
+    imageSrc: u("photo-1551190822-a9333d879b1f"),
+    imageAlt: "Urology and men’s health clinical context",
+  },
+  {
+    icon: Baby,
+    name: "Reconstructive Pediatric Surgery (e.g. cleft lip/palate)",
+    specialty: "Pediatric Surgery",
+    price: "$2,000–$5,000",
+    stay: "4–6 weeks",
+    tag: "Popular in Africa",
+    badge: null,
+    imageSrc: u("photo-1519494026892-80bbd2d6fd0d"),
+    imageAlt: "Pediatric surgical care context",
+  },
 ];
 
-/* —— Hospitals —— */
-/** Gurugram (Gurgaon) only — major tertiary hospitals physically in the city */
-const partnerHospitals = [
-  { name: "Artemis Hospital", location: "Sector 51, Gurgaon, India", rating: 4.8, specialty: "Multi-Specialty", accreditation: "JCI" },
-  { name: "Fortis Memorial Research Institute", location: "Sector 44, Gurgaon, India", rating: 4.8, specialty: "Oncology & Transplants", accreditation: "JCI" },
-  { name: "Medanta – The Medicity", location: "Sector 38, Gurgaon, India", rating: 4.9, specialty: "Cardiac & Neurology", accreditation: "JCI" },
-  { name: "Paras Hospital", location: "Sector 43, Gurgaon, India", rating: 4.6, specialty: "Multi-Specialty", accreditation: "NABH" },
+/** Representative demand mix (industry-style shares; bars scaled to 100% width). */
+const treatmentDemandMix: { label: string; pct: number; barClass: string }[] = [
+  { label: "Oncology (cancer care)", pct: 31, barClass: "bg-primary" },
+  { label: "Cardiology (heart surgery)", pct: 21, barClass: "bg-sky-500" },
+  { label: "Orthopaedics (joints & spine)", pct: 19, barClass: "bg-teal-500" },
+  { label: "Other procedures", pct: 23, barClass: "bg-emerald-500" },
 ];
 
 type Country =
@@ -138,68 +467,59 @@ const countries: CountryMeta[] = [
   { id: "ethiopia", code: "ET", label: "Ethiopia", flagUrl: "https://flagcdn.com/w40/et.png", localCurrencyCode: "ETB", localCurrencySymbol: "Br", usdToLocal: 57 },
 ];
 
-const costData: Record<Country, { procedure: string; localUsd: number; indiaUsd: number }[]> = {
-  nigeria: [
-    { procedure: "Heart Bypass", localUsd: 18000, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 12000, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 3000, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 8000, indiaUsd: 3500 },
-  ],
-  kenya: [
-    { procedure: "Heart Bypass", localUsd: 16000, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 10500, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 2600, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 7200, indiaUsd: 3500 },
-  ],
-  ghana: [
-    { procedure: "Heart Bypass", localUsd: 16500, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 11200, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 2800, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 7600, indiaUsd: 3500 },
-  ],
-  "south-africa": [
-    { procedure: "Heart Bypass", localUsd: 25000, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 15000, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 4000, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 10000, indiaUsd: 3500 },
-  ],
-  rwanda: [
-    { procedure: "Heart Bypass", localUsd: 14200, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 9400, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 2100, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 6700, indiaUsd: 3500 },
-  ],
-  congo: [
-    { procedure: "Heart Bypass", localUsd: 17200, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 11600, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 2900, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 7800, indiaUsd: 3500 },
-  ],
-  somalia: [
-    { procedure: "Heart Bypass", localUsd: 14800, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 9800, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 2300, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 6900, indiaUsd: 3500 },
-  ],
-  uganda: [
-    { procedure: "Heart Bypass", localUsd: 15200, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 10100, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 2400, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 7000, indiaUsd: 3500 },
-  ],
-  angola: [
-    { procedure: "Heart Bypass", localUsd: 18500, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 12400, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 3200, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 8300, indiaUsd: 3500 },
-  ],
-  ethiopia: [
-    { procedure: "Heart Bypass", localUsd: 14600, indiaUsd: 5500 },
-    { procedure: "Hip Replacement", localUsd: 9600, indiaUsd: 6000 },
-    { procedure: "Dental Implants", localUsd: 2200, indiaUsd: 800 },
-    { procedure: "Fertility / IVF", localUsd: 6800, indiaUsd: 3500 },
-  ],
+/** Nigeria baseline local USD vs India midpoint USD; other countries scale local by historic heart-bypass ratio. */
+const COMPARISON_TEMPLATE_NIGERIA: { procedure: string; localUsd: number; indiaUsd: number }[] = [
+  { procedure: "Angioplasty & Stenting (Coronary)", localUsd: 14500, indiaUsd: 4400 },
+  { procedure: "Arthroscopy (Knee/Shoulder)", localUsd: 6400, indiaUsd: 2000 },
+  { procedure: "Bariatric (Weight-Loss) Surgery", localUsd: 13800, indiaUsd: 4500 },
+  { procedure: "Bone Marrow Transplant (Stem Cell)", localUsd: 118000, indiaUsd: 37500 },
+  { procedure: "Breast/Lung/Colorectal Cancer (surgery/chemo/radiotherapy)", localUsd: 34200, indiaUsd: 10500 },
+  { procedure: "Cataract Surgery", localUsd: 2200, indiaUsd: 650 },
+  { procedure: "Congenital Heart Surgery (e.g. ASD/VSD repair)", localUsd: 20800, indiaUsd: 6000 },
+  { procedure: "Cosmetic/Plastic Surgery (rhinoplasty, liposuction, etc.)", localUsd: 10200, indiaUsd: 3000 },
+  { procedure: "Cochlear (Ear) Implant", localUsd: 33200, indiaUsd: 10000 },
+  { procedure: "Dental Implants & Care", localUsd: 3200, indiaUsd: 1000 },
+  { procedure: "Eye Surgery (LASIK, Retina)", localUsd: 4100, indiaUsd: 1250 },
+  { procedure: "Gynecological Surgery (hysterectomy, fibroids)", localUsd: 10200, indiaUsd: 3000 },
+  { procedure: "Hip Replacement", localUsd: 12000, indiaUsd: 6000 },
+  { procedure: "IVF and Fertility Treatment", localUsd: 8200, indiaUsd: 4000 },
+  { procedure: "Knee Replacement", localUsd: 10800, indiaUsd: 5000 },
+  { procedure: "Kidney Stone/Lithotripsy", localUsd: 6600, indiaUsd: 2000 },
+  { procedure: "Kidney Transplant", localUsd: 51000, indiaUsd: 16000 },
+  { procedure: "Liver Transplant", localUsd: 128000, indiaUsd: 40000 },
+  { procedure: "Neurosurgery (Brain Tumor, Spine)", localUsd: 32800, indiaUsd: 10000 },
+  { procedure: "Obstructive Uropathy (e.g. Prostate surgery)", localUsd: 6600, indiaUsd: 2000 },
+  { procedure: "Reconstructive Pediatric Surgery (e.g. cleft lip/palate)", localUsd: 11200, indiaUsd: 3500 },
+];
+
+const HEART_BYPASS_LOCAL_USD: Record<Country, number> = {
+  nigeria: 18000,
+  kenya: 16000,
+  ghana: 16500,
+  "south-africa": 25000,
+  rwanda: 14200,
+  congo: 17200,
+  somalia: 14800,
+  uganda: 15200,
+  angola: 18500,
+  ethiopia: 14600,
 };
+
+const NIGERIA_HEART_REF = HEART_BYPASS_LOCAL_USD.nigeria;
+
+const costData: Record<Country, { procedure: string; localUsd: number; indiaUsd: number }[]> = Object.fromEntries(
+  (Object.keys(HEART_BYPASS_LOCAL_USD) as Country[]).map((id) => {
+    const scale = HEART_BYPASS_LOCAL_USD[id] / NIGERIA_HEART_REF;
+    return [
+      id,
+      COMPARISON_TEMPLATE_NIGERIA.map((row) => ({
+        procedure: row.procedure,
+        indiaUsd: row.indiaUsd,
+        localUsd: Math.max(0, Math.round(row.localUsd * scale)),
+      })),
+    ];
+  }),
+) as Record<Country, { procedure: string; localUsd: number; indiaUsd: number }[]>;
 
 const safetyPoints = [
   { icon: Car, title: "Airport pickup by helper", desc: "A helper meets you when you land. No stress." },
@@ -232,17 +552,6 @@ const testimonials = [
   },
 ];
 
-/** ISO2 + flag images (emoji flags fail on many Windows/Android setups). */
-const africaFlags = [
-  { code: "NG", flagUrl: "https://flagcdn.com/w80/ng.png", label: "Nigeria" as const },
-  { code: "KE", flagUrl: "https://flagcdn.com/w80/ke.png", label: "Kenya" as const },
-  { code: "GH", flagUrl: "https://flagcdn.com/w80/gh.png", label: "Ghana" as const },
-  { code: "ZA", flagUrl: "https://flagcdn.com/w80/za.png", label: "South Africa" as const },
-  { code: "UG", flagUrl: "https://flagcdn.com/w80/ug.png", label: "Uganda" as const },
-  { code: "RW", flagUrl: "https://flagcdn.com/w80/rw.png", label: "Rwanda" as const },
-  { code: "TZ", flagUrl: "https://flagcdn.com/w80/tz.png", label: "Tanzania" as const },
-];
-
 function AnimatedNumber({ value, inView }: { value: number; inView: boolean }) {
   const [display, setDisplay] = useState(0);
 
@@ -260,6 +569,7 @@ function AnimatedNumber({ value, inView }: { value: number; inView: boolean }) {
 }
 
 function MTHero() {
+  const waCareHref = useWhatsappHref(WHATSAPP_CARE_GUIDE_PREFILL);
   const tx = useMtText();
   const ref = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
@@ -311,50 +621,93 @@ function MTHero() {
             </span>
           </motion.div>
 
-          <h2 className="font-heading text-4xl md:text-5xl lg:text-[3.4rem] font-bold text-foreground leading-tight mb-6 text-balance">
-            {tx("Travel to India for Affordable Treatment — ")}<span className="text-primary">{tx("We Handle Everything")}</span>
+          <h2 className="font-heading mb-6 text-balance text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.4rem]">
+            {tx("Travel to India for Affordable Treatment")}{" "}
+            <span className="text-primary">{tx("We Handle Everything")}</span>
           </h2>
 
-          <p className="text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed">
-            {tx("We help from your first check to going home. Good hospitals. Easy travel. No stress.")}
-          </p>
+          <div className="mb-5 flex flex-wrap gap-2 text-[11px] font-semibold sm:text-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-900 shadow-sm dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100">
+              <MessageCircle className="h-3.5 w-3.5 shrink-0 text-[#25D366]" aria-hidden />
+              {tx("WhatsApp care in your language")}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/8 px-3 py-1.5 text-primary">
+              <BadgeCheck className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              {tx("Clear prices before you decide")}
+            </span>
+          </div>
 
-          <div className="flex flex-wrap gap-4">
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-8 max-w-2xl font-body text-pretty text-lg font-normal leading-[1.7] tracking-[0.01em] text-foreground/90 antialiased sm:text-xl sm:leading-[1.65]"
+          >
+            {tx(MT_HERO_SUBLINE_WE)}
+            {tx(MT_HERO_SUBLINE_REST)}
+          </motion.p>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <motion.a
               href="#mt-cta"
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-gradient-to-br from-primary to-primary/85 text-primary-foreground font-semibold px-8 py-3.5 rounded-xl inline-flex items-center gap-2 shadow-premium relative overflow-hidden"
+              className="inline-flex w-full min-h-[48px] items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary/85 px-8 py-3.5 text-center text-base font-semibold text-primary-foreground shadow-premium sm:w-auto"
             >
               {tx("Get My Treatment Plan")}
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="h-4 w-4 shrink-0" />
             </motion.a>
             <motion.a
-              href={`https://wa.me/${WHATSAPP_RW_NUMBER}`}
+              href={waCareHref}
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-card text-foreground font-medium px-8 py-3.5 rounded-xl border border-border shadow-sm inline-flex items-center gap-2"
+              className="inline-flex w-full min-h-[48px] items-center justify-center gap-2 rounded-xl bg-[#25D366] px-8 py-3.5 text-center text-base font-semibold text-white shadow-md ring-1 ring-black/5 transition-colors hover:bg-[#20bd5a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366] sm:w-auto"
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="h-4 w-4 shrink-0" />
               {tx("Talk to a Care Guide")}
             </motion.a>
           </div>
 
-          <p className="text-xs text-muted-foreground mt-6 max-w-md leading-relaxed italic">
-            {tx("We do not give medical care here. We connect you to good hospitals and help your whole trip.")}
-          </p>
+          <div
+            className="mt-8 max-w-2xl rounded-2xl border border-emerald-200/70 bg-emerald-50/90 px-5 py-5 text-left shadow-md dark:border-emerald-900/40 dark:bg-emerald-950/35 sm:px-6 sm:py-6"
+            role="note"
+          >
+            <p className="text-base font-medium leading-relaxed text-foreground/95 sm:text-lg">
+              {tx(MT_HERO_DISCLAIMER)}
+            </p>
+          </div>
 
-          <div className="flex flex-wrap items-center gap-6 mt-6">
-            <div className="text-sm text-muted-foreground">
+          <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground sm:gap-6">
+            <div>
               <span className="font-semibold text-foreground">10,000+</span> {tx("people helped")}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div>
               <span className="font-semibold text-foreground">50+</span> {tx("hospitals with us")}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div>
               <span className="font-semibold text-foreground">{tx("Save about 70%")}</span> {tx("on average")}
+            </div>
+          </div>
+
+          <div className="mt-8 md:hidden">
+            <div className={cn(glass, "overflow-hidden p-2")}>
+              <img
+                src={HERO_IMG}
+                alt={tx("Representative modern hospital in India")}
+                className="aspect-[4/3] w-full rounded-xl object-cover"
+                width={800}
+                height={600}
+                loading="lazy"
+              />
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
+                  {tx("JCI approved hospital")}
+                </span>
+                <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">{tx("Save up to 70%")}</span>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -397,38 +750,66 @@ function WhyTravelWithUsBlock() {
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section className={sectionPad} ref={ref}>
-      <div className="max-w-page mx-auto">
+    <section
+      className={cn(
+        sectionPad,
+        "bg-gradient-to-b from-emerald-50/70 via-background to-background dark:from-emerald-950/25 dark:via-background",
+      )}
+      ref={ref}
+    >
+      <div className="mx-auto max-w-page">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="mb-12 text-center sm:mb-16"
         >
-          <span className="text-sm font-medium text-primary uppercase tracking-wider">{tx("Why Travel With Us")}</span>
-          <h3 className="font-heading text-3xl md:text-4xl font-bold text-foreground mt-3 text-balance">
+          <span className="text-sm font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+            {tx("Why Travel With Us")}
+          </span>
+          <h3 className="font-heading mt-3 text-balance text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
             {tx("We Handle Everything — So You Don't Have To")}
           </h3>
-          <p className="text-muted-foreground mt-4 max-w-xl mx-auto">{tx("You focus on healing. We handle the rest.")}</p>
+          <p className="mx-auto mt-3 max-w-xl text-muted-foreground">{tx("You focus on healing. We handle the rest.")}</p>
+          <p className="mx-auto mt-4 max-w-lg rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-sm font-semibold text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-100">
+            {tx("Five clear steps from first call to your visa")}
+          </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
-          {whyServices.map((s, i) => (
-            <motion.div
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {trustProcessSteps.map((s, i) => (
+            <motion.article
               key={s.title}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 28 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.4, delay: i * 0.1, ease: "easeOut" }}
-              whileHover={{ scale: 1.03, transition: { type: "spring", stiffness: 120, damping: 14 } }}
-              className={cn(glassHover, "p-7 text-center cursor-default")}
-              style={{ perspective: 800 }}
+              transition={{ duration: 0.4, delay: i * 0.08, ease: "easeOut" }}
+              whileHover={{ y: -3, transition: { type: "spring", stiffness: 260, damping: 22 } }}
+              className={cn(
+                "relative flex min-h-full flex-col rounded-2xl border p-5 text-left shadow-sm",
+                s.highlight
+                  ? "border-emerald-400 bg-gradient-to-b from-emerald-50 to-card ring-2 ring-emerald-400/30 dark:border-emerald-600 dark:from-emerald-950/50 dark:to-card"
+                  : "border-border/70 bg-card/90 dark:bg-card/70",
+              )}
             >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/85 flex items-center justify-center mx-auto mb-5">
-                <s.icon className="w-6 h-6 text-primary-foreground" />
+              <div className="mb-3 flex items-center gap-3">
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white shadow-md"
+                  aria-hidden
+                >
+                  {i + 1}
+                </span>
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
+                  <s.icon className="h-5 w-5" aria-hidden />
+                </div>
               </div>
-              <h4 className="font-heading text-base font-semibold text-foreground mb-2">{tx(s.title)}</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">{tx(s.desc)}</p>
-            </motion.div>
+              <h4 className="font-heading text-base font-bold leading-snug text-foreground">{tx(s.title)}</h4>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{tx(s.desc)}</p>
+              {s.highlight ? (
+                <p className="mt-3 rounded-xl border-2 border-emerald-500 bg-emerald-100 px-3 py-2.5 text-sm font-bold leading-snug text-emerald-950 dark:border-emerald-500 dark:bg-emerald-900/50 dark:text-emerald-50">
+                  {tx(s.highlight)}
+                </p>
+              ) : null}
+            </motion.article>
           ))}
         </div>
       </div>
@@ -444,7 +825,7 @@ function JourneyBlock() {
   return (
     <section id="mt-how-it-works" className={cn(sectionPad, "bg-muted/30")} ref={ref}>
       <div className="max-w-page mx-auto">
-        <div className="max-w-3xl mx-auto">
+        <div className="mx-auto max-w-3xl lg:max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -453,40 +834,65 @@ function JourneyBlock() {
           >
             <span className="text-sm font-medium text-primary uppercase tracking-wider">{tx("How It Works")}</span>
             <h3 className="font-heading text-3xl md:text-4xl font-bold text-foreground mt-3">{tx("Your Journey, Step by Step")}</h3>
-            <p className="text-muted-foreground mt-4 max-w-xl mx-auto">{tx("No confusion. No stress. We guide you through every stage.")}</p>
+            <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
+              {tx("No confusion. No stress. We guide you through every stage.")}
+            </p>
           </motion.div>
 
           <div className="relative">
-            <div className="absolute left-6 md:left-8 top-0 bottom-0 w-px bg-border/60" />
-            <div className="space-y-1">
+            <div className="absolute left-6 top-0 bottom-0 w-px bg-border/60 md:left-8" aria-hidden />
+            <div className="space-y-2 md:space-y-3">
               {journeySteps.map((step, i) => (
                 <motion.div
                   key={step.title}
                   initial={{ opacity: 0, x: -20 }}
                   animate={inView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ duration: 0.4, delay: i * 0.1, ease: "easeOut" }}
-                  className="relative flex gap-5 items-start pl-0 py-4"
+                  transition={{ duration: 0.4, delay: i * 0.08, ease: "easeOut" }}
+                  className="relative flex gap-4 items-start py-3 md:gap-6 md:py-4"
                 >
                   <div className="relative z-10 shrink-0">
                     <div
                       className={cn(
-                        "w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center",
-                        i === 0 ? "bg-gradient-to-br from-primary to-primary/85 shadow-lg" : "bg-card border border-border",
+                        "flex h-12 w-12 items-center justify-center rounded-2xl md:h-16 md:w-16",
+                        i === 0 ? "bg-gradient-to-br from-primary to-primary/85 shadow-lg" : "border border-border bg-card",
                       )}
                     >
-                      <step.icon className={cn("w-5 h-5 md:w-6 md:h-6", i === 0 ? "text-primary-foreground" : "text-primary")} />
+                      <step.icon className={cn("h-5 w-5 md:h-6 md:w-6", i === 0 ? "text-primary-foreground" : "text-primary")} />
                     </div>
-                    {i === 0 && <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-warning animate-pulse" />}
+                    {i === 0 && <span className="absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full bg-warning" />}
                   </div>
-                  <div className="pt-1 md:pt-3">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="text-xs font-bold text-primary">{tx("Step")} {i + 1}</span>
-                      {i === 0 && (
-                        <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">{tx("You are here")}</span>
-                      )}
+
+                  <div className="min-w-0 flex-1 pt-0.5 md:pt-2">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
+                      <div className="order-2 min-w-0 flex-1 sm:order-1">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-bold text-primary">
+                            {tx("Step")} {i + 1}
+                          </span>
+                          {i === 0 && (
+                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                              {tx("You are here")}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-heading text-base font-semibold text-foreground md:text-lg">{tx(step.title)}</h4>
+                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{tx(step.desc)}</p>
+                      </div>
+                      <div className="order-1 w-full shrink-0 sm:order-2 sm:w-[min(100%,200px)] md:w-[min(100%,240px)]">
+                        <div className="overflow-hidden rounded-2xl border border-border/80 bg-muted/40 shadow-md ring-1 ring-black/[0.04] dark:ring-white/10">
+                          <img
+                            src={step.imageSrc}
+                            alt={step.imageAlt}
+                            width={480}
+                            height={320}
+                            loading="lazy"
+                            decoding="async"
+                            className="aspect-[3/2] h-auto w-full object-cover transition-transform duration-500 hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100"
+                            sizes="(min-width: 1024px) 240px, (min-width: 640px) 200px, 100vw"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <h4 className="font-heading text-base md:text-lg font-semibold text-foreground">{tx(step.title)}</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">{tx(step.desc)}</p>
                   </div>
                 </motion.div>
               ))}
@@ -502,59 +908,171 @@ function TreatmentsBlock() {
   const tx = useMtText();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
+  const reduce = useReducedMotion();
 
   return (
-    <section id="mt-treatments" className={sectionPad} ref={ref}>
-      <div className="max-w-page mx-auto">
+    <section
+      id="mt-treatments"
+      className={cn(sectionPad, "bg-gradient-to-b from-background via-muted/20 to-background")}
+      ref={ref}
+    >
+      <div className="mx-auto max-w-page">
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 28 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-12 text-center md:mb-14"
         >
-          <span className="text-sm font-medium text-primary uppercase tracking-wider">{tx("Treatments")}</span>
-          <h3 className="font-heading text-3xl md:text-4xl font-bold text-foreground mt-3">{tx("Find the right care — easy and clear")}</h3>
-          <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
+          <span className="text-sm font-semibold uppercase tracking-wider text-primary">{tx("Treatments")}</span>
+          <h3 className="font-heading mt-3 text-balance text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            {tx("Find the right care: easy and clear")}
+          </h3>
+          <p className="mx-auto mt-4 max-w-2xl font-body text-base leading-relaxed text-muted-foreground md:text-lg">
             {tx("Top hospitals in India. Good care. Much less money.")}
+          </p>
+          <p className="mx-auto mt-3 max-w-2xl text-sm font-medium leading-relaxed text-foreground/85">
+            {tx("India is a leading choice for African families: advanced specialties, shorter waits, and often 60–80% lower cost than many Western systems.")}
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {treatments.map((t, i) => (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.08 }}
+          className="mb-10 grid gap-3 sm:grid-cols-3"
+          role="group"
+          aria-label="Key statistics for the Africa–India medical corridor"
+        >
+          {[
+            "24,000+ African patients reached India in Q1 2026 — a sharp rise in medical travel.",
+            "42% growth vs 2024 — many projections point to 100,000+ visits this year.",
+            "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.",
+          ].map((text, i) => (
             <motion.div
-              key={t.name}
-              initial={{ opacity: 0, y: 40 }}
+              key={text}
+              initial={{ opacity: 0, y: 16 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
-              whileHover={{ scale: 1.03, transition: { type: "spring", stiffness: 120, damping: 14 } }}
-              className={cn(glassHover, "p-7 cursor-default relative group")}
-              style={{ perspective: 800 }}
+              transition={{ delay: 0.12 + i * 0.06, duration: 0.45 }}
+              className="rounded-2xl border border-primary/15 bg-card/90 px-4 py-4 text-left shadow-sm backdrop-blur-sm"
             >
-              <div className="flex flex-wrap gap-2 absolute top-4 right-4">
-                {t.tag && (
-                  <span className="bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full">{tx(t.tag)}</span>
-                )}
-                {t.badge && (
-                  <span className="bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full">{tx(t.badge)}</span>
-                )}
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/15 transition-colors">
-                <t.icon className="w-5 h-5 text-primary" />
-              </div>
-              <h4 className="font-heading text-lg font-semibold text-foreground mb-1">{tx(t.name)}</h4>
-              <p className="text-primary font-semibold text-sm">{tx(t.price)}</p>
+              <p className="font-heading text-sm font-bold leading-snug text-foreground">{tx(text)}</p>
             </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="mb-12 rounded-2xl border border-border/60 bg-card/80 p-5 shadow-sm md:p-7"
+        >
+          <h4 className="font-heading text-center text-base font-bold text-foreground md:text-lg">
+            {tx("What African travelers often plan in India")}
+          </h4>
+          <p className="mx-auto mt-2 max-w-2xl text-center text-xs text-muted-foreground">
+            {tx("Representative demand mix from industry reports — not a promise of availability.")}
+          </p>
+          <div className="mt-6 space-y-4" role="list">
+            {treatmentDemandMix.map((row) => (
+              <div key={row.label} role="listitem">
+                <div className="mb-1 flex items-center justify-between gap-2 text-xs font-semibold text-foreground sm:text-sm">
+                  <span>{tx(row.label)}</span>
+                  <span className="tabular-nums text-primary">{row.pct}%</span>
+                </div>
+                <div
+                  className="h-2.5 overflow-hidden rounded-full bg-muted"
+                  role="progressbar"
+                  aria-valuenow={row.pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`${tx(row.label)} ${row.pct}%`}
+                >
+                  <motion.div
+                    className={cn("h-full rounded-full", row.barClass)}
+                    initial={{ width: 0 }}
+                    animate={inView ? { width: `${row.pct}%` } : {}}
+                    transition={{ duration: reduce ? 0 : 0.85, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        <p className="mx-auto mb-8 max-w-3xl text-center text-[11px] leading-relaxed text-muted-foreground">
+          {tx("* Price ranges are indicative in USD; final cost depends on hospital, city, and your case. Asterisk (*) marks where agencies often cite bundled or variable packages.")}
+        </p>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {treatments.map((t, i) => (
+            <motion.article
+              key={t.name}
+              initial={{ opacity: 0, y: 36 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.45, delay: 0.08 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={reduce ? undefined : { y: -4, transition: { type: "spring", stiffness: 280, damping: 22 } }}
+              whileTap={reduce ? undefined : { scale: 0.99 }}
+              className={cn(
+                "group flex cursor-default flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-md transition-shadow duration-300 hover:shadow-xl",
+              )}
+            >
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
+                <img
+                  src={t.imageSrc}
+                  alt={t.imageAlt}
+                  width={640}
+                  height={400}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                />
+                <div
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"
+                  aria-hidden
+                />
+                <div className="absolute right-2 top-2 flex max-w-[70%] flex-wrap justify-end gap-1.5">
+                  {t.tag && (
+                    <span className="rounded-full bg-white/95 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary shadow-sm backdrop-blur-sm dark:bg-black/70 dark:text-primary-foreground">
+                      {tx(t.tag)}
+                    </span>
+                  )}
+                  {t.badge && (
+                    <span className="rounded-full bg-emerald-600/95 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+                      {tx(t.badge)}
+                    </span>
+                  )}
+                </div>
+                <div className="absolute bottom-3 left-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 shadow-md backdrop-blur-sm dark:bg-black/60">
+                  <t.icon className="h-5 w-5 text-primary" aria-hidden />
+                </div>
+              </div>
+              <div className="flex flex-1 flex-col p-5">
+                <h4 className="font-heading text-base font-bold leading-snug text-foreground md:text-lg">{tx(t.name)}</h4>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary/90">{tx(t.specialty)}</p>
+                <p className="mt-2 text-sm font-bold text-primary">{tx(t.price)}</p>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground/80">{tx("Typical stay:")}</span> {tx(t.stay)}
+                </p>
+                <p className="mt-3 font-body text-xs leading-relaxed text-muted-foreground">
+                  {tx("Illustrative photo — your hospital and doctor are chosen with you.")}
+                </p>
+              </div>
+            </motion.article>
           ))}
         </div>
 
-        <motion.p
+        <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.6 }}
-          className="text-center text-xs text-muted-foreground mt-10 italic"
+          transition={{ delay: 0.55, duration: 0.5 }}
+          className="mt-10 space-y-2 text-center"
         >
-          {tx("We link you to good hospitals in India. We help you plan. We do not give treatment ourselves.")}
-        </motion.p>
+          <p className="text-sm font-medium text-foreground/90">{tx("Your health, our priority — we connect you; hospitals provide treatment.")}</p>
+          <p className="text-xs italic leading-relaxed text-muted-foreground">
+            {tx("We link you to good hospitals in India. We help you plan. We do not give treatment ourselves.")}
+          </p>
+        </motion.div>
       </div>
     </section>
   );
@@ -567,48 +1085,72 @@ function HospitalsBlock() {
 
   return (
     <section id="mt-partner-hospitals" className={cn(sectionPad, "bg-muted/30")} ref={ref}>
-      <div className="max-w-page mx-auto">
+      <div className="mx-auto max-w-page">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="mb-10 text-center sm:mb-14"
         >
-          <span className="text-sm font-medium text-primary uppercase tracking-wider">{tx("Partner Hospitals")}</span>
-          <h3 className="font-heading text-3xl md:text-4xl font-bold text-foreground mt-3">{tx("Leading accredited hospitals in Gurugram")}</h3>
+          <span className="text-sm font-semibold uppercase tracking-wider text-primary">{tx("Partner Hospitals")}</span>
+          <h3 className="font-heading mt-3 text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
+            {tx("JCI-accredited partner hospitals")}
+          </h3>
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
+            {tx("Trusted Gurugram facilities, in the order many families choose.")}
+          </p>
+          <p className="mx-auto mt-2 max-w-2xl text-xs text-muted-foreground">{tx("Accreditation note Paras NABH")}</p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {partnerHospitals.map((h, i) => (
-            <motion.div
+        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3 xl:grid-cols-5">
+          {GURUGRAM_PARTNER_HOSPITALS.map((h, i) => (
+            <motion.article
               key={h.name}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 32 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
-              whileHover={{ y: -4, transition: { type: "spring", stiffness: 120, damping: 14 } }}
-              className={cn(glassHover, "p-7 flex gap-5 items-start cursor-default")}
+              transition={{ duration: 0.4, delay: i * 0.06 }}
+              className="flex w-[min(100%,280px)] shrink-0 snap-center flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-md sm:w-auto"
             >
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
-                <BadgeCheck className="w-6 h-6 text-primary" />
+              <div className="relative aspect-[16/11] w-full overflow-hidden bg-muted">
+                <img
+                  src={h.image}
+                  alt={`${h.name}, ${tx("Representative hospital photo")}`}
+                  className="h-full w-full object-cover"
+                  width={640}
+                  height={440}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span className="absolute right-2 top-2 rounded-full bg-black/70 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                  {h.accreditation}
+                </span>
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-heading text-lg font-semibold text-foreground">{h.name}</h4>
-                <div className="flex items-center gap-3 mt-1.5 text-sm text-muted-foreground flex-wrap">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {h.location}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 text-warning fill-warning" />
+              <div className="flex flex-1 flex-col p-4">
+                <h4 className="font-heading text-base font-bold leading-snug text-foreground">{h.name}</h4>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground sm:text-sm">
+                  <span className="inline-flex items-center gap-1">
+                    <Star className="h-3.5 w-3.5 shrink-0 fill-warning text-warning" aria-hidden />
                     {h.rating}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <span className="bg-muted text-foreground text-xs font-medium px-3 py-1 rounded-full">{h.specialty}</span>
-                  <span className="bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full">{h.accreditation} {tx("Accredited")}</span>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{h.specialty}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                    {h.accreditation} {tx("Accredited")}
+                  </span>
                 </div>
+                <p className="mt-2 text-[10px] leading-snug text-muted-foreground">{tx("Representative photo note")}</p>
+                <a
+                  href={h.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline"
+                >
+                  {tx("See more details >")}
+                  <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
+                </a>
               </div>
-            </motion.div>
+            </motion.article>
           ))}
         </div>
       </div>
@@ -621,12 +1163,19 @@ function CostComparisonBlock() {
   const { language, t } = useI18n();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
+  const reduce = useReducedMotion();
   const [selected, setSelected] = useState<Country>("nigeria");
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>("usd");
   const comparisons = costData[selected];
   const countryMeta = countries.find((c) => c.id === selected)!;
   const uiLang = LANGUAGE_OPTIONS.find((l) => l.code === language) ?? LANGUAGE_OPTIONS[0];
   const USD_TO_INR = 83;
+
+  const corridorStatLines = [
+    "24,000+ African patients reached India in Q1 2026 — a sharp rise in medical travel.",
+    "42% growth vs 2024 — many projections point to 100,000+ visits this year.",
+    "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.",
+  ] as const;
 
   const localeLine = (countryId: Country) =>
     tx(VIEWER_LOCALE_LINES[countryToRegionCode[countryId]]);
@@ -642,19 +1191,40 @@ function CostComparisonBlock() {
   };
 
   return (
-    <section id="mt-pricing" className={sectionPad} ref={ref}>
+    <section id="mt-pricing" className={cn(sectionPad, "bg-muted/25")} ref={ref}>
       <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 32 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-10"
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-8 text-center"
         >
-          <span className="text-sm font-medium text-primary uppercase tracking-wider">{tx("Pricing")}</span>
-          <h3 className="font-heading text-3xl md:text-4xl font-bold text-foreground mt-3">{tx("See How Much You Can Save")}</h3>
-          <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
+          <span className="text-sm font-semibold uppercase tracking-wider text-primary">{tx("Pricing")}</span>
+          <h3 className="font-heading mt-3 text-balance text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            {tx("See How Much You Can Save")}
+          </h3>
+          <p className="mx-auto mt-4 max-w-xl font-body text-base leading-relaxed text-muted-foreground">
             {tx("See what you pay at home vs India. Same care, lower price.")}
           </p>
+          <p className="mx-auto mt-3 max-w-2xl text-sm font-medium text-foreground/85">
+            {tx("Cardiac care in India can cost around a fraction of US rates — use the calculator below for your country.")}
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.06, duration: 0.45 }}
+          className="mb-8 grid gap-2 sm:grid-cols-3"
+        >
+          {corridorStatLines.map((line) => (
+            <div
+              key={line}
+              className="rounded-xl border border-border/60 bg-card/90 px-3 py-3 text-left text-xs font-semibold leading-snug text-foreground shadow-sm"
+            >
+              {tx(line)}
+            </div>
+          ))}
         </motion.div>
 
         <div className="mb-6 flex flex-wrap items-center justify-center gap-2 rounded-xl border border-border/50 bg-muted/25 px-4 py-3">
@@ -690,18 +1260,20 @@ function CostComparisonBlock() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4, delay: 0.2 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-10"
+          className="mb-10 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
         >
           {countries.map((c) => (
-            <button
+            <motion.button
               key={c.id}
               type="button"
               onClick={() => setSelected(c.id)}
+              whileHover={reduce ? undefined : { scale: 1.02 }}
+              whileTap={reduce ? undefined : { scale: 0.98 }}
               className={cn(
-                "px-3 py-2.5 rounded-xl text-left text-sm font-medium transition-all duration-200 border",
+                "rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-colors duration-200",
                 selected === c.id
-                  ? "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-md border-primary/40"
-                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-primary/30",
+                  ? "border-primary/40 bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-md"
+                  : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground",
               )}
             >
               <span className="flex items-center gap-2">
@@ -717,7 +1289,7 @@ function CostComparisonBlock() {
               >
                 {localeLine(c.id)}
               </span>
-            </button>
+            </motion.button>
           ))}
         </motion.div>
 
@@ -727,31 +1299,40 @@ function CostComparisonBlock() {
             return (
               <motion.div
                 key={`${selected}-${displayCurrency}-${c.procedure}`}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                whileHover={{ y: -2 }}
-                className={cn(glass, "p-6 flex flex-col sm:flex-row sm:items-center gap-4 transition-all duration-200 hover:shadow-premium")}
+                initial={{ opacity: 0, y: 24 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.45, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                whileHover={reduce ? undefined : { y: -3, transition: { duration: 0.2 } }}
+                className={cn(
+                  glass,
+                  "flex flex-col gap-5 border-l-4 border-l-primary p-6 sm:flex-row sm:items-center sm:gap-6",
+                  "transition-shadow duration-300 hover:shadow-premium",
+                )}
               >
-                <div className="flex-1">
-                  <h4 className="font-heading font-semibold text-foreground">{tx(c.procedure)}</h4>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-heading text-lg font-bold text-foreground">{tx(c.procedure)}</h4>
+                  <p className="mt-1 font-body text-xs text-muted-foreground">{tx("Indicative comparison — final quotes come from your hospital.")}</p>
                 </div>
-                <div className="flex items-center gap-6 sm:gap-10 flex-wrap">
-                  <div className="text-center">
-                    <p className="text-xs text-muted-foreground mb-1">{tx("Local Cost")}</p>
-                    <p className="font-heading font-bold text-foreground line-through opacity-50">{formatPrimary(c.localUsd)}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{countryMeta.localCurrencyCode}: {formatLocalCurrency(c.localUsd)}</p>
+                <div className="flex flex-wrap items-center gap-6 sm:gap-8">
+                  <div className="min-w-[7rem] text-center sm:text-left">
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{tx("Local Cost")}</p>
+                    <p className="font-heading text-base font-bold text-foreground line-through decoration-muted-foreground/50 opacity-60">
+                      {formatPrimary(c.localUsd)}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {countryMeta.localCurrencyCode}: {formatLocalCurrency(c.localUsd)}
+                    </p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-xs text-muted-foreground mb-1">{tx("India")}</p>
-                    <p className="font-heading font-bold text-primary text-lg">{formatPrimary(c.indiaUsd)}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                  <div className="min-w-[7rem] text-center sm:text-left">
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{tx("India")}</p>
+                    <p className="font-heading text-xl font-black text-primary md:text-2xl">{formatPrimary(c.indiaUsd)}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
                       {countryMeta.localCurrencyCode}: {formatLocalCurrency(c.indiaUsd)}
                     </p>
                   </div>
                   <div
                     title={tx("About how much you save vs paying at home")}
-                    className="bg-primary/10 text-primary text-sm font-bold px-4 py-1.5 rounded-full"
+                    className="rounded-full bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-800 ring-1 ring-emerald-500/25 dark:bg-emerald-500/20 dark:text-emerald-50 dark:ring-emerald-400/30"
                   >
                     {savings}% {tx("savings")}
                   </div>
@@ -862,48 +1443,62 @@ function TestimonialsBlock() {
 
 function AfricaTrustBlock() {
   const tx = useMtText();
+  const waCareHref = useWhatsappHref(WHATSAPP_CARE_GUIDE_PREFILL);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
+  const n = AFRICA_COUNTRY_FLAGS.length;
 
   return (
-    <section id="mt-for-africa" className={sectionPad} ref={ref}>
-      <div className="max-w-page mx-auto max-w-4xl text-center">
+    <section
+      id="mt-for-africa"
+      className={cn(sectionPad, "bg-gradient-to-b from-emerald-50/40 via-background to-muted/20 dark:from-emerald-950/20")}
+      ref={ref}
+    >
+      <div className="mx-auto max-w-page max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5 }}
+          className="mx-auto max-w-3xl text-center"
         >
-          <span className="text-sm font-medium text-primary uppercase tracking-wider">{tx("For Africa")}</span>
-          <h3 className="font-heading text-3xl md:text-4xl font-bold text-foreground mt-3">{tx("People across Africa trust us")}</h3>
-          <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
+          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+            {tx("For Africa")}
+          </span>
+          <h3 className="font-heading mt-4 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+            {tx("People across Africa trust us")}
+          </h3>
+          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
             {tx("We help people in many countries. WhatsApp in your language. Clear advice for your area.")}
+          </p>
+          <p className="mx-auto mt-3 text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+            {n} {tx("African countries, one caring team")}
           </p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-6 mt-12"
+          transition={{ duration: 0.45, delay: 0.12 }}
+          className="mt-10 grid grid-cols-3 gap-2 min-[400px]:grid-cols-4 sm:grid-cols-5 sm:gap-3 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-9"
         >
-          {africaFlags.map((f, i) => (
+          {AFRICA_COUNTRY_FLAGS.map((f, i) => (
             <motion.div
               key={f.code}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={inView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.3, delay: 0.3 + i * 0.08 }}
-              className="flex flex-col items-center gap-2 min-w-[4.75rem] sm:min-w-[5.5rem]"
+              initial={{ opacity: 0, y: 10 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.22, delay: Math.min(0.15 + i * 0.012, 0.75) }}
+              className="group flex flex-col items-center gap-1.5 rounded-xl border border-emerald-200/50 bg-card/80 p-2 shadow-sm transition-all duration-200 hover:border-emerald-400/60 hover:shadow-md dark:border-emerald-900/40 dark:bg-card/50"
             >
               <img
-                src={f.flagUrl}
-                alt={tx(f.label)}
-                width={64}
-                height={43}
-                className="h-9 w-14 sm:h-11 sm:w-[4.5rem] rounded-[3px] object-cover shadow-md border border-border/60 bg-muted/30"
+                src={africaFlagUrl(f.code, 40)}
+                alt=""
+                width={40}
+                height={27}
+                className="h-[22px] w-10 rounded-[2px] object-cover shadow-sm ring-1 ring-black/5 sm:h-[26px] sm:w-11"
                 loading="lazy"
                 decoding="async"
               />
-              <span className="text-sm sm:text-base font-semibold text-foreground text-center leading-tight px-0.5 max-w-[6.5rem]">
+              <span className="line-clamp-2 min-h-[2rem] w-full px-0.5 text-center text-[9px] font-semibold leading-tight text-foreground sm:text-[10px] md:text-[11px]">
                 {tx(f.label)}
               </span>
             </motion.div>
@@ -913,19 +1508,26 @@ function AfricaTrustBlock() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className={cn(glass, "mt-12 p-8 inline-flex flex-col sm:flex-row items-center gap-4 mx-auto")}
+          transition={{ duration: 0.4, delay: 0.35 }}
+          className={cn(
+            glass,
+            "mx-auto mt-12 flex max-w-2xl flex-col items-stretch gap-5 rounded-2xl border-2 border-emerald-300/40 p-6 shadow-lg ring-1 ring-emerald-500/10 dark:border-emerald-800/50 sm:flex-row sm:items-center sm:justify-between sm:p-8",
+          )}
         >
-          <MessageCircle className="w-8 h-8 text-green-600 shrink-0" />
-          <div className="text-left">
-            <p className="font-heading font-semibold text-foreground">{tx("Reach us on WhatsApp")}</p>
-            <p className="text-sm text-muted-foreground">{tx("Get instant support from a care guide in your region.")}</p>
+          <div className="flex items-start gap-4 sm:items-center">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#25D366]/15 ring-2 ring-[#25D366]/25">
+              <MessageCircle className="h-7 w-7 text-[#25D366]" aria-hidden />
+            </div>
+            <div className="text-left">
+              <p className="font-heading text-lg font-bold text-foreground">{tx("Reach us on WhatsApp")}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">{tx("Get instant support from a care guide in your region.")}</p>
+            </div>
           </div>
           <a
-            href={`https://wa.me/${WHATSAPP_RW_NUMBER}`}
+            href={waCareHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 bg-green-600 text-white font-medium text-sm px-6 py-2.5 rounded-xl hover:bg-green-700 transition-colors"
+            className="inline-flex min-h-[48px] shrink-0 items-center justify-center rounded-xl bg-[#25D366] px-8 text-sm font-bold text-white shadow-md ring-1 ring-black/5 transition-colors hover:bg-[#20bd5a] sm:px-6"
           >
             {tx("Chat Now")}
           </a>
@@ -937,48 +1539,59 @@ function AfricaTrustBlock() {
 
 function CTABlock() {
   const tx = useMtText();
+  const waCareHref = useWhatsappHref(WHATSAPP_CARE_GUIDE_PREFILL);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="mt-cta" className={sectionPad} ref={ref}>
+    <section id="mt-cta" className={cn(sectionPad, "bg-muted/20")} ref={ref}>
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 48 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5 }}
-        className="max-w-page mx-auto max-w-4xl bg-gradient-to-br from-primary to-primary/85 rounded-3xl p-10 md:p-16 text-center relative overflow-hidden"
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-white/15 shadow-[0_32px_80px_-24px_rgba(15,23,42,0.45)] px-1 py-1 sm:rounded-[2.25rem]"
       >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-foreground/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary-foreground/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        <div
+          className="absolute inset-0 rounded-[1.85rem] sm:rounded-[2.1rem]"
+          style={{
+            background:
+              "linear-gradient(135deg, hsl(var(--primary)) 0%, #0ea5e9 42%, #059669 100%)",
+          }}
+        />
+        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/25 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute -bottom-28 -left-20 h-80 w-80 rounded-full bg-emerald-300/35 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 rounded-[1.85rem] ring-1 ring-inset ring-white/20 sm:rounded-[2.1rem]" aria-hidden />
 
-        <div className="relative z-10">
-          <h3 className="font-heading text-3xl md:text-4xl font-bold text-primary-foreground mb-4 text-balance">
+        <div className="relative z-10 px-6 py-12 text-center sm:px-10 sm:py-14 md:px-14 md:py-16">
+          <h3 className="font-heading text-balance text-3xl font-black tracking-tight text-white drop-shadow-sm sm:text-4xl md:text-[2.75rem] md:leading-[1.1]">
             {tx("Ready to Start Your Healing Journey?")}
           </h3>
-          <p className="text-primary-foreground/80 max-w-lg mx-auto mb-4 leading-relaxed">
-            {tx("Talk to a Care Guide — we'll plan your entire trip for free.")}
+          <p className="mx-auto mt-5 max-w-xl text-base font-medium leading-relaxed text-white/95 sm:text-lg">
+            {tx("Talk to a Care Guide: we'll plan your entire trip for free.")}
           </p>
-          <p className="text-primary-foreground/60 text-sm mb-8 italic">{tx("You focus on healing. We handle the rest.")}</p>
+          <p className="mx-auto mt-5 max-w-xl font-body text-pretty text-base font-normal leading-[1.65] tracking-[0.01em] text-white/88 antialiased sm:text-lg sm:leading-[1.6]">
+            {tx("You focus on healing. We handle the rest.")}
+          </p>
 
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
             <motion.a
               href="#medical-tourism"
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-primary-foreground text-primary font-semibold px-8 py-3.5 rounded-xl inline-flex items-center gap-2 shadow-lg"
+              className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-white px-8 text-base font-bold text-primary shadow-xl shadow-black/15 sm:w-auto"
             >
               {tx("Get My Treatment Plan")}
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="h-5 w-5 shrink-0" />
             </motion.a>
             <motion.a
-              href={`https://wa.me/${WHATSAPP_RW_NUMBER}`}
+              href={waCareHref}
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="border-2 border-primary-foreground/30 text-primary-foreground font-medium px-8 py-3.5 rounded-xl inline-flex items-center gap-2"
+              className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-white/35 bg-[#25D366] px-8 text-base font-bold text-white shadow-lg ring-2 ring-white/15 hover:bg-[#20bd5a] sm:w-auto"
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="h-5 w-5 shrink-0" />
               {tx("Chat on WhatsApp")}
             </motion.a>
           </div>

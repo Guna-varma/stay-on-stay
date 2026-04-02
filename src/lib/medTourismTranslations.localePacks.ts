@@ -1,16 +1,73 @@
 /**
  * Parallel packs (same keys) for FR / ES / SW / PT — short, plain wording; missing keys fall back to English in useMtText.
  */
+import { MT_HERO_DISCLAIMER, MT_HERO_SUBLINE_REST, MT_HERO_SUBLINE_WE } from "./medTourismCopy";
+
 export const frPack: Record<string, string> = {
   "Trusted by patients across Africa": "Des patients en Afrique nous font confiance",
-  "Travel to India for Affordable Treatment — ": "Voyagez en Inde pour un soin abordable — ",
+  "Travel to India for Affordable Treatment": "Voyagez en Inde pour un soin abordable",
   "We Handle Everything": "Nous nous occupons de tout",
-  "We help from your first check to going home. Good hospitals. Easy travel. No stress.":
-    "Nous vous aidons du premier examen jusqu’au retour. Bons hôpitaux. Voyage simple. Pas de stress.",
+  [MT_HERO_SUBLINE_WE]: "Nous",
+  [MT_HERO_SUBLINE_REST]:
+    " coordonnons des hôpitaux de confiance, votre voyage et votre hébergement, de vos premières questions jusqu’au moment où vous êtes prêt à rentrer. Vous vous concentrez sur votre rétablissement ; nous gérons les arrangements.",
   "Get My Treatment Plan": "Obtenir mon plan de traitement",
   "Talk to a Care Guide": "Parler à un conseiller",
-  "We do not give medical care here. We connect you to good hospitals and help your whole trip.":
-    "Nous ne soignons pas ici. Nous vous mettons en lien avec de bons hôpitaux et aidons tout le voyage.",
+  [MT_HERO_DISCLAIMER]:
+    "Nous ne sommes pas un hôpital et ne fournissons pas de soins médicaux sur ce site. Notre équipe d’accompagnement vous aide à entrer en contact avec des hôpitaux accrédités et à organiser votre séjour et votre voyage, avec bienveillance, clarté et soutien à chaque étape.",
+  "WhatsApp care in your language": "Soins sur WhatsApp dans votre langue",
+  "Clear prices before you decide": "Prix clairs avant de décider",
+  "Representative modern hospital in India": "Hôpital moderne en Inde (photo d’illustration)",
+  "Five clear steps from first call to your visa":
+    "Cinq étapes claires du premier appel au visa",
+  "Initial step: we speak with you online":
+    "Étape 1 : nous parlons avec vous en ligne",
+  "Tell us how you feel and what your doctor said. Our care team meets you on video or phone, calmly and in simple words.":
+    "Dites-nous comment vous vous sentez et ce qu’a dit votre médecin. Notre équipe vous reçoit en vidéo ou par téléphone, calmement et avec des mots simples.",
+  "You share the documents we request":
+    "Vous envoyez les documents demandés",
+  "You upload reports on a clear checklist. We send them safely to experienced doctors in India.":
+    "Vous téléversez les comptes rendus selon une liste claire. Nous les transmettons en toute sécurité à des médecins expérimentés en Inde.",
+  "Clear opinion and treatment cost from India":
+    "Avis clair et coût du traitement depuis l’Inde",
+  "Doctors in India review your file. They explain your condition and the full cost of care in plain language.":
+    "Des médecins en Inde étudient votre dossier. Ils expliquent votre état et le coût total des soins avec des mots simples.",
+  "No commission from our team on your hospital quote. You see the real price.":
+    "Aucune commission de notre équipe sur le devis de l’hôpital. Vous voyez le vrai prix.",
+  "Official letter on StayOnStay letterhead":
+    "Lettre officielle sur papier à en-tête StayOnStay",
+  "When you say yes, the hospital prepares your invitation letter. We coordinate it on official StayOnStay letterhead so the paperwork is easy to trust.":
+    "Quand vous acceptez, l’hôpital prépare votre lettre d’invitation. Nous la coordonnons sur l’en-tête officiel StayOnStay pour rassurer sur les documents.",
+  "Visa and flights: we guide you":
+    "Visa et vols : nous vous guidons",
+  "We walk you through visa steps and suggest flight dates and routes that fit your treatment plan.":
+    "Nous détaillons les étapes du visa et proposons dates et itinéraires adaptés à votre plan de traitement.",
+  "After the five steps above: your time in India":
+    "Après ces cinq étapes : votre séjour en Inde",
+  "JCI-accredited partner hospitals": "Hôpitaux partenaires accrédités JCI",
+  "Trusted Gurugram facilities, in the order many families choose.":
+    "Établissements de confiance à Gurugram, dans l’ordre souvent choisi par les familles.",
+  "Accreditation note Paras NABH":
+    "Paras Hospital est accrédité NABH ; les quatre autres listés ici sont des hôpitaux JCI avec lesquels nous travaillons.",
+  "Representative hospital photo": "Photo illustrative d’hôpital",
+  "Representative photo note": "Photo indicative ; l’aspect du bâtiment peut varier.",
+  "Five hospitals we connect you with": "Cinq hôpitaux avec lesquels nous vous mettons en relation",
+  "Not sure which hospital fits your case?": "Vous ne savez pas quel hôpital convient à votre cas ?",
+  "Our care team helps you choose on WhatsApp, no pressure.":
+    "Notre équipe vous aide à choisir sur WhatsApp, sans pression.",
+  "See more details >": "Voir plus de détails >",
+  "You arrive in India": "Vous arrivez en Inde",
+  "Our helper meets you at the airport and takes you to your hotel.":
+    "Notre assistant vous accueille à l’aéroport et vous conduit à l’hôtel.",
+  "Treatment and hospital visits": "Traitement et visites à l’hôpital",
+  "You see your doctors as planned. We stay on WhatsApp and phone when you need us.":
+    "Vous voyez vos médecins comme prévu. Nous restons sur WhatsApp et au téléphone si besoin.",
+  "Light outings if your doctor agrees":
+    "Sorties légères si votre médecin est d’accord",
+  "When you feel stronger, we can suggest short, safe visits nearby — only if your doctor says it is OK.":
+    "Quand vous allez mieux, nous pouvons proposer de courtes visites sûres à proximité — seulement si le médecin l’autorise.",
+  "Planning your trip home": "Organiser le retour chez vous",
+  "We help with tickets and reminders for follow-up care after you get home.":
+    "Nous aidons pour les billets et les rappels de suivi après votre retour.",
   "Why Travel With Us": "Pourquoi voyager avec nous",
   "We Handle Everything — So You Don't Have To": "Nous nous occupons de tout — pour que vous n’ayez pas à le faire",
   "You focus on healing. We handle the rest.": "Vous vous concentrez sur la guérison. Nous gérons le reste.",
@@ -21,9 +78,35 @@ export const frPack: Record<string, string> = {
   "Step": "Étape",
   "You are here": "Vous êtes ici",
   "Treatments": "Soins",
-  "Find the right care — easy and clear": "Trouvez le bon soin — simple et clair",
+  "Find the right care: easy and clear": "Trouvez le bon soin : simple et clair",
   "Top hospitals in India. Good care. Much less money.":
     "Grands hôpitaux en Inde. Bons soins. Beaucoup moins cher.",
+  "India is a leading choice for African families: advanced specialties, shorter waits, and often 60–80% lower cost than many Western systems.":
+    "L’Inde est un choix de premier plan pour les familles africaines : spécialités avancées, attentes plus courtes et souvent 60 à 80 % moins cher que dans beaucoup de pays occidentaux.",
+  "24,000+ African patients reached India in Q1 2026 — a sharp rise in medical travel.":
+    "Plus de 24 000 patients africains en Inde au 1er trimestre 2026 — forte hausse du voyage médical.",
+  "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
+    "Croissance de 42 % par rapport à 2024 — beaucoup de projections visent plus de 100 000 visites cette année.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
+    "Afrique de l’Est et de l’Ouest en tête : Nigeria, Kenya, Tanzanie, Ghana, Ouganda et Congo.",
+  "What African travelers often plan in India": "Ce que les voyageurs africains planifient souvent en Inde",
+  "Representative demand mix from industry reports — not a promise of availability.":
+    "Répartition indicative d’après les rapports du secteur — pas une garantie de disponibilité.",
+  "Oncology (cancer care)": "Oncologie (soins du cancer)",
+  "Cardiology (heart surgery)": "Cardiologie (chirurgie cardiaque)",
+  "Orthopaedics (joints & spine)": "Orthopédie (articulations et colonne)",
+  "Other procedures": "Autres actes",
+  "Illustrative photo — your hospital and doctor are chosen with you.":
+    "Photo illustrative — l’hôpital et le médecin sont choisis avec vous.",
+  "Your health, our priority — we connect you; hospitals provide treatment.":
+    "Votre santé, notre priorité — nous vous mettons en lien ; les hôpitaux assurent le traitement.",
+  "Cardiac care in India can cost around a fraction of US rates — use the calculator below for your country.":
+    "Les soins cardiaques en Inde peuvent coûter une fraction des tarifs américains — utilisez le calculateur ci-dessous pour votre pays.",
+  "Indicative comparison — final quotes come from your hospital.":
+    "Comparaison indicative — le devis final vient de votre hôpital.",
+  "Typical stay:": "Séjour typique :",
+  "* Price ranges are indicative in USD; final cost depends on hospital, city, and your case. Asterisk (*) marks where agencies often cite bundled or variable packages.":
+    "* Fourchettes indicatives en USD ; le coût final dépend de l’hôpital, de la ville et de votre dossier. L’astérisque (*) indique des forfaits souvent groupés ou variables.",
   "Partner Hospitals": "Hôpitaux partenaires",
   "Leading accredited hospitals in Gurugram": "Grands hôpitaux accrédités à Gurugram",
   "Accredited": "Accrédité",
@@ -51,9 +134,10 @@ export const frPack: Record<string, string> = {
   "Get instant support from a care guide in your region.":
     "Soutien rapide d’un conseiller près de chez vous.",
   "Chat Now": "Chatter maintenant",
+  "African countries, one caring team": "Pays africains, une seule équipe bienveillante",
   "Ready to Start Your Healing Journey?": "Prêt à commencer votre parcours de guérison ?",
-  "Talk to a Care Guide — we'll plan your entire trip for free.":
-    "Parlez à un conseiller — nous planifions tout votre voyage gratuitement.",
+  "Talk to a Care Guide: we'll plan your entire trip for free.":
+    "Parlez à un conseiller : nous planifions tout votre voyage gratuitement.",
   "Chat on WhatsApp": "Discuter sur WhatsApp",
   "Save up to 70%": "Jusqu’à 70 % d’économies",
   "We link you to good hospitals in India. We help you plan. We do not give treatment ourselves.":
@@ -78,8 +162,8 @@ export const frPack: Record<string, string> = {
   "Get hospitals and prices": "Obtenir hôpitaux et prix",
   "We send hospital names and clear prices.": "Nous envoyons des noms d’hôpitaux et des prix clairs.",
   "We plan travel and stay": "Nous planifions voyage et séjour",
-  "Flights, hotel, visa help — we fix it for you.":
-    "Vol, hôtel, visa — nous nous occupons pour vous.",
+  "Flights, hotel, visa help: we fix it for you.":
+    "Vol, hôtel, visa : nous nous occupons pour vous.",
   "You fly to India": "Vous volez vers l’Inde",
   "You land in India. Our helper meets you at the airport.":
     "Vous arrivez en Inde. Un aide vous attend à l’aéroport.",
@@ -211,14 +295,69 @@ export const frPack: Record<string, string> = {
 
 export const esPack: Record<string, string> = {
   "Trusted by patients across Africa": "Pacientes en África confían en nosotros",
-  "Travel to India for Affordable Treatment — ": "Viaja a la India para un tratamiento asequible — ",
+  "Travel to India for Affordable Treatment": "Viaja a la India para un tratamiento asequible",
   "We Handle Everything": "Nosotros nos encargamos de todo",
-  "We help from your first check to going home. Good hospitals. Easy travel. No stress.":
-    "Te ayudamos desde el primer chequeo hasta volver a casa. Buenos hospitales. Viaje fácil. Sin estrés.",
+  [MT_HERO_SUBLINE_WE]: "Nosotros",
+  [MT_HERO_SUBLINE_REST]:
+    " coordinamos hospitales de confianza, tu viaje y tu alojamiento desde tus primeras preguntas hasta que estés listo para volver a casa. Tú te centras en recuperarte; nosotros nos encargamos de los trámites.",
   "Get My Treatment Plan": "Obtener mi plan de tratamiento",
   "Talk to a Care Guide": "Hablar con un asesor de cuidado",
-  "We do not give medical care here. We connect you to good hospitals and help your whole trip.":
-    "Aquí no damos tratamiento médico. Te conectamos con buenos hospitales y ayudamos todo el viaje.",
+  [MT_HERO_DISCLAIMER]:
+    "No somos un hospital y no prestamos tratamiento médico en este sitio. Nuestro equipo de acompañamiento te ayuda a conectar con hospitales acreditados y a planificar tu estancia y viaje, con cercanía, claridad y apoyo en cada paso.",
+  "WhatsApp care in your language": "Atención por WhatsApp en tu idioma",
+  "Clear prices before you decide": "Precios claros antes de decidir",
+  "Representative modern hospital in India": "Hospital moderno en India (foto de ejemplo)",
+  "Five clear steps from first call to your visa":
+    "Cinco pasos claros desde la primera llamada al visado",
+  "Initial step: we speak with you online":
+    "Paso 1: hablamos contigo en línea",
+  "Tell us how you feel and what your doctor said. Our care team meets you on video or phone, calmly and in simple words.":
+    "Cuéntanos cómo te sientes y qué dijo tu médico. Nuestro equipo te atiende por videollamada o teléfono, con calma y palabras sencillas.",
+  "You share the documents we request":
+    "Compartes los documentos que pedimos",
+  "You upload reports on a clear checklist. We send them safely to experienced doctors in India.":
+    "Subes informes siguiendo una lista clara. Los enviamos con seguridad a médicos experimentados en India.",
+  "Clear opinion and treatment cost from India":
+    "Informe claro y coste del tratamiento desde India",
+  "Doctors in India review your file. They explain your condition and the full cost of care in plain language.":
+    "Médicos en India revisan tu caso. Explican tu estado y el coste total del tratamiento con lenguaje claro.",
+  "No commission from our team on your hospital quote. You see the real price.":
+    "Sin comisión de nuestro equipo sobre el presupuesto del hospital. Ves el precio real.",
+  "Official letter on StayOnStay letterhead":
+    "Carta oficial con membrete StayOnStay",
+  "When you say yes, the hospital prepares your invitation letter. We coordinate it on official StayOnStay letterhead so the paperwork is easy to trust.":
+    "Cuando confirmas, el hospital prepara la carta de invitación. La coordinamos con membrete oficial StayOnStay para que confíes en el papeleo.",
+  "Visa and flights: we guide you":
+    "Visado y vuelos: te guiamos",
+  "We walk you through visa steps and suggest flight dates and routes that fit your treatment plan.":
+    "Te explicamos los pasos del visado y sugerimos fechas y rutas de vuelo según tu plan de tratamiento.",
+  "After the five steps above: your time in India":
+    "Después de esos cinco pasos: tu tiempo en India",
+  "JCI-accredited partner hospitals": "Hospitales socios acreditados JCI",
+  "Trusted Gurugram facilities, in the order many families choose.":
+    "Centros de confianza en Gurugram, en el orden que muchas familias eligen.",
+  "Accreditation note Paras NABH":
+    "Paras Hospital tiene acreditación NABH; los otros cuatro listados son hospitales JCI con los que trabajamos.",
+  "Representative hospital photo": "Foto ilustrativa del hospital",
+  "Representative photo note": "Foto orientativa; el edificio puede verse distinto.",
+  "Five hospitals we connect you with": "Cinco hospitales con los que te conectamos",
+  "Not sure which hospital fits your case?": "¿No sabes qué hospital encaja con tu caso?",
+  "Our care team helps you choose on WhatsApp, no pressure.":
+    "Nuestro equipo te ayuda a elegir por WhatsApp, sin presión.",
+  "See more details >": "Ver más detalles >",
+  "You arrive in India": "Llegas a India",
+  "Our helper meets you at the airport and takes you to your hotel.":
+    "Nuestro ayudante te recibe en el aeropuerto y te lleva al hotel.",
+  "Treatment and hospital visits": "Tratamiento y visitas al hospital",
+  "You see your doctors as planned. We stay on WhatsApp and phone when you need us.":
+    "Ves a tus médicos como estaba planeado. Seguimos en WhatsApp y teléfono cuando nos necesites.",
+  "Light outings if your doctor agrees":
+    "Salidas ligeras si tu médico lo aprueba",
+  "When you feel stronger, we can suggest short, safe visits nearby — only if your doctor says it is OK.":
+    "Cuando te sientas mejor, podemos sugerir visitas cortas y seguras cerca — solo si el médico lo permite.",
+  "Planning your trip home": "Planear tu regreso a casa",
+  "We help with tickets and reminders for follow-up care after you get home.":
+    "Ayudamos con billetes y recuerdos para el seguimiento después de volver.",
   "Why Travel With Us": "Por qué viajar con nosotros",
   "We Handle Everything — So You Don't Have To": "Nos encargamos de todo — para que tú no tengas que hacerlo",
   "You focus on healing. We handle the rest.": "Tú te enfocas en sanar. Nosotros nos encargamos del resto.",
@@ -229,9 +368,35 @@ export const esPack: Record<string, string> = {
   "Step": "Paso",
   "You are here": "Estás aquí",
   "Treatments": "Tratamientos",
-  "Find the right care — easy and clear": "Encuentra el cuidado adecuado — fácil y claro",
+  "Find the right care: easy and clear": "Encuentra el cuidado adecuado: fácil y claro",
   "Top hospitals in India. Good care. Much less money.":
     "Grandes hospitales en la India. Buen cuidado. Mucho menos dinero.",
+  "India is a leading choice for African families: advanced specialties, shorter waits, and often 60–80% lower cost than many Western systems.":
+    "India es una opción líder para familias africanas: especialidades avanzadas, menos espera y a menudo 60–80 % menos que en muchos sistemas occidentales.",
+  "24,000+ African patients reached India in Q1 2026 — a sharp rise in medical travel.":
+    "Más de 24 000 pacientes africanos llegaron a India en el primer trimestre de 2026 — fuerte aumento del turismo médico.",
+  "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
+    "Crecimiento del 42 % frente a 2024 — muchas proyecciones apuntan a más de 100 000 visitas este año.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
+    "África Oriental y Occidental lideran: Nigeria, Kenia, Tanzania, Ghana, Uganda y Congo.",
+  "What African travelers often plan in India": "Lo que los viajeros africanos suelen planificar en India",
+  "Representative demand mix from industry reports — not a promise of availability.":
+    "Mezcla representativa según informes del sector — no es promesa de disponibilidad.",
+  "Oncology (cancer care)": "Oncología (cuidado del cáncer)",
+  "Cardiology (heart surgery)": "Cardiología (cirugía del corazón)",
+  "Orthopaedics (joints & spine)": "Ortopedia (articulaciones y columna)",
+  "Other procedures": "Otros procedimientos",
+  "Illustrative photo — your hospital and doctor are chosen with you.":
+    "Foto ilustrativa — el hospital y el médico se eligen contigo.",
+  "Your health, our priority — we connect you; hospitals provide treatment.":
+    "Tu salud, nuestra prioridad — te conectamos; los hospitales dan el tratamiento.",
+  "Cardiac care in India can cost around a fraction of US rates — use the calculator below for your country.":
+    "La atención cardíaca en India puede costar una fracción de las tarifas de EE. UU. — usa la calculadora abajo para tu país.",
+  "Indicative comparison — final quotes come from your hospital.":
+    "Comparación orientativa — el presupuesto final lo da tu hospital.",
+  "Typical stay:": "Estancia típica:",
+  "* Price ranges are indicative in USD; final cost depends on hospital, city, and your case. Asterisk (*) marks where agencies often cite bundled or variable packages.":
+    "* Los rangos en USD son orientativos; el costo final depende del hospital, la ciudad y tu caso. El asterisco (*) marca paquetes combinados o variables citados por agencias.",
   "Partner Hospitals": "Hospitales asociados",
   "Leading accredited hospitals in Gurugram": "Hospitales acreditados líderes en Gurugram",
   "Accredited": "Acreditado",
@@ -259,9 +424,10 @@ export const esPack: Record<string, string> = {
   "Get instant support from a care guide in your region.":
     "Apoyo rápido de un asesor en tu región.",
   "Chat Now": "Chatear ahora",
+  "African countries, one caring team": "Países africanos, un solo equipo de cuidado",
   "Ready to Start Your Healing Journey?": "¿Listo para empezar tu camino de sanación?",
-  "Talk to a Care Guide — we'll plan your entire trip for free.":
-    "Habla con un asesor — planificamos todo tu viaje gratis.",
+  "Talk to a Care Guide: we'll plan your entire trip for free.":
+    "Habla con un asesor: planificamos todo tu viaje gratis.",
   "Chat on WhatsApp": "Chatear en WhatsApp",
   "Save up to 70%": "Ahorra hasta un 70 %",
   "We link you to good hospitals in India. We help you plan. We do not give treatment ourselves.":
@@ -286,8 +452,8 @@ export const esPack: Record<string, string> = {
   "Get hospitals and prices": "Obtén hospitales y precios",
   "We send hospital names and clear prices.": "Enviamos nombres de hospitales y precios claros.",
   "We plan travel and stay": "Planeamos viaje y estancia",
-  "Flights, hotel, visa help — we fix it for you.":
-    "Vuelo, hotel, visa — lo arreglamos por ti.",
+  "Flights, hotel, visa help: we fix it for you.":
+    "Vuelo, hotel, visa: lo arreglamos por ti.",
   "You fly to India": "Vuelas a la India",
   "You land in India. Our helper meets you at the airport.":
     "Aterrizas en la India. Un ayudante te espera en el aeropuerto.",
@@ -419,14 +585,69 @@ export const esPack: Record<string, string> = {
 
 export const swPack: Record<string, string> = {
   "Trusted by patients across Africa": "Wagonjwa kote Afrika wanatuamini",
-  "Travel to India for Affordable Treatment — ": "Safiri India kwa matibabu ya bei nafuu — ",
+  "Travel to India for Affordable Treatment": "Safiri India kwa matibabu ya bei nafuu",
   "We Handle Everything": "Sisi tunashughulikia kila kitu",
-  "We help from your first check to going home. Good hospitals. Easy travel. No stress.":
-    "Tunakusaidia kutoka check ya kwanza hadi kurudi nyumbani. Hospitali nzuri. Safari rahisi. Hakuna stress.",
+  [MT_HERO_SUBLINE_WE]: "Sisi",
+  [MT_HERO_SUBLINE_REST]:
+    " tunapangilia hospitali kuaminika, safari na mahali pa kulala kutoka maswali yako ya kwanza hadi uwe tayari kurudi nyumbani. Wewe zingatia kupona; sisi tunashughulikia mipango.",
   "Get My Treatment Plan": "Pata mpango wangu wa matibabu",
   "Talk to a Care Guide": "Zungumza na mwongozo wa huduma",
-  "We do not give medical care here. We connect you to good hospitals and help your whole trip.":
-    "Hatupati matibabu hapa. Tunakuunganisha na hospitali nzuri na kusaidia safari yote.",
+  [MT_HERO_DISCLAIMER]:
+    "Sisi si hospitali na hatupati matibabu ya kliniki kwenye tovuti hii. Timu yetu ya uangalizi inakusaidia kuunganishwa na hospitali zilizoidhinishwa na kupanga ukaaji na safari, kwa upole, uwazi, na msaada kila hatua.",
+  "WhatsApp care in your language": "Huduma WhatsApp kwa lugha yako",
+  "Clear prices before you decide": "Bei wazi kabla huamua",
+  "Representative modern hospital in India": "Hospitali kisasa India (picha ya mfano)",
+  "Five clear steps from first call to your visa":
+    "Hatua 5 wazi kutoka simu ya kwanza hadi visa",
+  "Initial step: we speak with you online":
+    "Hatua ya kwanza: tunaongea nawe mtandaoni",
+  "Tell us how you feel and what your doctor said. Our care team meets you on video or phone, calmly and in simple words.":
+    "Tuambie unavyohisi na daktari alisema nini. Timu yetu inakutana nawe kwa video au simu, kwa utulivu na maneno rahisi.",
+  "You share the documents we request":
+    "Unatuma nyaraka tunazoomba",
+  "You upload reports on a clear checklist. We send them safely to experienced doctors in India.":
+    "Unapakia ripoti kwa orodha wazi. Tunazituma kwa usalama kwa madaktari wenye uzoefu India.",
+  "Clear opinion and treatment cost from India":
+    "Maoni wazi na gharama ya matibabu kutoka India",
+  "Doctors in India review your file. They explain your condition and the full cost of care in plain language.":
+    "Madaktari India wanaangalia faili lako. Wanaelezea hali yako na gharama kamili kwa lugha rahisi.",
+  "No commission from our team on your hospital quote. You see the real price.":
+    "Hakuna commission kutoka timu yetu kwenye bei ya hospitali. Unaona bei halisi.",
+  "Official letter on StayOnStay letterhead":
+    "Barua rasmi yenye kichwa cha StayOnStay",
+  "When you say yes, the hospital prepares your invitation letter. We coordinate it on official StayOnStay letterhead so the paperwork is easy to trust.":
+    "Unapokubali, hospitali inatengeneza barua ya mwaliko. Tunaisawazisha kwa kichwa rasmi cha StayOnStay ili uaminike kwenye nyaraka.",
+  "Visa and flights: we guide you":
+    "Visa na ndege: tunaongoza",
+  "We walk you through visa steps and suggest flight dates and routes that fit your treatment plan.":
+    "Tunaelezea hatua za visa na kupendekeza tarehe na njia za ndege zinazofaa mpango wako wa matibabu.",
+  "After the five steps above: your time in India":
+    "Baada ya hatua hizo tano: muda wako India",
+  "JCI-accredited partner hospitals": "Hospitali washirika wenye idhini ya JCI",
+  "Trusted Gurugram facilities, in the order many families choose.":
+    "Vituo vinavyoaminika Gurugram, kwa mpangilio familia nyingi huchagua.",
+  "Accreditation note Paras NABH":
+    "Paras Hospital ina idhini ya NABH; nne zingine hapa ni hospitali za JCI tunazofanya nao kazi.",
+  "Representative hospital photo": "Picha ya mfano ya hospitali",
+  "Representative photo note": "Picha ni mfano; jengo linaweza kuonekana tofauti.",
+  "Five hospitals we connect you with": "Hospitali 5 tunazokuunganisha nawe",
+  "Not sure which hospital fits your case?": "Hujui hospitali gani inafaa hali yako?",
+  "Our care team helps you choose on WhatsApp, no pressure.":
+    "Timu yetu inakusaidia kuchagua WhatsApp bila shinikizo.",
+  "See more details >": "Ona maelezo zaidi >",
+  "You arrive in India": "Unafika India",
+  "Our helper meets you at the airport and takes you to your hotel.":
+    "Msaidizi wetu anakutana nawe uwanja wa ndege na kukupeleka hotelini.",
+  "Treatment and hospital visits": "Matibabu na kutembelea hospitali",
+  "You see your doctors as planned. We stay on WhatsApp and phone when you need us.":
+    "Unawaona madaktari kama ilivyopangwa. Tunabaki WhatsApp na simu unapohitaji.",
+  "Light outings if your doctor agrees":
+    "Matembezi madogo kama daktari anaridhia",
+  "When you feel stronger, we can suggest short, safe visits nearby — only if your doctor says it is OK.":
+    "Unapopata nguvu, tunaweza kupendekeza matembezi mafupi salama karibu — tu kama daktari anasema sawa.",
+  "Planning your trip home": "Kupanga safari ya kurudi nyumbani",
+  "We help with tickets and reminders for follow-up care after you get home.":
+    "Tunasaidia tiketi na ukumbusho wa ufuatiliaji baada ya kurudi.",
   "Why Travel With Us": "Kwa nini usafiri nasi",
   "We Handle Everything — So You Don't Have To": "Tunashughulikia kila kitu — ili wewe usijisumbue",
   "You focus on healing. We handle the rest.": "Wewe zingatia kupona. Sisi tunashughulikia mengine.",
@@ -437,9 +658,35 @@ export const swPack: Record<string, string> = {
   "Step": "Hatua",
   "You are here": "Uko hapa",
   "Treatments": "Matibabu",
-  "Find the right care — easy and clear": "Pata huduma sahihi — rahisi na wazi",
+  "Find the right care: easy and clear": "Pata huduma sahihi: rahisi na wazi",
   "Top hospitals in India. Good care. Much less money.":
     "Hospitali bora India. Huduma nzuri. Pesa kidogo sana.",
+  "India is a leading choice for African families: advanced specialties, shorter waits, and often 60–80% lower cost than many Western systems.":
+    "India ni chaguo bora kwa familia za Afrika: tiba maalum, kupunguka kwa kusubiri, na mara nyingi 60–80% bei ya chini kuliko mifumo mingi ya Magharibi.",
+  "24,000+ African patients reached India in Q1 2026 — a sharp rise in medical travel.":
+    "Wagonjwa zaidi ya 24,000 kutoka Afrika walifika India Q1 2026 — ongezeko kubwa la safari za matibabu.",
+  "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
+    "Ukuaji wa 42% ikilinganishwa na 2024 — makadirio mengi yanaonyesha ziara 100,000+ mwaka huu.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
+    "Afrika Mashariki na Magharibi viongozi: Nigeria, Kenya, Tanzania, Ghana, Uganda na Congo.",
+  "What African travelers often plan in India": "Wasafiri wa Afrika mara nyingi wanapanga nini India",
+  "Representative demand mix from industry reports — not a promise of availability.":
+    "Mchanganyiko wa mahitaji kutoka ripoti za sekta — si ahadi ya upatikanaji.",
+  "Oncology (cancer care)": "Oncolojia (matibabu ya saratani)",
+  "Cardiology (heart surgery)": "Kadiolojia (upasuaji wa moyo)",
+  "Orthopaedics (joints & spine)": "Orthopediki (viungo na uti wa mgongo)",
+  "Other procedures": "Taratibu nyingine",
+  "Illustrative photo — your hospital and doctor are chosen with you.":
+    "Picha ya mfano — hospitali na daktari huchaguliwa pamoja nawe.",
+  "Your health, our priority — we connect you; hospitals provide treatment.":
+    "Afya yako, kipaumbele chetu — tunakuunganisha; hospitali hutoa matibabu.",
+  "Cardiac care in India can cost around a fraction of US rates — use the calculator below for your country.":
+    "Matibabu ya moyo India yanaweza kugharimu sehemu ya bei za Marekani — tumia kikokotoo hapa chini kwa nchi yako.",
+  "Indicative comparison — final quotes come from your hospital.":
+    "Ulinganisho wa kiashiria — bei za mwisho zinatoka hospitali yako.",
+  "Typical stay:": "Kukaa kwa kawaida:",
+  "* Price ranges are indicative in USD; final cost depends on hospital, city, and your case. Asterisk (*) marks where agencies often cite bundled or variable packages.":
+    "* Masafa ya bei ni ya kiashiria kwa USD; gharama ya mwisho inategemea hospitali, jiji na kesi yako. (*) inaonyesha paketi zilizounganishwa au zinazobadilika.",
   "Partner Hospitals": "Hospitali washirika",
   "Leading accredited hospitals in Gurugram": "Hospitali kuu zilizothibitishwa Gurugram",
   "Accredited": "Imethibitishwa",
@@ -467,9 +714,10 @@ export const swPack: Record<string, string> = {
   "Get instant support from a care guide in your region.":
     "Msaada haraka kutoka kwa mwongozo wa huduma katika eneo lako.",
   "Chat Now": "Zungumza sasa",
+  "African countries, one caring team": "Nchi za Afrika, timu moja ya utunzaji",
   "Ready to Start Your Healing Journey?": "Tayari kuanza safari yako ya kupona?",
-  "Talk to a Care Guide — we'll plan your entire trip for free.":
-    "Zungumza na mwongozo — tunapanga safari yako yote bure.",
+  "Talk to a Care Guide: we'll plan your entire trip for free.":
+    "Zungumza na mwongozo: tunapanga safari yako yote bure.",
   "Chat on WhatsApp": "Zungumza WhatsApp",
   "Save up to 70%": "Okoa hadi 70%",
   "We link you to good hospitals in India. We help you plan. We do not give treatment ourselves.":
@@ -494,8 +742,8 @@ export const swPack: Record<string, string> = {
   "Get hospitals and prices": "Pata hospitali na bei",
   "We send hospital names and clear prices.": "Tunatuma majina ya hospitali na bei wazi.",
   "We plan travel and stay": "Tunapanga safari na kukaa",
-  "Flights, hotel, visa help — we fix it for you.":
-    "Ndege, hoteli, visa — tunatatua kwa ajili yako.",
+  "Flights, hotel, visa help: we fix it for you.":
+    "Ndege, hoteli, visa: tunatatua kwa ajili yako.",
   "You fly to India": "Unasafiri India",
   "You land in India. Our helper meets you at the airport.":
     "Unashuka India. Msaidizi anakukutana uwanja wa ndege.",
@@ -628,14 +876,69 @@ export const swPack: Record<string, string> = {
 /** Portuguese (Brazil / Lusophone Africa) — same keys as esPack; pt UI falls back to es then en in useMtText if missing. */
 export const ptPack: Record<string, string> = {
   "Trusted by patients across Africa": "Pacientes na África confiam em nós",
-  "Travel to India for Affordable Treatment — ": "Viaje para a Índia para tratamento acessível — ",
+  "Travel to India for Affordable Treatment": "Viaje para a Índia para tratamento acessível",
   "We Handle Everything": "Nós cuidamos de tudo",
-  "We help from your first check to going home. Good hospitals. Easy travel. No stress.":
-    "Ajudamos desde o primeiro exame até voltar para casa. Bons hospitais. Viagem fácil. Sem stress.",
+  [MT_HERO_SUBLINE_WE]: "Nós",
+  [MT_HERO_SUBLINE_REST]:
+    " coordenamos hospitais confiáveis, sua viagem e sua hospedagem desde suas primeiras dúvidas até você estar pronto para voltar para casa. Você foca em se recuperar; nós cuidamos dos arranjos.",
   "Get My Treatment Plan": "Obter meu plano de tratamento",
   "Talk to a Care Guide": "Falar com um guia de cuidados",
-  "We do not give medical care here. We connect you to good hospitals and help your whole trip.":
-    "Não damos tratamento aqui. Ligamos você a bons hospitais e ajudamos em toda a viagem.",
+  [MT_HERO_DISCLAIMER]:
+    "Não somos um hospital e não oferecemos tratamento médico neste site. Nossa equipe de cuidado ajuda você a se conectar com hospitais credenciados e a planejar estadia e viagem, com acolhimento, clareza e apoio em cada etapa.",
+  "WhatsApp care in your language": "Atendimento no WhatsApp no seu idioma",
+  "Clear prices before you decide": "Preços claros antes de decidir",
+  "Representative modern hospital in India": "Hospital moderno na Índia (foto ilustrativa)",
+  "Five clear steps from first call to your visa":
+    "Cinco passos claros da primeira ligação ao visto",
+  "Initial step: we speak with you online":
+    "Passo 1: falamos com você online",
+  "Tell us how you feel and what your doctor said. Our care team meets you on video or phone, calmly and in simple words.":
+    "Conte como se sente e o que o médico disse. Nossa equipe fala com você por vídeo ou telefone, com calma e palavras simples.",
+  "You share the documents we request":
+    "Você envia os documentos que pedimos",
+  "You upload reports on a clear checklist. We send them safely to experienced doctors in India.":
+    "Você envia exames por uma lista clara. Encaminhamos com segurança a médicos experientes na Índia.",
+  "Clear opinion and treatment cost from India":
+    "Parecer claro e custo do tratamento da Índia",
+  "Doctors in India review your file. They explain your condition and the full cost of care in plain language.":
+    "Médicos na Índia analisam seu caso. Explicam seu estado e o custo total do tratamento em linguagem simples.",
+  "No commission from our team on your hospital quote. You see the real price.":
+    "Sem comissão da nossa equipe sobre o orçamento do hospital. Você vê o preço real.",
+  "Official letter on StayOnStay letterhead":
+    "Carta oficial no papel timbrado StayOnStay",
+  "When you say yes, the hospital prepares your invitation letter. We coordinate it on official StayOnStay letterhead so the paperwork is easy to trust.":
+    "Quando você confirma, o hospital prepara a carta-convite. Coordenamos com timbre oficial StayOnStay para dar confiança na documentação.",
+  "Visa and flights: we guide you":
+    "Visto e voos: nós orientamos",
+  "We walk you through visa steps and suggest flight dates and routes that fit your treatment plan.":
+    "Explicamos as etapas do visto e sugerimos datas e rotas de voo alinhadas ao seu plano de tratamento.",
+  "After the five steps above: your time in India":
+    "Depois desses cinco passos: seu tempo na Índia",
+  "JCI-accredited partner hospitals": "Hospitais parceiros credenciados JCI",
+  "Trusted Gurugram facilities, in the order many families choose.":
+    "Centros confiáveis em Gurugram, na ordem que muitas famílias escolhem.",
+  "Accreditation note Paras NABH":
+    "Paras Hospital é credenciado NABH; os outros quatro listados são hospitais JCI com os quais trabalhamos.",
+  "Representative hospital photo": "Foto ilustrativa do hospital",
+  "Representative photo note": "Foto meramente ilustrativa; o prédio pode variar.",
+  "Five hospitals we connect you with": "Cinco hospitais com os quais conectamos você",
+  "Not sure which hospital fits your case?": "Não sabe qual hospital combina com seu caso?",
+  "Our care team helps you choose on WhatsApp, no pressure.":
+    "Nossa equipe ajuda você a escolher no WhatsApp, sem pressão.",
+  "See more details >": "Ver mais detalhes >",
+  "You arrive in India": "Você chega na Índia",
+  "Our helper meets you at the airport and takes you to your hotel.":
+    "Nosso ajudante encontra você no aeroporto e leva ao hotel.",
+  "Treatment and hospital visits": "Tratamento e visitas ao hospital",
+  "You see your doctors as planned. We stay on WhatsApp and phone when you need us.":
+    "Você vê os médicos conforme o plano. Ficamos no WhatsApp e telefone quando precisar.",
+  "Light outings if your doctor agrees":
+    "Passeios leves se o médico autorizar",
+  "When you feel stronger, we can suggest short, safe visits nearby — only if your doctor says it is OK.":
+    "Quando se sentir melhor, podemos sugerir visitas curtas e seguras por perto — só se o médico permitir.",
+  "Planning your trip home": "Planejar sua volta para casa",
+  "We help with tickets and reminders for follow-up care after you get home.":
+    "Ajudamos com passagens e lembretes de acompanhamento depois que você volta.",
   "Why Travel With Us": "Por que viajar conosco",
   "We Handle Everything — So You Don't Have To": "Cuidamos de tudo — para que você não precise",
   "You focus on healing. We handle the rest.": "Você foca na cura. Nós cuidamos do resto.",
@@ -646,9 +949,35 @@ export const ptPack: Record<string, string> = {
   "Step": "Passo",
   "You are here": "Você está aqui",
   "Treatments": "Tratamentos",
-  "Find the right care — easy and clear": "Encontre o cuidado certo — fácil e claro",
+  "Find the right care: easy and clear": "Encontre o cuidado certo: fácil e claro",
   "Top hospitals in India. Good care. Much less money.":
     "Grandes hospitais na Índia. Bom cuidado. Muito menos dinheiro.",
+  "India is a leading choice for African families: advanced specialties, shorter waits, and often 60–80% lower cost than many Western systems.":
+    "A Índia é uma escolha líder para famílias africanas: especialidades avançadas, menos espera e muitas vezes 60–80% menos que em muitos sistemas ocidentais.",
+  "24,000+ African patients reached India in Q1 2026 — a sharp rise in medical travel.":
+    "Mais de 24 mil pacientes africanos chegaram à Índia no 1º trimestre de 2026 — forte alta do turismo médico.",
+  "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
+    "Crescimento de 42% vs 2024 — muitas projeções apontam mais de 100 mil visitas este ano.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
+    "África Oriental e Ocidental lideram: Nigéria, Quénia, Tanzânia, Gana, Uganda e Congo.",
+  "What African travelers often plan in India": "O que viajantes africanos costumam planejar na Índia",
+  "Representative demand mix from industry reports — not a promise of availability.":
+    "Mix representativo de relatórios do setor — não é promessa de disponibilidade.",
+  "Oncology (cancer care)": "Oncologia (cuidado oncológico)",
+  "Cardiology (heart surgery)": "Cardiologia (cirurgia cardíaca)",
+  "Orthopaedics (joints & spine)": "Ortopedia (articulações e coluna)",
+  "Other procedures": "Outros procedimentos",
+  "Illustrative photo — your hospital and doctor are chosen with you.":
+    "Foto ilustrativa — hospital e médico são escolhidos com você.",
+  "Your health, our priority — we connect you; hospitals provide treatment.":
+    "Sua saúde, nossa prioridade — conectamos você; os hospitais tratam.",
+  "Cardiac care in India can cost around a fraction of US rates — use the calculator below for your country.":
+    "Cuidados cardíacos na Índia podem custar uma fração dos EUA — use a calculadora abaixo para o seu país.",
+  "Indicative comparison — final quotes come from your hospital.":
+    "Comparação indicativa — orçamentos finais vêm do seu hospital.",
+  "Typical stay:": "Permanência típica:",
+  "* Price ranges are indicative in USD; final cost depends on hospital, city, and your case. Asterisk (*) marks where agencies often cite bundled or variable packages.":
+    "* Faixas em USD são indicativas; o custo final depende do hospital, da cidade e do seu caso. O asterisco (*) indica pacotes agrupados ou variáveis citados por agências.",
   "Partner Hospitals": "Hospitais parceiros",
   "Leading accredited hospitals in Gurugram": "Principais hospitais credenciados em Gurugram",
   "Accredited": "Credenciado",
@@ -676,9 +1005,10 @@ export const ptPack: Record<string, string> = {
   "Get instant support from a care guide in your region.":
     "Suporte rápido de um guia de cuidados na sua região.",
   "Chat Now": "Conversar agora",
+  "African countries, one caring team": "Países africanos, uma equipe de cuidado",
   "Ready to Start Your Healing Journey?": "Pronto para começar sua jornada de cura?",
-  "Talk to a Care Guide — we'll plan your entire trip for free.":
-    "Fale com um guia — planejamos toda a sua viagem de graça.",
+  "Talk to a Care Guide: we'll plan your entire trip for free.":
+    "Fale com um guia: planejamos toda a sua viagem de graça.",
   "Chat on WhatsApp": "Conversar no WhatsApp",
   "Save up to 70%": "Economize até 70%",
   "We link you to good hospitals in India. We help you plan. We do not give treatment ourselves.":
@@ -703,8 +1033,8 @@ export const ptPack: Record<string, string> = {
   "Get hospitals and prices": "Obtenha hospitais e preços",
   "We send hospital names and clear prices.": "Enviamos nomes de hospitais e preços claros.",
   "We plan travel and stay": "Planejamos viagem e estadia",
-  "Flights, hotel, visa help — we fix it for you.":
-    "Voo, hotel, visto — resolvemos para você.",
+  "Flights, hotel, visa help: we fix it for you.":
+    "Voo, hotel, visto: resolvemos para você.",
   "You fly to India": "Você voa para a Índia",
   "You land in India. Our helper meets you at the airport.":
     "Você pousa na Índia. Um ajudante espera no aeroporto.",

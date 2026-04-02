@@ -58,3 +58,11 @@ export function whatsappMeUrl(number: string, text?: string): string {
   if (!text?.trim()) return base;
   return `${base}?text=${encodeURIComponent(text)}`;
 }
+
+/** Header / floating CTA — calm, low-friction opener (English; matches main `floatWhats.prefill` tone). */
+export const WHATSAPP_STAYS_CONTACT_PREFILL =
+  "Hello — I'd like to connect with the StayOnStay care team about planning my visit to India for treatment. Please reply when you can. Thank you.";
+
+/** Hero & section “care guide” buttons — slightly more specific ask. */
+export const WHATSAPP_CARE_GUIDE_PREFILL =
+  "Hello — I'd like to speak with a care guide about treatment options and travel to India. Thank you.";

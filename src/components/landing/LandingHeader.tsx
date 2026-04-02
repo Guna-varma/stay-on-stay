@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -18,16 +18,28 @@ import { CartButton } from "@/components/CartButton";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useAuth } from "@/lib/auth";
 import { ROLE_LABELS } from "@/lib/roles";
-import { whatsappMeUrl, whatsappNumberForVisitor } from "@/lib/whatsappContact";
+import {
+  whatsappMeUrl,
+  whatsappNumberForVisitor,
+  WHATSAPP_STAYS_CONTACT_PREFILL,
+} from "@/lib/whatsappContact";
+import { cn } from "@/lib/utils";
 
+/**
+ * All visible in the bar (no dropdown). Explore India sits after Hotels so it isn’t clipped
+ * when the right-side actions consume width (it was last before and scrolled off-screen).
+ */
 const navLinks = [
   { key: "nav.medicalTourism", to: "/med-tourism" },
-  { key: "nav.hospitals", href: "/#hospitals" },
-  { key: "nav.services", href: "/#services" },
-  { key: "nav.support", to: "/help-center" },
+  { key: "nav.hospitals", href: "/med-tourism#hospitals" },
   { key: "nav.hotels", href: "/#hotels" },
   { key: "nav.exploreIndia", to: "/explore-india" },
+  { key: "nav.services", href: "/#why-us" },
+  { key: "nav.support", to: "/help-center" },
 ] as const;
+
+/** Divider before this index (between stay block and explore + help). */
+const NAV_DIVIDER_BEFORE_INDEX = 3;
 
 const LandingHeader = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -50,10 +62,23 @@ const LandingHeader = () => {
 
   const handleSectionNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
-    const hashIdx = href.indexOf("#");
-    if (hashIdx === -1) return;
-    const hash = href.slice(hashIdx);
-    if (location.pathname === "/") {
+    let pathname: string;
+    let hash: string;
+    try {
+      const url = new URL(href, window.location.origin);
+      pathname = url.pathname;
+      hash = url.hash;
+    } catch {
+      return;
+    }
+    if (!hash || hash === "#") return;
+
+    const onTargetPage =
+      pathname === "/"
+        ? location.pathname === "/"
+        : location.pathname === pathname || location.pathname.startsWith(`${pathname}/`);
+
+    if (onTargetPage) {
       const el = document.querySelector(hash);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -61,7 +86,7 @@ const LandingHeader = () => {
         return;
       }
     }
-    navigate({ pathname: "/", hash: hash.slice(1) });
+    navigate({ pathname, hash: hash.slice(1) });
     setMobileOpen(false);
   };
 
@@ -72,126 +97,127 @@ const LandingHeader = () => {
 
   const openContactChat = () => {
     const n = whatsappNumberForVisitor();
-    window.open(
-      whatsappMeUrl(n, "Hello, I need help with medical treatment in India."),
-      "_blank",
-      "noopener,noreferrer",
-    );
+    window.open(whatsappMeUrl(n, WHATSAPP_STAYS_CONTACT_PREFILL), "_blank", "noopener,noreferrer");
   };
 
+  /** WhatsApp green — growth, safety, “easy to reach us” (distinct from primary care blue). */
+  const whatsappCtaClass =
+    "h-9 rounded-lg bg-[#25D366] px-4 text-xs font-semibold text-white shadow-md ring-1 ring-black/5 transition-colors hover:bg-[#20bd5a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366] sm:h-10 sm:px-5 sm:text-sm";
+
   const activeNavKey = useMemo(() => {
-    if (location.pathname === "/med-tourism" || location.pathname.startsWith("/med-tourism/")) return "nav.medicalTourism";
+    if (location.pathname === "/med-tourism" || location.pathname.startsWith("/med-tourism/")) {
+      const hash = (location.hash || "").toLowerCase();
+      if (hash === "#hospitals") return "nav.hospitals";
+      return "nav.medicalTourism";
+    }
     if (location.pathname === "/help-center") return "nav.support";
     if (location.pathname === "/explore-india") return "nav.exploreIndia";
 
     if (location.pathname === "/") {
       const hash = (location.hash || "").toLowerCase();
-      if (hash === "#hospitals") return "nav.hospitals";
-      if (hash === "#services") return "nav.services";
-      if (hash === "#support") return "nav.support";
+      if (hash === "#why-us") return "nav.services";
       if (hash === "#hotels") return "nav.hotels";
-      return "nav.hotels";
+      return "";
     }
 
     return "";
   }, [location.pathname, location.hash]);
 
-  const navItemClass = (isActive: boolean) =>
-    `text-sm font-medium transition-colors duration-150 ${isActive ? "text-primary" : "text-muted-foreground hover:text-primary"}`;
+  const desktopLinkClass = (isActive: boolean, key: string) =>
+    cn(
+      "inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-md px-2 text-[11px] font-semibold tracking-tight transition-all duration-200 sm:h-10 sm:px-2.5 sm:text-[12px] lg:text-[13px] xl:px-3 xl:text-sm",
+      isActive
+        ? "bg-primary/[0.12] text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.2)]"
+        : "text-foreground/[0.82] hover:bg-muted/65 hover:text-foreground",
+      /* Teal accent on “Explore India” = optimism / journey (inactive only) */
+      !isActive &&
+        key === "nav.exploreIndia" &&
+        "hover:text-teal-700 dark:hover:text-teal-400",
+    );
+
+  const actionOutlineClass =
+    "h-9 rounded-lg border-2 border-border/80 bg-background px-3 text-xs font-semibold text-foreground shadow-none transition-colors hover:border-primary/35 hover:bg-muted/40 sm:h-10 sm:px-3.5 sm:text-sm";
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md transition-all duration-150">
-        <div className="max-w-page flex items-center justify-between gap-4 py-3 min-h-[72px]">
-          <a href="/" className="shrink-0">
+      <header className="sticky top-0 z-50 border-b border-border/80 bg-card/95 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-card/90">
+        <div className="max-w-page flex h-14 items-center justify-between gap-2 sm:gap-3 lg:gap-4">
+          <Link to="/" className="flex shrink-0 items-center py-1">
             <BrandLogo variant="header" />
-          </a>
+          </Link>
 
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) =>
-              "to" in link ? (
-                <Link
-                  key={link.key}
-                  to={link.to}
-                  className={navItemClass(activeNavKey === link.key)}
-                  aria-current={activeNavKey === link.key ? "page" : undefined}
-                >
-                  {t(link.key)}
-                </Link>
-              ) : (
-                <a
-                  key={link.key}
-                  href={link.href}
-                  onClick={(e) => handleSectionNav(e, link.href)}
-                  className={navItemClass(activeNavKey === link.key)}
-                  aria-current={activeNavKey === link.key ? "page" : undefined}
-                >
-                  {t(link.key)}
-                </a>
-              ),
-            )}
+          {/* Single row: nowrap + horizontal scroll if the viewport is still tight (Sign up removed to free space) */}
+          <nav className="hidden min-w-0 flex-1 justify-center md:flex" aria-label="Main">
+            <div className="flex max-w-full flex-nowrap items-center justify-center gap-0.5 overflow-x-auto overflow-y-visible py-0.5 [-ms-overflow-style:none] [scrollbar-width:thin] sm:gap-1 lg:gap-1.5 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border">
+              {navLinks.map((link, index) => (
+                <Fragment key={link.key}>
+                  {index === NAV_DIVIDER_BEFORE_INDEX ? (
+                    <span
+                      className="mx-0.5 hidden h-6 w-px shrink-0 bg-gradient-to-b from-transparent via-primary/25 to-transparent sm:block"
+                      aria-hidden
+                    />
+                  ) : null}
+                  {"to" in link ? (
+                    <Link
+                      to={link.to}
+                      className={desktopLinkClass(activeNavKey === link.key, link.key)}
+                      aria-current={activeNavKey === link.key ? "page" : undefined}
+                    >
+                      {t(link.key)}
+                    </Link>
+                  ) : (
+                    <a
+                      href={link.href}
+                      onClick={(e) => handleSectionNav(e, link.href)}
+                      className={desktopLinkClass(activeNavKey === link.key, link.key)}
+                      aria-current={activeNavKey === link.key ? "page" : undefined}
+                    >
+                      {t(link.key)}
+                    </a>
+                  )}
+                </Fragment>
+              ))}
+            </div>
           </nav>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden shrink-0 items-center gap-1.5 md:flex lg:gap-2">
             <LanguageSwitcher />
-            {isMedTourismPage && (
-              <Button
-                onClick={openContactChat}
-                className="relative overflow-hidden rounded-full px-6 py-2.5 font-semibold text-primary-foreground shadow-lg bg-gradient-to-r from-primary via-sky-500 to-cyan-500 hover:shadow-xl"
-              >
-                <span className="absolute inset-0 bg-white/15 opacity-0 hover:opacity-100 transition-opacity" />
-                <span className="relative inline-flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4" />
-                  {t("nav.contactUs")}
-                </span>
-              </Button>
-            )}
-            {!isMedTourismPage && (
-              <Button variant="outline" size="sm" className="shrink-0" asChild>
-                <Link to="/contact-us">
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  {t("nav.contactUs")}
-                </Link>
-              </Button>
-            )}
+            <Button onClick={openContactChat} className={whatsappCtaClass}>
+              <MessageCircle className="mr-2 h-4 w-4" />
+              {t("nav.contactUs")}
+            </Button>
             {!isMedTourismPage &&
               (user ? (
-                <div className="flex items-center gap-1">
-                  <CartButton onProceedToCheckout={openAuth} />
+                <div className="flex items-center gap-1.5 pl-0.5">
+                  <CartButton onProceedToCheckout={openAuth} className="h-10 w-10 shrink-0 rounded-lg border border-border/70 bg-background hover:bg-muted/50" />
                   <Link
                     to="/profile"
-                    className="flex items-center gap-2 rounded-full border border-border bg-background px-2 py-1.5 transition-colors hover:border-primary/30 hover:bg-muted/50 min-w-0"
+                    className="flex max-w-[200px] items-center gap-2 rounded-lg border-2 border-border/70 bg-background px-2 py-1.5 transition-colors hover:border-primary/30 hover:bg-muted/30"
                   >
                     <Avatar className="h-8 w-8 shrink-0">
                       {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.displayName} />}
-                      <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-                        {user.initials}
-                      </AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">{user.initials}</AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col items-start text-left min-w-0">
-                      <span className="text-sm font-medium leading-none text-foreground truncate max-w-[140px]">
-                        {user.displayName || "User"}
-                      </span>
-                      <span className="text-xs text-muted-foreground leading-none mt-0.5">
-                        {ROLE_LABELS[user.role]}
-                      </span>
+                    <div className="flex min-w-0 flex-col items-start text-left">
+                      <span className="truncate text-sm font-semibold leading-none text-foreground">{user.displayName || "User"}</span>
+                      <span className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground leading-none">{ROLE_LABELS[user.role]}</span>
                     </div>
                   </Link>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 rounded-full">
+                      <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-lg border border-transparent hover:border-border/60 hover:bg-muted/50">
                         <ChevronDown className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       <DropdownMenuItem asChild>
-                        <Link to="/profile" className="flex items-center cursor-pointer">
+                        <Link to="/profile" className="flex cursor-pointer items-center">
                           <User className="mr-2 h-4 w-4" />
                           Profile
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/dashboard" className="flex items-center cursor-pointer">
+                        <Link to="/dashboard" className="flex cursor-pointer items-center">
                           <LayoutDashboard className="mr-2 h-4 w-4" />
                           Dashboard
                         </Link>
@@ -209,57 +235,51 @@ const LandingHeader = () => {
                   </DropdownMenu>
                 </div>
               ) : headerReady ? (
-                <>
-                  <CartButton onProceedToCheckout={openAuth} />
-                  <Button variant="outline" size="sm" onClick={openAuth}>
-                    <User className="h-4 w-4 mr-2" />
+                <div className="flex items-center gap-1.5 pl-0.5 lg:gap-2">
+                  <CartButton onProceedToCheckout={openAuth} className="h-9 w-9 shrink-0 rounded-lg border border-border/70 bg-background hover:bg-muted/50 sm:h-10 sm:w-10" />
+                  <Button variant="outline" onClick={openAuth} className={actionOutlineClass}>
+                    <User className="mr-1.5 h-4 w-4 shrink-0 sm:mr-2" />
                     {t("nav.login")}
                   </Button>
-                  <Button size="sm" onClick={openAuth}>{t("nav.signup")}</Button>
-                </>
+                </div>
               ) : (
-                <span className="text-sm text-muted-foreground animate-pulse">Loading…</span>
+                <span className="text-sm font-medium text-muted-foreground animate-pulse">Loading…</span>
               ))}
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0 md:hidden">
+          <div className="flex shrink-0 items-center gap-1.5 md:hidden">
             <LanguageSwitcher compact />
-            {isMedTourismPage ? (
-              <Button
-                type="button"
-                size="icon"
-                className="h-10 w-10 shrink-0 rounded-lg bg-gradient-to-r from-primary via-sky-500 to-cyan-500 text-primary-foreground shadow-md hover:opacity-95"
-                onClick={openContactChat}
-                aria-label={t("nav.contactUs")}
-              >
-                <MessageCircle className="h-5 w-5" />
-              </Button>
-            ) : (
-              <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-lg" asChild>
-                <Link to="/contact-us" aria-label={t("nav.contactUs")}>
-                  <MessageCircle className="h-5 w-5" />
-                </Link>
-              </Button>
-            )}
-            {!isMedTourismPage && <CartButton onProceedToCheckout={openAuth} />}
+            <Button
+              type="button"
+              size="icon"
+              className="h-10 w-10 shrink-0 rounded-lg bg-[#25D366] text-white shadow-md ring-1 ring-black/5 hover:bg-[#20bd5a]"
+              onClick={openContactChat}
+              aria-label={t("nav.contactUs")}
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
+            {!isMedTourismPage && <CartButton onProceedToCheckout={openAuth} className="h-10 w-10 rounded-lg border border-border/70" />}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px]">
-                <nav className="flex flex-col gap-3 pt-6">
-                  <a href="/" className="mb-2">
+              <SheetContent side="right" className="w-[300px] border-l border-border/80">
+                <nav className="flex flex-col gap-0.5 pt-2" aria-label="Mobile main">
+                  <Link to="/" className="mb-4 inline-block" onClick={() => setMobileOpen(false)}>
                     <BrandLogo variant="header" className="w-[190px]" />
-                  </a>
+                  </Link>
                   {navLinks.map((link) =>
                     "to" in link ? (
                       <Link
                         key={link.key}
                         to={link.to}
                         onClick={() => setMobileOpen(false)}
-                        className={`py-2 text-sm font-medium ${activeNavKey === link.key ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                        className={cn(
+                          "rounded-lg px-3 py-3 text-[15px] font-semibold transition-colors",
+                          activeNavKey === link.key ? "bg-primary/10 text-primary" : "text-foreground/85 hover:bg-muted/70",
+                        )}
                         aria-current={activeNavKey === link.key ? "page" : undefined}
                       >
                         {t(link.key)}
@@ -269,7 +289,10 @@ const LandingHeader = () => {
                         key={link.key}
                         href={link.href}
                         onClick={(e) => handleSectionNav(e, link.href)}
-                        className={`py-2 text-sm font-medium ${activeNavKey === link.key ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                        className={cn(
+                          "rounded-lg px-3 py-3 text-[15px] font-semibold transition-colors",
+                          activeNavKey === link.key ? "bg-primary/10 text-primary" : "text-foreground/85 hover:bg-muted/70",
+                        )}
                         aria-current={activeNavKey === link.key ? "page" : undefined}
                       >
                         {t(link.key)}
@@ -277,41 +300,48 @@ const LandingHeader = () => {
                     ),
                   )}
                   {!isMedTourismPage && (
-                    <div className="flex flex-col gap-2 pt-2">
+                    <div className="mt-4 flex flex-col gap-2 border-t border-border/80 pt-4">
                       {user ? (
                         <>
                           <Link
                             to="/profile"
                             onClick={() => setMobileOpen(false)}
-                            className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3 no-underline hover:bg-muted/50"
+                            className="flex items-center gap-3 rounded-xl border border-border/80 bg-muted/20 p-3 no-underline hover:bg-muted/40"
                           >
                             <Avatar className="h-10 w-10">
                               {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.displayName} />}
-                              <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                                {user.initials}
-                              </AvatarFallback>
+                              <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">{user.initials}</AvatarFallback>
                             </Avatar>
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-sm font-medium text-foreground truncate">{user.displayName || "User"}</span>
-                              <span className="text-xs text-muted-foreground">{ROLE_LABELS[user.role]}</span>
+                            <div className="flex min-w-0 flex-col">
+                              <span className="truncate text-sm font-semibold text-foreground">{user.displayName || "User"}</span>
+                              <span className="text-xs font-medium text-muted-foreground">{ROLE_LABELS[user.role]}</span>
                             </div>
                           </Link>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="flex-1" asChild>
-                              <Link to="/dashboard" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                            <Button variant="outline" size="sm" className="h-10 flex-1 rounded-lg font-semibold" asChild>
+                              <Link to="/dashboard" onClick={() => setMobileOpen(false)}>
+                                Dashboard
+                              </Link>
                             </Button>
-                            <Button variant="ghost" size="sm" className="flex-1" onClick={() => { setMobileOpen(false); logoutCurrentDevice(); }}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-10 flex-1 rounded-lg font-semibold"
+                              onClick={() => {
+                                setMobileOpen(false);
+                                logoutCurrentDevice();
+                              }}
+                            >
                               Log out
                             </Button>
                           </div>
                         </>
                       ) : headerReady ? (
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="flex-1" onClick={openAuth}>{t("nav.login")}</Button>
-                          <Button size="sm" className="flex-1" onClick={openAuth}>{t("nav.signup")}</Button>
-                        </div>
+                        <Button variant="outline" className="h-11 w-full rounded-lg border-2 font-semibold" onClick={openAuth}>
+                          {t("nav.login")}
+                        </Button>
                       ) : (
-                        <span className="text-sm text-muted-foreground py-2 animate-pulse">Loading…</span>
+                        <span className="py-2 text-sm font-medium text-muted-foreground animate-pulse">Loading…</span>
                       )}
                     </div>
                   )}

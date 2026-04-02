@@ -20,7 +20,9 @@ import {
   BedDouble,
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { Reveal } from "@/components/motion/Reveal";
+import { HOTEL_SECTION_GALLERY } from "@/lib/healthcare-images";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -62,6 +64,7 @@ interface HotelSearchSectionProps {
 
 export function HotelSearchSection({ standalone = false, sectionId = "hotels" }: HotelSearchSectionProps) {
   const { t } = useI18n();
+  const reduceMotion = useReducedMotion();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [hotels, setHotels] = useState<PublicHotelCard[]>([]);
@@ -211,6 +214,31 @@ export function HotelSearchSection({ standalone = false, sectionId = "hotels" }:
 
   const content = (
     <div className="space-y-6">
+      <Reveal>
+        <p className="text-center text-xs font-medium text-muted-foreground mb-3 max-w-lg mx-auto leading-relaxed">
+          {t("apartments.galleryCaption")}
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 rounded-2xl overflow-hidden ring-1 ring-border/50 shadow-sm">
+          {HOTEL_SECTION_GALLERY.map(({ src, alt }, gi) => (
+            <motion.div
+              key={src}
+              className="relative aspect-[4/3] overflow-hidden bg-muted"
+              whileHover={reduceMotion ? undefined : { scale: 1.02 }}
+              transition={{ duration: 0.35 }}
+            >
+              <img
+                src={src}
+                alt={alt}
+                className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+                sizes="(max-width: 768px) 50vw, 25vw"
+              />
+            </motion.div>
+          ))}
+        </div>
+      </Reveal>
+
       <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-card via-card to-muted/30 p-6 sm:p-8 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] ring-1 ring-border/40">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-primary mb-2">{t("hotelSearch.trustMedical")}</p>
         <h2 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight mb-3">{t("apartments.title")}</h2>
@@ -419,9 +447,24 @@ export function HotelSearchSection({ standalone = false, sectionId = "hotels" }:
 
           <div className="grid gap-6">
             {loading && (
-              <Card className="border-border/50">
-                <CardContent className="p-10 text-sm text-muted-foreground text-center">{t("hotelSearch.loading")}</CardContent>
-              </Card>
+              <div className="grid gap-6" aria-busy="true" aria-label={t("hotelSearch.loading")}>
+                {[0, 1, 2].map((s) => (
+                  <Card key={s} className="border-border/50 overflow-hidden rounded-2xl">
+                    <div className="flex flex-col sm:flex-row animate-pulse">
+                      <div className="h-52 w-full sm:w-72 lg:w-80 shrink-0 bg-muted" />
+                      <CardContent className="flex-1 p-6 space-y-4">
+                        <div className="h-6 bg-muted rounded-md w-2/3" />
+                        <div className="h-4 bg-muted rounded-md w-1/2" />
+                        <div className="h-4 bg-muted rounded-md w-5/6" />
+                        <div className="flex gap-2 pt-4">
+                          <div className="h-9 flex-1 bg-muted rounded-full max-w-[120px]" />
+                          <div className="h-9 flex-1 bg-muted rounded-full max-w-[140px]" />
+                        </div>
+                      </CardContent>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             )}
             {!loading && filtered.length === 0 && (
               <Card className="border-dashed border-primary/25 bg-gradient-to-br from-muted/40 to-card overflow-hidden">
@@ -556,7 +599,8 @@ export function HotelSearchSection({ standalone = false, sectionId = "hotels" }:
                           </Button>
                           <Button
                             size="sm"
-                            className="h-10 rounded-full px-5 font-semibold shadow-sm"
+                            variant="cta"
+                            className="h-10 rounded-full px-5 font-semibold"
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/hotels/${hotel.id}?checkIn=${checkIn}&checkOut=${checkOut}`);

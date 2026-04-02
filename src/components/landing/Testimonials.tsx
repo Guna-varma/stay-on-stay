@@ -1,7 +1,10 @@
 import { Star, Quote } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/lib/i18n";
+import { TESTIMONIAL_PORTRAITS } from "@/lib/healthcare-images";
+import { Reveal } from "@/components/motion/Reveal";
 
 const allTestimonials = [
   {
@@ -48,51 +51,57 @@ const allTestimonials = [
   },
 ];
 
-/** Conversion-focused homepage: show a few strong, believable stories. */
 const testimonials = allTestimonials.slice(0, 3);
 
 const Testimonials = () => {
   const { t } = useI18n();
+  const reduce = useReducedMotion();
 
   return (
-    <section id="testimonials" className="py-12 lg:py-20">
+    <section id="testimonials" className="py-12 lg:py-20 bg-gradient-to-b from-background to-muted/25">
       <div className="max-w-page mx-auto px-4 sm:px-6">
-        <div className="text-center mb-10">
+        <Reveal className="text-center mb-10">
           <h2 className="text-foreground text-2xl sm:text-3xl font-semibold tracking-tight mb-3">
             {t("testimonials.title")}
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
+          <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
             {t("testimonials.subtitle")}
           </p>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
-          {testimonials.map((item) => (
-            <Card key={item.name} className="p-6 shadow-card border border-border/60">
-              <Quote className="h-8 w-8 text-primary/20 mb-3" />
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                "{item.text}"
-              </p>
-              <div className="flex items-center gap-1 mb-3">
-                {Array.from({ length: 5 }).map((_, si) => (
-                  <Star
-                    key={si}
-                    className={`h-3.5 w-3.5 ${si < item.rating ? "fill-accent text-accent" : "text-border"}`}
-                  />
-                ))}
-              </div>
-              <div className="flex items-center gap-3 border-t border-border pt-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-                    {item.avatar}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.location}</p>
-                </div>
-              </div>
-            </Card>
+          {testimonials.map((item, i) => (
+            <Reveal key={item.name} delay={i * 0.1}>
+              <motion.div whileHover={reduce ? undefined : { y: -4 }} transition={{ duration: 0.25 }}>
+                <Card className="p-6 shadow-card border border-border/60 h-full rounded-2xl hover:shadow-premium transition-shadow duration-300">
+                  <Quote className="h-8 w-8 text-primary/25 mb-3" aria-hidden />
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">"{item.text}"</p>
+                  <div className="flex items-center gap-1 mb-3" aria-label={`${item.rating} of 5 stars`}>
+                    {Array.from({ length: 5 }).map((_, si) => (
+                      <Star
+                        key={si}
+                        className={`h-3.5 w-3.5 ${si < item.rating ? "fill-emerald-500 text-emerald-500" : "text-border"}`}
+                        aria-hidden
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3 border-t border-border pt-3">
+                    <Avatar className="h-11 w-11 ring-2 ring-primary/10">
+                      <AvatarImage
+                        src={TESTIMONIAL_PORTRAITS[item.name]}
+                        alt={`${item.name}, guest`}
+                        loading="lazy"
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">{item.avatar}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.location}</p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>

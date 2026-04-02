@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
 import { I18nProvider } from "@/lib/i18n";
 import LandingHeader from "@/components/landing/LandingHeader";
 import HeroSearch from "@/components/landing/HeroSearch";
@@ -8,12 +9,40 @@ import { HotelSearchSection } from "@/components/HotelSearchSection";
 import PatientJourneySection from "@/components/landing/PatientJourneySection";
 import MedTourismStrip from "@/components/landing/MedTourismStrip";
 import ServicesSection from "@/components/landing/ServicesSection";
+import CareTeamSection from "@/components/landing/CareTeamSection";
 import PackagesPricingSection from "@/components/landing/PackagesPricingSection";
 import Testimonials from "@/components/landing/Testimonials";
 import LandingCtaBanner from "@/components/landing/LandingCtaBanner";
 import LandingContactSection from "@/components/landing/LandingContactSection";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
 import LandingFooter from "@/components/landing/LandingFooter";
+
+function LandingMain() {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      className="min-h-screen bg-background pb-24 lg:pb-28"
+      initial={reduce ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <LandingHeader />
+      <HeroSearch />
+      <TrustBar />
+      <ServicesSection />
+      <CareTeamSection />
+      <PatientJourneySection />
+      <HotelSearchSection sectionId="hotels" />
+      <MedTourismStrip />
+      <PackagesPricingSection />
+      <Testimonials />
+      <LandingCtaBanner />
+      <LandingContactSection />
+      <LandingFooter />
+      <FloatingWhatsApp />
+    </motion.div>
+  );
+}
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -52,21 +81,7 @@ export default function Landing() {
   // When logged in, show landing with authenticated header (no redirect so / shows username + role)
   return (
     <I18nProvider>
-      <div className="min-h-screen bg-background pb-24 lg:pb-28">
-        <LandingHeader />
-        <HeroSearch />
-        <TrustBar />
-        <ServicesSection />
-        <PatientJourneySection />
-        <HotelSearchSection sectionId="hotels" />
-        <MedTourismStrip />
-        <PackagesPricingSection />
-        <Testimonials />
-        <LandingCtaBanner />
-        <LandingContactSection />
-        <LandingFooter />
-        <FloatingWhatsApp />
-      </div>
+      <LandingMain />
     </I18nProvider>
   );
 }
