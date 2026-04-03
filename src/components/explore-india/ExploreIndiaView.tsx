@@ -9,7 +9,6 @@ import {
   useMotionValue,
   useReducedMotion,
   useScroll,
-  useSpring,
   useTransform,
   type Variants,
 } from "framer-motion";
@@ -86,20 +85,6 @@ function useCountUp(end: number, duration = 2.2) {
   }, [inView, end, duration, reduce]);
 
   return { ref, val };
-}
-
-function ScrollProgress() {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
-  return (
-    <motion.div
-      className="fixed top-0 left-0 right-0 z-[60] h-[3px] origin-left pointer-events-none"
-      style={{
-        scaleX,
-        background: `linear-gradient(90deg, ${C.teal} 0%, ${C.saffron} 50%, ${C.coral} 100%)`,
-      }}
-    />
-  );
 }
 
 function AmbientGlow() {
@@ -323,8 +308,6 @@ export default function ExploreIndiaView() {
         glowY.set(((clientY - top) / height) * 100);
       }}
     >
-      <ScrollProgress />
-
       {/* Pointer-following ambient spotlight (desktop) */}
       <motion.div
         className="pointer-events-none fixed inset-0 z-[1] hidden lg:block"

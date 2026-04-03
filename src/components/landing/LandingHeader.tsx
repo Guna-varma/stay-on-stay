@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ScrollProgressBar } from "@/components/landing/ScrollProgressBar";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -45,11 +46,12 @@ const MORE_LINKS = [
 ] as const;
 
 const navPillBase =
-  "inline-flex h-9 items-center gap-1 rounded-full px-3 text-[13px] font-medium transition-colors sm:h-10 sm:px-3.5 sm:text-sm";
+  "inline-flex h-9 items-center gap-1 rounded-lg px-3 text-[13px] font-medium transition-[color,background-color,box-shadow] duration-200 sm:h-10 sm:px-3.5 sm:text-sm";
 
 const LandingHeader = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [headerElevated, setHeaderElevated] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useI18n();
@@ -65,6 +67,13 @@ const LandingHeader = () => {
     const timer = setTimeout(() => setHeaderReady(true), 3000);
     return () => clearTimeout(timer);
   }, [isInitialized]);
+
+  useEffect(() => {
+    const onScroll = () => setHeaderElevated(window.scrollY > 10);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleSectionNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -128,25 +137,36 @@ const LandingHeader = () => {
   const careActive = activeNavKey === "nav.medicalTourism" || activeNavKey === "nav.hospitals";
   const stayActive = activeNavKey === "nav.hotels" || activeNavKey === "nav.exploreIndia";
 
-  const linkActiveClass = "bg-primary/[0.11] text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.18)]";
-  const linkIdleClass = "text-foreground/75 hover:bg-muted/60 hover:text-foreground";
+  const linkActiveClass =
+    "bg-primary/[0.12] text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.22)]";
+  const linkIdleClass =
+    "text-foreground/80 hover:bg-black/[0.04] hover:text-foreground dark:hover:bg-white/[0.06]";
 
   const dropdownTriggerClass = (active: boolean) =>
-    cn(
-      navPillBase,
-      "border border-transparent",
-      active ? linkActiveClass : cn(linkIdleClass, "border-border/30 bg-muted/20"),
-    );
+    cn(navPillBase, active ? linkActiveClass : cn(linkIdleClass, "border-0 bg-transparent"));
 
   const simpleNavClass = (isActive: boolean) => cn(navPillBase, isActive ? linkActiveClass : linkIdleClass);
 
   const actionOutlineClass =
-    "h-9 rounded-full border border-border/60 bg-background px-3.5 text-xs font-semibold text-foreground shadow-sm transition-colors hover:border-primary/25 hover:bg-muted/30 sm:h-10 sm:text-sm";
+    "h-9 min-h-9 min-w-[5.5rem] rounded-full border border-foreground/15 bg-background px-3.5 text-xs font-semibold text-foreground shadow-sm transition-colors hover:border-primary/30 hover:bg-muted/40 sm:h-10 sm:min-h-10 sm:text-sm";
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/90 shadow-[0_1px_0_0_hsl(var(--border)/0.5)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/85">
-        <div className="max-w-page flex min-h-[3.5rem] items-center justify-between gap-2 py-1.5 sm:min-h-[4rem] sm:gap-3 md:gap-4">
+      <ScrollProgressBar />
+      <header
+        className={cn(
+          "sticky top-0 z-50 border-b backdrop-blur-xl transition-[background-color,box-shadow,border-color] duration-300 ease-out supports-[backdrop-filter]:backdrop-blur-xl",
+          headerElevated
+            ? "border-primary/12 bg-background/[0.97] supports-[backdrop-filter]:bg-background/92 [box-shadow:var(--header-scroll-shadow)]"
+            : "border-border/35 bg-background/[0.88] shadow-[0_1px_0_0_hsl(var(--border)/0.4)] supports-[backdrop-filter]:bg-background/82",
+        )}
+      >
+        <div
+          className={cn(
+            "max-w-page mx-auto flex items-center justify-between gap-2 transition-[min-height,padding] duration-300 ease-out sm:gap-3 md:gap-4",
+            headerElevated ? "min-h-[3.25rem] py-1 sm:min-h-[3.75rem]" : "min-h-[3.5rem] py-1.5 sm:min-h-[4rem]",
+          )}
+        >
           <Link
             to="/"
             className="group flex min-w-0 shrink-0 items-center gap-2 py-1 sm:gap-3"
@@ -154,7 +174,7 @@ const LandingHeader = () => {
           >
             <BrandLogo variant="header" />
             <span className="hidden max-w-[9rem] leading-tight lg:block xl:max-w-none">
-              <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground/58">
                 {t("nav.tagline")}
               </span>
             </span>
@@ -171,7 +191,7 @@ const LandingHeader = () => {
                   aria-haspopup="menu"
                 >
                   {t("nav.group.care")}
-                  <ChevronDown className="h-3.5 w-3.5 opacity-50" aria-hidden />
+                  <ChevronDown className="h-3.5 w-3.5 opacity-45 text-foreground/55" aria-hidden />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-64 p-2" sideOffset={8}>
@@ -217,7 +237,7 @@ const LandingHeader = () => {
               <DropdownMenuTrigger asChild>
                 <button type="button" className={dropdownTriggerClass(stayActive)} aria-haspopup="menu">
                   {t("nav.group.stay")}
-                  <ChevronDown className="h-3.5 w-3.5 opacity-50" aria-hidden />
+                  <ChevronDown className="h-3.5 w-3.5 opacity-45 text-foreground/55" aria-hidden />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-64 p-2" sideOffset={8}>
@@ -288,7 +308,7 @@ const LandingHeader = () => {
             <Button
               type="button"
               onClick={openContactChat}
-              className="h-9 shrink-0 gap-2 rounded-full border border-primary/20 bg-primary/[0.08] px-3.5 text-xs font-semibold text-primary shadow-none hover:bg-primary/[0.14] sm:h-10 sm:px-4 sm:text-sm"
+              className="h-9 shrink-0 gap-2 rounded-full border border-primary/25 bg-primary/[0.1] px-3.5 text-xs font-semibold text-primary shadow-sm ring-1 ring-primary/10 hover:bg-primary/[0.16] sm:h-10 sm:px-4 sm:text-sm"
             >
               <MessageCircle className="h-4 w-4 shrink-0" aria-hidden />
               {t("nav.contactUs")}

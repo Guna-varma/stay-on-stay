@@ -109,7 +109,10 @@ const HeroSearch = () => {
         fetchpriority="high"
         decoding="async"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/30 pointer-events-none" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/20"
+        aria-hidden
+      />
       <div className="absolute inset-0" style={{ background: "var(--hero-overlay)" }} />
 
       <motion.div
@@ -118,17 +121,19 @@ const HeroSearch = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
-          <h1 className="text-primary-foreground text-2xl sm:text-3xl md:text-4xl lg:text-[2.5rem] font-semibold tracking-tight leading-[1.15] mb-3 text-balance">
+        <div className="mx-auto mb-6 max-w-3xl text-center sm:mb-8">
+          <h1 className="mb-3 text-balance text-2xl font-semibold leading-[1.15] tracking-tight text-primary-foreground [text-shadow:0_2px_28px_rgba(0,0,0,0.5),0_1px_2px_rgba(0,0,0,0.4)] sm:text-3xl md:text-4xl lg:text-[2.5rem]">
             {t("hero.title")}
           </h1>
-          <p className="text-primary-foreground/92 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-primary-foreground/95 [text-shadow:0_1px_18px_rgba(0,0,0,0.45)] sm:text-base md:text-lg">
             {t("hero.subtitle")}
           </p>
-          <p className="text-emerald-100/95 text-xs sm:text-sm mt-4 font-medium">{t("hero.promise")}</p>
+          <p className="mt-4 text-xs font-semibold text-white/95 [text-shadow:0_1px_14px_rgba(0,0,0,0.42)] sm:text-sm">
+            {t("hero.promise")}
+          </p>
         </div>
 
-        <div className="max-w-xl mx-auto mb-8 rounded-2xl bg-card/95 backdrop-blur-sm border border-border/50 p-4 sm:p-5 shadow-lg">
+        <div className="mx-auto mb-8 max-w-xl rounded-2xl border border-white/20 bg-card/95 p-4 shadow-[0_24px_56px_-28px_rgba(0,0,0,0.45)] backdrop-blur-md sm:p-5">
           <p className="text-sm font-semibold text-foreground text-center mb-3">{t("quick.title")}</p>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1 space-y-1">
@@ -201,7 +206,7 @@ const HeroSearch = () => {
         </div>
 
         <details className="max-w-5xl mx-auto group">
-          <summary className="list-none cursor-pointer flex items-center justify-center gap-2 text-primary-foreground/95 text-sm font-medium py-2 select-none [&::-webkit-details-marker]:hidden">
+          <summary className="list-none cursor-pointer flex items-center justify-center gap-2 py-2 text-sm font-semibold text-white/95 [text-shadow:0_1px_10px_rgba(0,0,0,0.35)] select-none [&::-webkit-details-marker]:hidden">
             <Search className="h-4 w-4 shrink-0" aria-hidden />
             {t("hero.searchToggle")}
             <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
@@ -307,8 +312,11 @@ const HeroSearch = () => {
 
         <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-6 text-center">
           {[t("hero.badge1"), t("hero.badge2"), t("hero.badge3")].map((badge) => (
-            <span key={badge} className="text-xs sm:text-sm text-primary-foreground/85 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 shadow-sm" aria-hidden />
+            <span
+              key={badge}
+              className="flex items-center gap-1.5 text-xs text-white/95 [text-shadow:0_1px_10px_rgba(0,0,0,0.45)] sm:text-sm"
+            >
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400 shadow-sm ring-1 ring-white/30" aria-hidden />
               {badge}
             </span>
           ))}

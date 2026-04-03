@@ -27,7 +27,7 @@ const LanguageSwitcher = ({ compact, variant = "default" }: { compact?: boolean;
             compact
               ? "h-10 w-10 shrink-0 rounded-xl border border-border/50 bg-background text-foreground hover:bg-muted/80"
               : isMinimal
-                ? "h-9 shrink-0 gap-2 rounded-full border border-border/40 bg-muted/25 px-3 text-foreground hover:bg-muted/45 sm:h-10 sm:px-3.5"
+                ? "h-9 shrink-0 gap-2 rounded-full border border-foreground/12 bg-muted/40 px-3 text-foreground shadow-sm hover:border-foreground/18 hover:bg-muted/55 sm:h-10 sm:px-3.5"
                 : "h-9 gap-1.5 rounded-full border border-border/50 bg-muted/20 px-2.5 text-xs font-medium text-foreground/90 shadow-sm hover:bg-muted/40 hover:text-foreground sm:h-10 sm:gap-2 sm:px-3 sm:text-sm",
           )}
           aria-label={t("lang.pageLanguage")}
@@ -39,7 +39,7 @@ const LanguageSwitcher = ({ compact, variant = "default" }: { compact?: boolean;
             ) : isMinimal ? (
               <span className="flex items-center gap-2">
                 <img src={current.flagUrl} alt="" className="h-3.5 w-5 shrink-0 rounded-[2px]" loading="lazy" />
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground/90">{code}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-foreground">{code}</span>
               </span>
             ) : (
               <span className="flex items-center gap-2">
@@ -69,7 +69,12 @@ const LanguageSwitcher = ({ compact, variant = "default" }: { compact?: boolean;
                 )}
               >
                 <img src={opt.flagUrl} alt="" className="h-4 w-6 shrink-0 rounded-[2px]" loading="lazy" />
-                <span className={cn("font-medium leading-tight", active ? "text-primary" : "text-foreground")}>
+                <span
+                  className={cn(
+                    "leading-tight",
+                    active ? "font-semibold text-foreground" : "font-medium text-foreground",
+                  )}
+                >
                   {t(`lang.${opt.code}.label`)}
                 </span>
               </DropdownMenuItem>

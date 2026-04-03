@@ -80,8 +80,6 @@ export default function Landing() {
 
   // When logged in, show landing with authenticated header (no redirect so / shows username + role)
   return (
-    <I18nProvider>
-      <LandingMain />
-    </I18nProvider>
+    <LandingMain />
   );
 }

@@ -1,7 +1,8 @@
 /** Curated Unsplash assets — compressed params for LCP-friendly hero & section imagery. */
 
+/** Landing hero: bright, residential living space (natural light, calm) — reads as “place to rest,” not clinical care. Unsplash License. */
 export const HERO_HEALTHCARE_IMAGE =
-  "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1920&q=80";
+  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1920&q=80&ixlib=rb-4.0.3";
 
 export const HOTEL_SECTION_GALLERY = [
   {

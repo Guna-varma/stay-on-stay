@@ -1325,43 +1325,6 @@ export const rwPack: Record<string, string> = {
   "You can see places in India while you rest, if you want.": "Ushobora gusura ahantu heza muri India mugihe urimo uraruhuka.",
   "Your trip home": "Urugendo rwawe rwo gutaha",
   "We help you go home and get follow-up care.": "Tugufasha gutaha no gukurikiranwa n'abaganga.",
-  "Save up to 70%": "Gusavya kugeza kuri 70%",
-  "We link you to good hospitals in India. We help you plan. We do not give treatment ourselves.":
-    "Tuguconnecta ku ma hospitals meza muri India. Tukagufasha gupanga ngo wumve umerewe neza. Ntituvura ubwacu.",
-  "Help with flights": "Fashwa kuri flights",
-  "We help you pick flights and dates that fit your treatment.":
-    "Turagufasha guhitamo flights ndetse na dates bihuza neza n'igihe cy'ubuvuzi bwawe.",
-  "Hotel booking": "Hotel booking",
-  "We book hotels near your hospital. Good price. We do all booking.":
-    "Tubookinga hotels hafi ya hospital yawe. Igiciro gishimishije. Tukaba n'abakora booking yose.",
-  "Airport pickup & drop": "Airport pickup & drop",
-  "Our helper meets you at the airport and drives you to your hotel.":
-    "Our helper agusanganira kuri airport akaragutwaye kugera kuri hotel.",
-  "Hospital help": "Msaada w'hospital",
-  "We book doctor visits and help you talk to your hospital team.":
-    "Tukoreraga doctor visits tunagufasha kuganira niya hospital team yawe.",
-  "Safe trip home": "Urugendo rusubira iwanyu rusa safe",
-  "We help you plan going home and care after treatment.":
-    "Turagufasha gupanga kwiruka no kumenya izindi care nyuma ya treatment.",
-  "Tell us your problem": "Tubwire Ikibazo Cyawe",
-  "Tell us what you need. We listen.": "Tubwire ibyo wifuza. Turaguteze amatwi.",
-  "Get hospitals and prices": "Bona hospitals n'ibiciro",
-  "We send hospital names and clear prices.": "Dukohereza amazina y'hospitals n'ibiciro bigaragara.",
-  "We plan travel and stay": "Turagupangira travel and stay",
-  "Flights, hotel, visa help: we fix it for you.":
-    "Flights, hotel, ubufasha mu kubona visa: tubimukorera.",
-  "You fly to India": "Gufata indege ijya India",
-  "You land in India. Our helper meets you at the airport.":
-    "Ugera muri India. Helper wacu agusanganira kuri airport.",
-  "Treatment and rest": "Treatment na rest",
-  "Good treatment. Help by phone 24 hours a day.":
-    "Treatment yizewe. Gufashwa ukoresheje phone masaha 24.",
-  "Visit India (optional)": "Gusura India (optional)",
-  "You can see places in India while you rest, if you want.":
-    "Ushobora kureba ahantu mu gihe uba uruhutse muri India, niba ubyifuza.",
-  "Your trip home": "Trip yawe ujya Murugo",
-  "We help you go home and get follow-up care.":
-    "Dufasha gukora follow-up care numara gusubira murugo.",
   "Heart surgery": "Heart surgery (Kubagwa umutima)",
   "Dental implants": "Dental implants",
   "LASIK eye surgery": "LASIK eye surgery",

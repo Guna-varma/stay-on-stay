@@ -57,7 +57,7 @@ import { GURUGRAM_PARTNER_HOSPITALS } from "@/lib/partnerHospitalsGurugram";
 import { WhyIndiaScreens } from "@/components/landing/WhyIndiaScreens";
 
 const HERO_IMG =
-  "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&q=80&auto=format&fit=crop";
+  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80&auto=format&fit=crop&ixlib=rb-4.0.3";
 
 const sectionPad = "py-20 md:py-28 px-4 sm:px-6 lg:px-8";
 const glass =
