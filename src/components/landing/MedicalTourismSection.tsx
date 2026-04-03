@@ -622,7 +622,8 @@ function MTHero() {
           </motion.div>
 
           <h2 className="font-heading mb-6 text-balance text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.4rem]">
-            {tx("Travel to India for Affordable Treatment")}{" "}
+            {tx("Travel to India for Affordable Treatment")}
+            {" - "}
             <span className="text-primary">{tx("We Handle Everything")}</span>
           </h2>
 
