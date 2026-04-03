@@ -23,7 +23,7 @@ import {
 } from "@/lib/exploreIndiaPlaces";
 import { whatsappMeUrl, whatsappNumberForVisitor } from "@/lib/whatsappContact";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 /**
  * Colour psychology (medical-travel context):
@@ -288,7 +288,8 @@ export default function ExploreIndiaView() {
   const statCats = useCountUp(EXPLORE_CATEGORIES.length, 1.2);
 
   const openPlanWhatsApp = () => {
-    const n = whatsappNumberForVisitor();
+    // Specifically use India number for Explore India planning
+    const n = "919312972981"; 
     window.open(
       whatsappMeUrl(
         n,
@@ -324,7 +325,7 @@ export default function ExploreIndiaView() {
     >
       <ScrollProgress />
 
-      {/* Cursor-following ambient (desktop subtlety) */}
+      {/* Pointer-following ambient spotlight (desktop) */}
       <motion.div
         className="pointer-events-none fixed inset-0 z-[1] hidden lg:block"
         style={{ background: spotlight }}

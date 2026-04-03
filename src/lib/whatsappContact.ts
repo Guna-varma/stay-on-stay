@@ -38,12 +38,14 @@ export function setStoredWhatsAppRegion(region: VisitorWhatsAppRegion): void {
   window.dispatchEvent(new Event("visitor-whatsapp-updated"));
 }
 
-/** Floating CTA and default opens: stored country choice wins, then heuristic. */
+/** Floating CTA and default opens: stored country choice wins, then Rwandan line for African trust. */
 export function whatsappNumberForVisitor(): string {
   const stored = getStoredWhatsAppRegion();
   if (stored === "in") return WHATSAPP_IN_NUMBER;
   if (stored === "intl") return WHATSAPP_RW_NUMBER;
-  return inferVisitorIndiaLikely() ? WHATSAPP_IN_NUMBER : WHATSAPP_RW_NUMBER;
+  
+  // Default to Rwanda line for high-trust African support
+  return WHATSAPP_RW_NUMBER;
 }
 
 /** Pick line from explicit country label (quick form). */

@@ -1270,24 +1270,20 @@ function CostComparisonBlock() {
               whileHover={reduce ? undefined : { scale: 1.02 }}
               whileTap={reduce ? undefined : { scale: 0.98 }}
               className={cn(
-                "rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition-colors duration-200",
+                "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors duration-200",
                 selected === c.id
                   ? "border-primary/40 bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-md"
                   : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground",
               )}
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-2.5">
                 <img src={c.flagUrl} alt={`${c.label} flag`} className="h-4 w-6 rounded-[2px]" loading="lazy" />
-                <span className="text-xs font-semibold opacity-90">{c.code}</span>
-                <span>{tx(c.label)}</span>
-              </span>
-              <span
-                className={cn(
-                  "mt-1 block text-xs",
-                  selected === c.id ? "text-primary-foreground/75" : "text-muted-foreground",
-                )}
-              >
-                {localeLine(c.id)}
+                <span className="flex items-baseline gap-1.5">
+                  <span>{tx(c.label)}</span>
+                  <span className={cn("text-xs font-normal", selected === c.id ? "text-primary-foreground/75" : "text-muted-foreground")}>
+                    ({c.localCurrencyCode})
+                  </span>
+                </span>
               </span>
             </motion.button>
           ))}

@@ -106,7 +106,7 @@ const HeroSearch = () => {
         src={HERO_HEALTHCARE_IMAGE}
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
-        fetchPriority="high"
+        fetchpriority="high"
         decoding="async"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-transparent to-background/30 pointer-events-none" aria-hidden />

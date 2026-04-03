@@ -1,6 +1,6 @@
 import type { LanguageCode } from "./i18n";
 import { MT_HERO_DISCLAIMER, MT_HERO_SUBLINE_REST, MT_HERO_SUBLINE_WE } from "./medTourismCopy";
-import { frPack, esPack, swPack, ptPack } from "./medTourismTranslations.localePacks";
+import { frPack, esPack, swPack, ptPack, rwPack, yoPack, zuPack, soPack, amPack, lnPack, lgPack } from "./medTourismTranslations.localePacks";
 
 export type NonEn = Exclude<LanguageCode, "en">;
 
@@ -659,4 +659,11 @@ export const MT_TRANSLATIONS: Partial<Record<NonEn, Record<string, string>>> = {
   es: esPack,
   sw: swPack,
   pt: ptPack,
+  rw: rwPack,
+  yo: yoPack,
+  zu: zuPack,
+  so: soPack,
+  am: amPack,
+  ln: lnPack,
+  lg: lgPack,
 };

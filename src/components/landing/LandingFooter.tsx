@@ -16,18 +16,18 @@ const LandingFooter = () => {
       { label: t("nav.services"), to: "/#services" },
     ],
     [t("footer.support")]: [
-      { label: "Help Center", to: "/help-center" },
-      { label: "Contact Us", to: "/contact-us" },
-      { label: "WhatsApp Support", to: "/whatsapp-support" },
+      { label: t("nav.helpCenter"), to: "/help-center" },
+      { label: t("nav.contactUs"), to: "/contact-us" },
+      { label: t("nav.whatsappSupport"), to: "/whatsapp-support" },
     ],
     [t("footer.company")]: [
-      { label: "About Us", to: "/about" },
-      { label: "Careers", to: "/careers" },
-      { label: "Partners", to: "/partners" },
+      { label: t("footer.aboutUs"), to: "/about" },
+      { label: t("footer.careers"), to: "/careers" },
+      { label: t("footer.partners"), to: "/partners" },
     ],
     [t("footer.legal")]: [
-      { label: "Privacy Policy", to: "/privacy" },
-      { label: "Terms of Service", to: "/terms" },
+      { label: t("footer.privacyPolicy"), to: "/privacy" },
+      { label: t("footer.termsOfService"), to: "/terms" },
     ],
   };
 

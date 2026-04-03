@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import ScrollManager from "@/components/ScrollManager";
 import { AuthProvider, useAuth, type UserRole } from "@/lib/auth";
 import { CartProvider } from "@/lib/cart-context";
+import { I18nProvider } from "@/lib/i18n";
 import { AppShell } from "@/components/AppShell";
 import React from "react";
 
@@ -61,80 +62,82 @@ function DashboardRouter() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter future={{ v7_relativeSplatPath: true }}>
-          <CartProvider>
-          <ScrollManager />
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/med-tourism" element={<MedTourism />} />
-            <Route path="/med-tourism/:topic" element={<MedTourismTopic />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/partners" element={<Partners />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<TermsOfService />} />
-            <Route path="/help-center" element={<HelpCenter />} />
-            <Route path="/contact-us" element={<ContactUs />} />
-            <Route path="/whatsapp-support" element={<WhatsAppSupport />} />
-            <Route path="/explore-india" element={<ExploreIndia />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/access-denied" element={<AccessDenied />} />
+    <I18nProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter future={{ v7_relativeSplatPath: true }}>
+            <CartProvider>
+            <ScrollManager />
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/med-tourism" element={<MedTourism />} />
+              <Route path="/med-tourism/:topic" element={<MedTourismTopic />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/careers" element={<Careers />} />
+              <Route path="/partners" element={<Partners />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/help-center" element={<HelpCenter />} />
+              <Route path="/contact-us" element={<ContactUs />} />
+              <Route path="/whatsapp-support" element={<WhatsAppSupport />} />
+              <Route path="/explore-india" element={<ExploreIndia />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/access-denied" element={<AccessDenied />} />
 
-            {/* Protected routes inside AppShell */}
-            <Route element={<AppShell />}>
-              <Route path="/dashboard" element={<DashboardRouter />} />
-              <Route path="/profile" element={<Profile />} />
+              {/* Protected routes inside AppShell */}
+              <Route element={<AppShell />}>
+                <Route path="/dashboard" element={<DashboardRouter />} />
+                <Route path="/profile" element={<Profile />} />
 
-              {/* Customer routes */}
-              <Route path="/hotels" element={<HotelSearch />} />
-              <Route path="/hotels/:id" element={<HotelDetail />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/booking/success" element={<BookingSuccess />} />
-              <Route path="/booking/cancel" element={<BookingCancel />} />
-              <Route path="/bookings" element={<MyBookings />} />
-              <Route path="/services" element={<ServiceRequests />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/emergency" element={<Emergency />} />
+                {/* Customer routes */}
+                <Route path="/hotels" element={<HotelSearch />} />
+                <Route path="/hotels/:id" element={<HotelDetail />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/booking/success" element={<BookingSuccess />} />
+                <Route path="/booking/cancel" element={<BookingCancel />} />
+                <Route path="/bookings" element={<MyBookings />} />
+                <Route path="/services" element={<ServiceRequests />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/emergency" element={<Emergency />} />
 
-              {/* Manager (reception + front-desk) */}
-              <Route path="/checkin" element={<ReceptionDashboard />} />
-              <Route path="/rooms" element={<ReceptionDashboard />} />
-              <Route path="/verifications" element={<ReceptionDashboard />} />
-              <Route path="/staff" element={<ReceptionDashboard />} />
-              <Route path="/reports" element={<ReceptionDashboard />} />
+                {/* Manager (reception + front-desk) */}
+                <Route path="/checkin" element={<ReceptionDashboard />} />
+                <Route path="/rooms" element={<ReceptionDashboard />} />
+                <Route path="/verifications" element={<ReceptionDashboard />} />
+                <Route path="/staff" element={<ReceptionDashboard />} />
+                <Route path="/reports" element={<ReceptionDashboard />} />
 
-              {/* Owner */}
-              <Route path="/analytics/revenue" element={<OwnerAnalytics />} />
-              <Route path="/analytics/occupancy" element={<OwnerAnalytics />} />
-              <Route path="/analytics/expenses" element={<OwnerAnalytics />} />
-              <Route path="/analytics/forecast" element={<OwnerAnalytics />} />
-              <Route path="/analytics/rooms" element={<OwnerAnalytics />} />
+                {/* Owner */}
+                <Route path="/analytics/revenue" element={<OwnerAnalytics />} />
+                <Route path="/analytics/occupancy" element={<OwnerAnalytics />} />
+                <Route path="/analytics/expenses" element={<OwnerAnalytics />} />
+                <Route path="/analytics/forecast" element={<OwnerAnalytics />} />
+                <Route path="/analytics/rooms" element={<OwnerAnalytics />} />
 
-              {/* Admin */}
-              <Route path="/users" element={<AdminDashboard />} />
-              <Route path="/hotels-mgmt/new" element={<AdminAddHotel />} />
-              <Route path="/hotels-mgmt/:hotelId/rooms/new" element={<AdminAddRooms />} />
-              <Route path="/hotels-mgmt" element={<AdminDashboard />} />
-              <Route path="/payments" element={<AdminDashboard />} />
-              <Route path="/fraud" element={<AdminDashboard />} />
-              <Route path="/incidents" element={<AdminDashboard />} />
-              <Route path="/logs" element={<AdminDashboard />} />
-              <Route path="/settings" element={<AdminDashboard />} />
+                {/* Admin */}
+                <Route path="/users" element={<AdminDashboard />} />
+                <Route path="/hotels-mgmt/new" element={<AdminAddHotel />} />
+                <Route path="/hotels-mgmt/:hotelId/rooms/new" element={<AdminAddRooms />} />
+                <Route path="/hotels-mgmt" element={<AdminDashboard />} />
+                <Route path="/payments" element={<AdminDashboard />} />
+                <Route path="/fraud" element={<AdminDashboard />} />
+                <Route path="/incidents" element={<AdminDashboard />} />
+                <Route path="/logs" element={<AdminDashboard />} />
+                <Route path="/settings" element={<AdminDashboard />} />
 
-              {/* Compliance */}
-              <Route path="/compliance" element={<ComplianceDashboard />} />
-            </Route>
+                {/* Compliance */}
+                <Route path="/compliance" element={<ComplianceDashboard />} />
+              </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          </CartProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            </CartProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </I18nProvider>
   </QueryClientProvider>
 );
 
