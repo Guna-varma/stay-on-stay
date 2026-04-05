@@ -928,24 +928,99 @@ export function publicHotelCoverUrls(h: PublicHotelCard): string[] {
   return [];
 }
 
+/**
+ * RPC `get_public_hotel_catalog` JSON uses `rooms` on room types; app expects `room_numbers`.
+ * Landmarks omit `hotel_id` in SQL — inject from parent hotel.
+ */
+function normalizePublicHotelCatalogFromRpc(raw: unknown): PublicHotelCard[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => {
+    const h = item as Record<string, unknown>;
+    const hid = String(h.id ?? "");
+    const roomRaw = h.room_types;
+    const room_types: PublicRoomTypeCard[] = Array.isArray(roomRaw)
+      ? roomRaw.map((rt) => {
+          const r = rt as Record<string, unknown>;
+          const nums = r.room_numbers;
+          const legacyRooms = r.rooms;
+          const room_numbers = Array.isArray(nums)
+            ? nums.map(String)
+            : Array.isArray(legacyRooms)
+              ? legacyRooms.map(String)
+              : [];
+          return {
+            id: String(r.id ?? ""),
+            hotel_id: String(r.hotel_id ?? hid),
+            name: String(r.name ?? ""),
+            description: (r.description as string | null) ?? null,
+            max_guests: (r.max_guests as number | null) ?? null,
+            base_price: (r.base_price as number | null) ?? null,
+            discount_type: String(r.discount_type ?? "none"),
+            discount_value: Number(r.discount_value ?? 0),
+            final_price: (r.final_price as number | null) ?? (r.base_price as number | null) ?? null,
+            images: Array.isArray(r.images) ? r.images.map(String) : [],
+            room_numbers,
+          };
+        })
+      : [];
+    const amenities: AmenityRecord[] = Array.isArray(h.amenities)
+      ? (h.amenities as Array<Record<string, unknown>>).map((a) => ({
+          id: String(a.id ?? ""),
+          name: String(a.name ?? ""),
+          icon: (a.icon as string | null) ?? null,
+        }))
+      : [];
+    const landmarks: LandmarkRecord[] = Array.isArray(h.landmarks)
+      ? (h.landmarks as Array<Record<string, unknown>>).map((l) => ({
+          id: String(l.id ?? ""),
+          hotel_id: hid,
+          name: String(l.name ?? ""),
+          google_maps_url: (l.google_maps_url as string | null) ?? null,
+          latitude: (l.latitude as number | null) ?? null,
+          longitude: (l.longitude as number | null) ?? null,
+        }))
+      : [];
+    const covers = h.cover_images;
+    const cover_images = Array.isArray(covers) ? covers.map(String) : [];
+    return {
+      id: hid,
+      name: String(h.name ?? ""),
+      description: (h.description as string | null) ?? null,
+      address: (h.address as string | null) ?? null,
+      city: (h.city as string | null) ?? null,
+      country: (h.country as string | null) ?? null,
+      image_url: (h.image_url as string | null) ?? null,
+      cover_images,
+      room_types,
+      amenities,
+      landmarks,
+    };
+  });
+}
+
 export async function listPublicHotelsWithRoomTypes(): Promise<{ data: PublicHotelCard[]; error: Error | null }> {
-  // Use optimized RPC that returns everything in one query (target: <100ms)
   const { data, error } = await supabase.rpc("get_public_hotel_catalog");
-  
+
   if (error) {
-    // Fallback to old multi-query approach if RPC doesn't exist yet
+    if (import.meta.env.DEV) {
+      console.warn("[stay-on-stay] get_public_hotel_catalog failed, using REST fallback:", error.message);
+    }
     return listPublicHotelsWithRoomTypesLegacy();
   }
-  
-  if (!data) return { data: [], error: null };
-  
+
+  if (data == null) {
+    return listPublicHotelsWithRoomTypesLegacy();
+  }
+
   try {
-    // Parse the JSONB result directly
-    const hotels = (typeof data === 'string' ? JSON.parse(data) : data) as PublicHotelCard[];
+    const parsed = typeof data === "string" ? JSON.parse(data) : data;
+    const hotels = normalizePublicHotelCatalogFromRpc(parsed);
     return { data: hotels, error: null };
   } catch (parseError) {
-    console.error('Failed to parse hotel catalog:', parseError);
-    return { data: [], error: parseError as Error };
+    if (import.meta.env.DEV) {
+      console.warn("[stay-on-stay] hotel catalog RPC parse failed, using REST fallback:", parseError);
+    }
+    return listPublicHotelsWithRoomTypesLegacy();
   }
 }
 
@@ -1085,22 +1160,127 @@ async function listPublicHotelsWithRoomTypesLegacy(): Promise<{ data: PublicHote
   return { data: normalized, error: null };
 }
 
-let _catalogCache: { data: PublicHotelCard[]; ts: number } | null = null;
-const CATALOG_TTL_MS = 30_000;
+const CATALOG_STORAGE_KEY = "sos_public_hotel_catalog_v1";
+const CATALOG_TTL_MS = 5 * 60 * 1000; // public catalog — refresh periodically
+const CATALOG_EMPTY_TTL_MS = 45 * 1000; // empty result may be transient
+
+type CatalogCacheEntry = { data: PublicHotelCard[]; ts: number; isEmpty: boolean };
+
+let _catalogMemoryCache: CatalogCacheEntry | null = null;
+let _catalogFetchPromise: Promise<{ data: PublicHotelCard[]; error: Error | null }> | null = null;
+
+function readCatalogSessionCache(): CatalogCacheEntry | null {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(CATALOG_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { ts: number; data: PublicHotelCard[] };
+    if (typeof parsed.ts !== "number" || !Array.isArray(parsed.data)) return null;
+    return {
+      data: parsed.data,
+      ts: parsed.ts,
+      isEmpty: parsed.data.length === 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeCatalogSessionCache(entry: CatalogCacheEntry): void {
+  if (typeof sessionStorage === "undefined") return;
+  try {
+    const payload = JSON.stringify({ ts: entry.ts, data: entry.data });
+    if (payload.length > 4_500_000) return;
+    sessionStorage.setItem(CATALOG_STORAGE_KEY, payload);
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+function isCatalogEntryFresh(entry: CatalogCacheEntry, now: number): boolean {
+  const ttl = entry.isEmpty ? CATALOG_EMPTY_TTL_MS : CATALOG_TTL_MS;
+  return now - entry.ts < ttl;
+}
+
+/** Last non-empty catalog for stale-while-error (ignores TTL). */
+function lastResortCatalogSnapshot(): PublicHotelCard[] | null {
+  if (_catalogMemoryCache && _catalogMemoryCache.data.length > 0) {
+    return _catalogMemoryCache.data;
+  }
+  const fromSession = readCatalogSessionCache();
+  if (fromSession && fromSession.data.length > 0) return fromSession.data;
+  return null;
+}
+
+/**
+ * Synchronous read from sessionStorage for first paint (repeat visits).
+ * Does not hit the network; a full fetch should still run to refresh.
+ */
+export function peekPublicHotelCatalogFromSessionStorage(): PublicHotelCard[] | null {
+  const entry = readCatalogSessionCache();
+  if (!entry || entry.data.length === 0) return null;
+  return entry.data;
+}
 
 export async function listPublicHotelsWithRoomTypesCached(): Promise<{ data: PublicHotelCard[]; error: Error | null }> {
-  if (_catalogCache && Date.now() - _catalogCache.ts < CATALOG_TTL_MS) {
-    return { data: _catalogCache.data, error: null };
+  const now = Date.now();
+
+  if (_catalogMemoryCache && isCatalogEntryFresh(_catalogMemoryCache, now)) {
+    return { data: _catalogMemoryCache.data, error: null };
   }
-  const result = await listPublicHotelsWithRoomTypes();
-  if (!result.error && result.data.length > 0) {
-    _catalogCache = { data: result.data, ts: Date.now() };
+
+  const sessionEntry = readCatalogSessionCache();
+  if (sessionEntry && isCatalogEntryFresh(sessionEntry, now)) {
+    _catalogMemoryCache = sessionEntry;
+    return { data: sessionEntry.data, error: null };
   }
-  return result;
+
+  if (_catalogFetchPromise) {
+    return _catalogFetchPromise;
+  }
+
+  _catalogFetchPromise = (async () => {
+    const result = await listPublicHotelsWithRoomTypes();
+    const ts = Date.now();
+
+    if (!result.error) {
+      const entry: CatalogCacheEntry = {
+        data: result.data,
+        ts,
+        isEmpty: result.data.length === 0,
+      };
+      _catalogMemoryCache = entry;
+      writeCatalogSessionCache(entry);
+      return result;
+    }
+
+    const stale = lastResortCatalogSnapshot();
+    if (stale && stale.length > 0) {
+      if (import.meta.env.DEV) {
+        console.warn("[stay-on-stay] Hotel catalog fetch failed; serving stale cache.", result.error?.message);
+      }
+      return { data: stale, error: null };
+    }
+
+    return result;
+  })();
+
+  try {
+    return await _catalogFetchPromise;
+  } finally {
+    _catalogFetchPromise = null;
+  }
 }
 
 export function invalidateCatalogCache() {
-  _catalogCache = null;
+  _catalogMemoryCache = null;
+  if (typeof sessionStorage !== "undefined") {
+    try {
+      sessionStorage.removeItem(CATALOG_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 export async function getPublicHotelDetail(hotelId: string): Promise<{ data: PublicHotelCard | null; error: Error | null }> {

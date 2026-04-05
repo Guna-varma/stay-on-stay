@@ -87,8 +87,8 @@ export const frPack: Record<string, string> = {
     "Plus de 24 000 patients africains en Inde au 1er trimestre 2026 — forte hausse du voyage médical.",
   "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
     "Croissance de 42 % par rapport à 2024 — beaucoup de projections visent plus de 100 000 visites cette année.",
-  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
-    "Afrique de l’Est et de l’Ouest en tête : Nigeria, Kenya, Tanzanie, Ghana, Ouganda et Congo.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.":
+    "Afrique de l’Est et de l’Ouest en tête : Nigeria, Kenya, Tanzanie, Ghana, Ouganda, Rwanda et Congo.",
   "What African travelers often plan in India": "Ce que les voyageurs africains planifient souvent en Inde",
   "Representative demand mix from industry reports — not a promise of availability.":
     "Répartition indicative d’après les rapports du secteur — pas une garantie de disponibilité.",
@@ -238,6 +238,11 @@ export const frPack: Record<string, string> = {
     "Nous gérons le voyage et les mises à jour. Vous vous concentrez sur la guérison.",
   "Service breakdown": "Détail des services",
   "Support coverage": "Couverture du support",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "Répartition indicative du soutien sur votre parcours médical (parts illustratives).",
+  Medical: "Médical",
+  Travel: "Voyage",
+  Assistance: "Assistance",
   "Process timeline": "Étapes du processus",
   "of": "sur",
   "You are guided at every step": "Vous êtes guidé à chaque étape",
@@ -291,6 +296,25 @@ export const frPack: Record<string, string> = {
   "Full Concierge Support": "Assistance conciergerie complète",
   "From visa to recovery — our team handles every detail of your journey.":
     "Du visa au rétablissement — notre équipe gère chaque détail de votre parcours.",
+  "Estimated Average Savings": "Économies moyennes estimées",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "Nous montrons des fourchettes réalistes à partir des devis utilisés lors des appels de consultation. Le prix final dépend du diagnostic et du forfait hospitalier.",
+  "Heart Bypass: Local vs India": "Pontage coronarien : local vs Inde",
+  "Sample benchmark from partner consultation quotes": "Référence indicative à partir de devis partenaires",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "Les 54 pays de l’Union africaine — faites défiler horizontalement pour comparer local vs Inde (référence pontage).",
+  "Expense Breakdown in India": "Répartition des dépenses en Inde",
+  "Even with travel and stay, overall spend stays lower": "Même avec voyage et séjour, la dépense totale reste plus basse",
+  "Interactive Savings Calculator": "Calculateur d’économies interactif",
+  "Select your country and treatment": "Choisissez votre pays et votre traitement",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Des milliers de patients d’Afrique économisent beaucoup dans des hôpitaux indiens accrédités.",
+  Airfare: "Billets d’avion",
+  Accommodation: "Hébergement",
+  Food: "Repas",
+  Treatment: "Soins médicaux",
+  Local: "Local",
+  Savings: "Économies",
 };
 
 export const esPack: Record<string, string> = {
@@ -377,8 +401,8 @@ export const esPack: Record<string, string> = {
     "Más de 24 000 pacientes africanos llegaron a India en el primer trimestre de 2026 — fuerte aumento del turismo médico.",
   "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
     "Crecimiento del 42 % frente a 2024 — muchas proyecciones apuntan a más de 100 000 visitas este año.",
-  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
-    "África Oriental y Occidental lideran: Nigeria, Kenia, Tanzania, Ghana, Uganda y Congo.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.":
+    "África Oriental y Occidental lideran: Nigeria, Kenia, Tanzania, Ghana, Uganda, Rwanda y Congo.",
   "What African travelers often plan in India": "Lo que los viajeros africanos suelen planificar en India",
   "Representative demand mix from industry reports — not a promise of availability.":
     "Mezcla representativa según informes del sector — no es promesa de disponibilidad.",
@@ -528,6 +552,11 @@ export const esPack: Record<string, string> = {
     "Nosotros manejamos viaje y actualizaciones. Tú enfócate en mejorar.",
   "Service breakdown": "Resumen de servicios",
   "Support coverage": "Cobertura de apoyo",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "Cómo repartimos el apoyo en tu viaje médico (porcentajes orientativos).",
+  Medical: "Médico",
+  Travel: "Viaje",
+  Assistance: "Asistencia",
   "Process timeline": "Línea de proceso",
   "of": "de",
   "You are guided at every step": "Te guiamos en cada paso",
@@ -581,6 +610,25 @@ export const esPack: Record<string, string> = {
   "Full Concierge Support": "Apoyo de conserjería completo",
   "From visa to recovery — our team handles every detail of your journey.":
     "Del visado a la recuperación — nuestro equipo cuida cada detalle de tu viaje.",
+  "Estimated Average Savings": "Ahorro medio estimado",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "Mostramos rangos realistas según presupuestos usados en consultas. El precio final depende del diagnóstico y del paquete hospitalario.",
+  "Heart Bypass: Local vs India": "Bypass coronario: local vs India",
+  "Sample benchmark from partner consultation quotes": "Referencia de ejemplo según presupuestos de socios",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "Los 54 países de la Unión Africana — desliza horizontalmente para comparar local vs India (referencia bypass).",
+  "Expense Breakdown in India": "Desglose de gastos en India",
+  "Even with travel and stay, overall spend stays lower": "Incluso con viaje y estancia, el gasto total sigue siendo menor",
+  "Interactive Savings Calculator": "Calculadora interactiva de ahorro",
+  "Select your country and treatment": "Elige tu país y tratamiento",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Miles de pacientes de África ahorran mucho en hospitales indios acreditados.",
+  Airfare: "Vuelos",
+  Accommodation: "Alojamiento",
+  Food: "Comida",
+  Treatment: "Tratamiento",
+  Local: "Local",
+  Savings: "Ahorro",
 };
 
 export const swPack: Record<string, string> = {
@@ -667,8 +715,8 @@ export const swPack: Record<string, string> = {
     "Wagonjwa zaidi ya 24,000 kutoka Afrika walifika India Q1 2026 — ongezeko kubwa la safari za Treatment.",
   "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
     "Ukuaji wa 42% ikilinganishwa na 2024 — makadirio mengi yanaonyesha ziara 100,000+ mwaka huu.",
-  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
-    "Afrika Mashariki na Magharibi viongozi: Nigeria, Kenya, Tanzania, Ghana, Uganda na Congo.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.":
+    "Afrika Mashariki na Magharibi viongozi: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda na Congo.",
   "What African travelers often plan in India": "Wasafiri wa Afrika mara nyingi wanapanga nini India",
   "Representative demand mix from industry reports — not a promise of availability.":
     "Mchanganyiko wa mahitaji kutoka ripoti za sekta — si ahadi ya upatikanaji.",
@@ -818,6 +866,11 @@ export const swPack: Record<string, string> = {
     "Tunasimamia safari na taarifa. Wewe jikite kwenye kupona.",
   "Service breakdown": "Muhtasari wa Care",
   "Support coverage": "Ufunikaji wa msaada",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "Jinsi tunavyogawa msaada katika safari yako ya matibabu (asilimia za mfano).",
+  Medical: "Tiba",
+  Travel: "Safari",
+  Assistance: "Msaada",
   "Process timeline": "Ratiba ya hatua",
   "of": "ya",
   "You are guided at every step": "Unaongozwa kila hatua",
@@ -871,6 +924,25 @@ export const swPack: Record<string, string> = {
   "Full Concierge Support": "Msaada kamili wa concierge",
   "From visa to recovery — our team handles every detail of your journey.":
     "Kutoka visa hadi kupona — timu yetu inashughulikia kila hatua ya safari yako.",
+  "Estimated Average Savings": "Akiba wastani inayokadiriwa",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "Tunaonyesha masafa halisi kutoka bei za matumizi kwenye simu za ushauri. Bei ya mwisho inategemea utambuzi na mfuko wa hospitali.",
+  "Heart Bypass: Local vs India": "Upasuaji wa moyo: nyumbani vs India",
+  "Sample benchmark from partner consultation quotes": "Kigezo cha mfano kutoka bei za washirika",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "Nchi 54 za Umoja wa Afrika — swipe upande kuilinganisha nyumbani vs India (kigezo cha bypass ya moyo).",
+  "Expense Breakdown in India": "Mgawanyo wa gharama India",
+  "Even with travel and stay, overall spend stays lower": "Hata na safari na ukaaji, jumla ya gharama bado ni ndogo",
+  "Interactive Savings Calculator": "Kikokotoo cha akiba kinachoshirikisha",
+  "Select your country and treatment": "Chagua nchi na matibabu yako",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Maelfu ya wagonjwa kutoka Afrika wanaokoa sana hospitali za India zilizoidhinishwa.",
+  Airfare: "Ndege",
+  Accommodation: "Malazi",
+  Food: "Chakula",
+  Treatment: "Matibabu",
+  Local: "Nyumbani",
+  Savings: "Akiba",
 };
 
 /** Portuguese (Brazil / Lusophone Africa) — same keys as esPack; pt UI falls back to es then en in useMtText if missing. */
@@ -958,8 +1030,8 @@ export const ptPack: Record<string, string> = {
     "Mais de 24 mil pacientes africanos chegaram à Índia no 1º trimestre de 2026 — forte alta do turismo médico.",
   "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
     "Crescimento de 42% vs 2024 — muitas projeções apontam mais de 100 mil visitas este ano.",
-  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
-    "África Oriental e Ocidental lideram: Nigéria, Quénia, Tanzânia, Gana, Uganda e Congo.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.":
+    "África Oriental e Ocidental lideram: Nigéria, Quénia, Tanzânia, Gana, Uganda, Ruanda e Congo.",
   "What African travelers often plan in India": "O que viajantes africanos costumam planejar na Índia",
   "Representative demand mix from industry reports — not a promise of availability.":
     "Mix representativo de relatórios do setor — não é promessa de disponibilidade.",
@@ -1109,6 +1181,11 @@ export const ptPack: Record<string, string> = {
     "Cuidamos da viagem e das atualizações. Você foca em melhorar.",
   "Service breakdown": "Resumo de serviços",
   "Support coverage": "Cobertura de suporte",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "Como distribuímos o apoio na sua viagem médica (percentagens ilustrativas).",
+  Medical: "Médico",
+  Travel: "Viagem",
+  Assistance: "Assistência",
   "Process timeline": "Linha do processo",
   "of": "de",
   "You are guided at every step": "Você é guiado em cada passo",
@@ -1162,6 +1239,25 @@ export const ptPack: Record<string, string> = {
   "Full Concierge Support": "Suporte concierge completo",
   "From visa to recovery — our team handles every detail of your journey.":
     "Do visto à recuperação — nossa equipe cuida de cada detalhe da sua jornada.",
+  "Estimated Average Savings": "Economia média estimada",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "Mostramos faixas realistas com base em orçamentos usados nas consultas. O preço final depende do diagnóstico e do pacote hospitalar.",
+  "Heart Bypass: Local vs India": "Bypass cardíaco: local vs Índia",
+  "Sample benchmark from partner consultation quotes": "Referência de exemplo a partir de orçamentos de parceiros",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "Os 54 países da União Africana — deslize na horizontal para comparar local vs Índia (referência de bypass).",
+  "Expense Breakdown in India": "Detalhamento de despesas na Índia",
+  "Even with travel and stay, overall spend stays lower": "Mesmo com viagem e estadia, o gasto total continua menor",
+  "Interactive Savings Calculator": "Calculadora interativa de economia",
+  "Select your country and treatment": "Selecione seu país e tratamento",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Milhares de pacientes da África economizam muito em hospitais indianos credenciados.",
+  Airfare: "Passagens",
+  Accommodation: "Hospedagem",
+  Food: "Alimentação",
+  Treatment: "Tratamento",
+  Local: "Local",
+  Savings: "Economia",
 };
 
 export const rwPack: Record<string, string> = {
@@ -1248,8 +1344,8 @@ export const rwPack: Record<string, string> = {
     "Abarwayi 24,000+ ba African bageze India muri Q1 2026 — kwiyongera gukabije kwa medical travel.",
   "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
     "Kwiyongeraho 42% ukurikije 2024 — ibiteganyijwe byinshi byonyine byerekana ko abasura bagera ku 100,000+ uyu mwaka.",
-  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
-    "East & West Africa nizo ziyoboye: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.":
+    "East & West Africa nizo ziyoboye: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.",
   "What African travelers often plan in India": "Ibyo African travelers ukesha bateganya muri India",
   "Representative demand mix from industry reports — not a promise of availability.":
     "Representative demand ikurikije industry reports — s'isezerano rya availability.",
@@ -1390,6 +1486,11 @@ export const rwPack: Record<string, string> = {
     "Tubikora ibya travel na updates. Wowe focus ku kuba muzima.",
   "Service breakdown": "Service breakdown",
   "Support coverage": "Support coverage",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "Uko dutanga support mu rugendo rwawe rw'ubuvuzi (imigabane irerekana).",
+  Medical: "Ubuvuzi",
+  Travel: "Urugendo",
+  Assistance: "Ubufasha",
   "Process timeline": "Process timeline",
   "of": "buri",
   "You are guided at every step": "Turakuyobora muri buri step yose",
@@ -1443,6 +1544,25 @@ export const rwPack: Record<string, string> = {
   "Full Concierge Support": "Full Concierge Support",
   "From visa to recovery — our team handles every detail of your journey.":
     "Kuva kuri visa kugeza uri mubuzima bwite bwite - itsinda ryacu ri handle buri kimwe cyacu kyose kijyanye n'urugendo.",
+  "Estimated Average Savings": "Akabakidutse gakiriwe",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "Turerekana intera z'ukuri ziva ku biciro byakoreshejwe mu biganiro by'ubuvuzi. Igiciro cya nyuma kishingiye ku kuvura n'ipaki y'ibitaro.",
+  "Heart Bypass: Local vs India": "Heart bypass: aho uherereye vs India",
+  "Sample benchmark from partner consultation quotes": "Ingero z'icyitegererezo ziva ku biciro by'abafatanyabikorwa",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "Amahanga 54 y'Umuryango w'Afurika — koresha swipe kugira ngo wigereranye aho uherereye na India (heart bypass).",
+  "Expense Breakdown in India": "Uko amafaranga yakoreshwe muri India",
+  "Even with travel and stay, overall spend stays lower": "N'ubwo uri mu nzira no kurara, ingengo y'amafaranga iracyo hasi",
+  "Interactive Savings Calculator": "Ikibaho cyo kubara akabakidutse",
+  "Select your country and treatment": "Hitamo igihugu n'ubuvuzi",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Abantu ibihumbi baturutse muri Africa babika cyane mu bitaro by'India byemewe.",
+  Airfare: "Indege",
+  Accommodation: "Aho kurara",
+  Food: "Ibiribwa",
+  Treatment: "Ubuvuzi",
+  Local: "Aho uherereye",
+  Savings: "Akabakidutse",
 };
 
 export const yoPack: Record<string, string> = {
@@ -1509,7 +1629,7 @@ export const yoPack: Record<string, string> = {
   "India is a leading choice for African families: advanced specialties, shorter waits, and often 60–80% lower cost than many Western systems.": "India je leading choice fun African families: advanced specialties, asiko wait kukururu, ati asiko yi 60-80% lower cost ju Western systems.",
   "24,000+ African patients reached India in Q1 2026 — a sharp rise in medical travel.": "24,000+ African patients lo de India ninu Q1 2026 — sharp rise ni medical travel.",
   "42% growth vs 2024 — many projections point to 100,000+ visits this year.": "42% growth ni ti a ba fiwe 2024 — ayewo n fi han 100,000+ visits odun yii.",
-  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.": "East & West Africa n lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.",
+  "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.": "East & West Africa n lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.",
   "What African travelers often plan in India": "Kini awon African travelers n plan ni India ni ọpọ igba",
   "Representative demand mix from industry reports — not a promise of availability.": "Representative demand mix lati inu industry reports — ki i se promise of availability.",
   "Oncology (cancer care)": "Oncology (Cancer care)",
@@ -1630,6 +1750,11 @@ export const yoPack: Record<string, string> = {
   "We handle travel and updates. You focus on getting better.": "A handle travel ati updates. Eran isé gba the better.",
   "Service breakdown": "Service breakdown",
   "Support coverage": "Support coverage",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "How we allocate support across your medical trip (illustrative shares).",
+  Medical: "Medical",
+  Travel: "Travel",
+  Assistance: "Assistance",
   "Process timeline": "Process timeline",
   "of": "ti",
   "You are guided at every step": "O je guided ni gbogbo step kọkọ",
@@ -1656,7 +1781,26 @@ export const yoPack: Record<string, string> = {
   "Get personalized quote": "Mo fé gba personalized quote",
   "Plan": "Plan",
   "Avg response 2-5 min": "Avg response n tẹ̀ 2-5 min",
-  "Back to medical tourism": "Lọ si ibi back to medical tourism"
+  "Back to medical tourism": "Lọ si ibi back to medical tourism",
+  "Estimated Average Savings": "Estimated Average Savings",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.",
+  "Heart Bypass: Local vs India": "Heart Bypass: Local vs India",
+  "Sample benchmark from partner consultation quotes": "Sample benchmark from partner consultation quotes",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).",
+  "Expense Breakdown in India": "Expense Breakdown in India",
+  "Even with travel and stay, overall spend stays lower": "Even with travel and stay, overall spend stays lower",
+  "Interactive Savings Calculator": "Interactive Savings Calculator",
+  "Select your country and treatment": "Select your country and treatment",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.",
+  Airfare: "Airfare",
+  Accommodation: "Accommodation",
+  Food: "Food",
+  Treatment: "Treatment",
+  Local: "Local",
+  Savings: "Savings",
 };
 
 export const zuPack: Record<string, string> = {
@@ -1750,6 +1894,11 @@ export const zuPack: Record<string, string> = {
   "Full patient support": "I-Full patient support",
   "Service breakdown": "I-Service breakdown",
   "Support coverage": "I-Support coverage",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "How we allocate support across your medical trip (illustrative shares).",
+  Medical: "Medical",
+  Travel: "Travel",
+  Assistance: "Assistance",
   "Process timeline": "I-Process timeline",
   "What you do": "Lokho okwenzayo",
   "What we do": "Lokho esikwenzayo",
@@ -1777,7 +1926,26 @@ export const zuPack: Record<string, string> = {
   "Save Up to 70%": "Save Ukufika kuma-70%",
   "World-Class JCI Hospitals": "Ama-World-Class JCI Hospitals",
   "Faster Treatment Timelines": "Izikhathi ze-Treatment ezishesha",
-  "Full Concierge Support": "I-Full Concierge Support"
+  "Full Concierge Support": "I-Full Concierge Support",
+  "Estimated Average Savings": "Estimated Average Savings",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.",
+  "Heart Bypass: Local vs India": "Heart Bypass: Local vs India",
+  "Sample benchmark from partner consultation quotes": "Sample benchmark from partner consultation quotes",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).",
+  "Expense Breakdown in India": "Expense Breakdown in India",
+  "Even with travel and stay, overall spend stays lower": "Even with travel and stay, overall spend stays lower",
+  "Interactive Savings Calculator": "Interactive Savings Calculator",
+  "Select your country and treatment": "Select your country and treatment",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.",
+  Airfare: "Airfare",
+  Accommodation: "Accommodation",
+  Food: "Food",
+  Treatment: "Treatment",
+  Local: "Local",
+  Savings: "Savings",
 };
 
 export const soPack: Record<string, string> = {
@@ -1872,6 +2040,11 @@ export const soPack: Record<string, string> = {
   "Full patient support": "Full patient support",
   "Service breakdown": "Service breakdown",
   "Support coverage": "Support coverage",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "How we allocate support across your medical trip (illustrative shares).",
+  Medical: "Medical",
+  Travel: "Travel",
+  Assistance: "Assistance",
   "Process timeline": "Process timeline",
   "What you do": "Waxaad qabato adiga",
   "What we do": "Waxa aan annagu qabano",
@@ -1896,7 +2069,26 @@ export const soPack: Record<string, string> = {
   "Save Up to 70%": "Save-garee Ilia 70%",
   "World-Class JCI Hospitals": "World-Class JCI Hospitals",
   "Faster Treatment Timelines": "Faster Treatment Timelines",
-  "Full Concierge Support": "Full Concierge Support"
+  "Full Concierge Support": "Full Concierge Support",
+  "Estimated Average Savings": "Estimated Average Savings",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.",
+  "Heart Bypass: Local vs India": "Heart Bypass: Local vs India",
+  "Sample benchmark from partner consultation quotes": "Sample benchmark from partner consultation quotes",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).",
+  "Expense Breakdown in India": "Expense Breakdown in India",
+  "Even with travel and stay, overall spend stays lower": "Even with travel and stay, overall spend stays lower",
+  "Interactive Savings Calculator": "Interactive Savings Calculator",
+  "Select your country and treatment": "Select your country and treatment",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.",
+  Airfare: "Airfare",
+  Accommodation: "Accommodation",
+  Food: "Food",
+  Treatment: "Treatment",
+  Local: "Local",
+  Savings: "Savings",
 };
 
 export const amPack: Record<string, string> = {
@@ -1990,6 +2182,11 @@ export const amPack: Record<string, string> = {
   "Full patient support": "Full patient support",
   "Service breakdown": "Service breakdown",
   "Support coverage": "Support coverage",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "How we allocate support across your medical trip (illustrative shares).",
+  Medical: "Medical",
+  Travel: "Travel",
+  Assistance: "Assistance",
   "Process timeline": "Process timeline",
   "What you do": "እርስዎ ምን እንደሚያደርጉ",
   "What we do": "እኛ ምን እንደምናደርግ",
@@ -2017,7 +2214,26 @@ export const amPack: Record<string, string> = {
   "Save Up to 70%": "እስከ 70% Save ያድርጉ",
   "World-Class JCI Hospitals": "World-Class JCI Hospitals",
   "Faster Treatment Timelines": "Faster Treatment Timelines",
-  "Full Concierge Support": "Full Concierge Support"
+  "Full Concierge Support": "Full Concierge Support",
+  "Estimated Average Savings": "Estimated Average Savings",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.",
+  "Heart Bypass: Local vs India": "Heart Bypass: Local vs India",
+  "Sample benchmark from partner consultation quotes": "Sample benchmark from partner consultation quotes",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).",
+  "Expense Breakdown in India": "Expense Breakdown in India",
+  "Even with travel and stay, overall spend stays lower": "Even with travel and stay, overall spend stays lower",
+  "Interactive Savings Calculator": "Interactive Savings Calculator",
+  "Select your country and treatment": "Select your country and treatment",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.",
+  Airfare: "Airfare",
+  Accommodation: "Accommodation",
+  Food: "Food",
+  Treatment: "Treatment",
+  Local: "Local",
+  Savings: "Savings",
 };
 
 export const lnPack: Record<string, string> = {
@@ -2114,6 +2330,11 @@ export const lnPack: Record<string, string> = {
   "Full patient support": "Full patient support",
   "Service breakdown": "Service breakdown",
   "Support coverage": "Support coverage",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "How we allocate support across your medical trip (illustrative shares).",
+  Medical: "Medical",
+  Travel: "Travel",
+  Assistance: "Assistance",
   "Process timeline": "Process timeline",
   "What you do": "Soki osali nini",
   "What we do": "Nini tosalaka",
@@ -2141,7 +2362,26 @@ export const lnPack: Record<string, string> = {
   "Save Up to 70%": "Save kino 70%",
   "World-Class JCI Hospitals": "World-Class JCI Hospitals",
   "Faster Treatment Timelines": "Faster Treatment Timelines",
-  "Full Concierge Support": "Full Concierge Support"
+  "Full Concierge Support": "Full Concierge Support",
+  "Estimated Average Savings": "Estimated Average Savings",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.",
+  "Heart Bypass: Local vs India": "Heart Bypass: Local vs India",
+  "Sample benchmark from partner consultation quotes": "Sample benchmark from partner consultation quotes",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).",
+  "Expense Breakdown in India": "Expense Breakdown in India",
+  "Even with travel and stay, overall spend stays lower": "Even with travel and stay, overall spend stays lower",
+  "Interactive Savings Calculator": "Interactive Savings Calculator",
+  "Select your country and treatment": "Select your country and treatment",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.",
+  Airfare: "Airfare",
+  Accommodation: "Accommodation",
+  Food: "Food",
+  Treatment: "Treatment",
+  Local: "Local",
+  Savings: "Savings",
 };
 
 
@@ -2237,6 +2477,11 @@ export const lgPack: Record<string, string> = {
   "Full patient support": "Full patient support",
   "Service breakdown": "Service breakdown",
   "Support coverage": "Support coverage",
+  "How we allocate support across your medical trip (illustrative shares).":
+    "How we allocate support across your medical trip (illustrative shares).",
+  Medical: "Medical",
+  Travel: "Travel",
+  Assistance: "Assistance",
   "Process timeline": "Process timeline",
   "What you do": "Ky'okola",
   "What we do": "Kyetukola",
@@ -2264,5 +2509,24 @@ export const lgPack: Record<string, string> = {
   "Save Up to 70%": "Save paka 70%",
   "World-Class JCI Hospitals": "World-Class JCI Hospitals",
   "Faster Treatment Timelines": "Faster Treatment Timelines",
-  "Full Concierge Support": "Full Concierge Support"
+  "Full Concierge Support": "Full Concierge Support",
+  "Estimated Average Savings": "Estimated Average Savings",
+  "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+    "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.",
+  "Heart Bypass: Local vs India": "Heart Bypass: Local vs India",
+  "Sample benchmark from partner consultation quotes": "Sample benchmark from partner consultation quotes",
+  "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+    "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).",
+  "Expense Breakdown in India": "Expense Breakdown in India",
+  "Even with travel and stay, overall spend stays lower": "Even with travel and stay, overall spend stays lower",
+  "Interactive Savings Calculator": "Interactive Savings Calculator",
+  "Select your country and treatment": "Select your country and treatment",
+  "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+    "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.",
+  Airfare: "Airfare",
+  Accommodation: "Accommodation",
+  Food: "Food",
+  Treatment: "Treatment",
+  Local: "Local",
+  Savings: "Savings",
 };

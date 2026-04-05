@@ -30,7 +30,13 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { countAvailableRoomsBatch, listPublicHotelsWithRoomTypesCached, publicHotelCoverUrls, type PublicHotelCard } from "@/lib/supabase";
+import {
+  countAvailableRoomsBatch,
+  listPublicHotelsWithRoomTypesCached,
+  peekPublicHotelCatalogFromSessionStorage,
+  publicHotelCoverUrls,
+  type PublicHotelCard,
+} from "@/lib/supabase";
 import { HotelCoverCarousel } from "@/components/HotelCoverCarousel";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -67,8 +73,12 @@ export function HotelSearchSection({ standalone = false, sectionId = "hotels" }:
   const reduceMotion = useReducedMotion();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [hotels, setHotels] = useState<PublicHotelCard[]>([]);
-  const [loading, setLoading] = useState(true);
+  const catalogBootstrap = useMemo(() => {
+    const peek = peekPublicHotelCatalogFromSessionStorage();
+    return { hotels: peek ?? [], loading: !peek?.length };
+  }, []);
+  const [hotels, setHotels] = useState<PublicHotelCard[]>(catalogBootstrap.hotels);
+  const [loading, setLoading] = useState(catalogBootstrap.loading);
   const [searchQuery, setSearchQuery] = useState("");
   const [hospitalFilter, setHospitalFilter] = useState("all");
   const [priceRange, setPriceRange] = useState<[number, number]>([800, 12000]);

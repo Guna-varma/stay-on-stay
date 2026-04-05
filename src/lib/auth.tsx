@@ -251,6 +251,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [resolveAuthUser]);
 
+  /**
+   * Single auth hydration path: rely on onAuthStateChange(INITIAL_SESSION) instead of a
+   * parallel getSession() loop. Competing calls contend on GoTrue's storage lock and
+   * trigger "Lock … was not released within 5000ms" on slow networks / mobile.
+   */
   useEffect(() => {
     if (!isSupabaseConfigured()) {
       setInitialized(true);
@@ -259,50 +264,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const mountedRef = { current: true };
 
-    const initSession = async () => {
-      const hasHash = typeof window !== "undefined" && window.location.hash.includes("access_token");
-      const maxAttempts = hasHash ? 3 : 1;
-      const delayMs = hasHash ? 250 : 0;
-
-      try {
-        if (hasHash) {
-          await new Promise((r) => setTimeout(r, 100));
-        }
-
-        let session: Awaited<ReturnType<typeof getSession>>["data"]["session"] = null;
-
-        for (let attempt = 0; attempt < maxAttempts && mountedRef.current; attempt++) {
-          try {
-            const result = await withTimeout(getSession(), 2500, { session: null });
-            session = result.data?.session ?? null;
-            if (session) break;
-          } catch {
-            /* timeout or abort — continue */
-          }
-          if (!session && attempt < maxAttempts - 1 && delayMs > 0) {
-            await new Promise((r) => setTimeout(r, delayMs));
-          }
-        }
-
-        if (!mountedRef.current) return;
-        if (!session?.user) return;
-
-        const resolved = await resolveAuthUser(session.user, mountedRef);
-        if (!mountedRef.current) return;
-        if (resolved) {
-          setUser(resolved);
-        }
-        // If profile still null, DON'T set a fake user — leave user=null.
-        // onAuthStateChange will fire and try again.
-      } catch {
-        /* swallow — we'll still set initialized */
-      } finally {
-        if (mountedRef.current) setInitialized(true);
-      }
-    };
-
-    initSession();
-
     const safetyTimer = setTimeout(() => {
       if (mountedRef.current) setInitialized(true);
     }, SESSION_INIT_TIMEOUT_MS);
@@ -310,19 +271,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mountedRef.current) return;
       try {
+        if (event === "INITIAL_SESSION") {
+          if (session?.user) {
+            const resolved = await resolveAuthUser(session.user, mountedRef);
+            if (mountedRef.current && resolved) setUser(resolved);
+          } else if (
+            typeof window !== "undefined" &&
+            window.location.hash.includes("access_token")
+          ) {
+            // OAuth implicit/PKCE fragment: session can appear shortly after storage write
+            await new Promise((r) => setTimeout(r, 200));
+            const { data } = await withTimeout(getSession(), 4000, { session: null });
+            if (mountedRef.current && data.session?.user) {
+              const resolved = await resolveAuthUser(data.session.user, mountedRef);
+              if (mountedRef.current && resolved) setUser(resolved);
+            }
+          }
+          if (mountedRef.current) setInitialized(true);
+          return;
+        }
+
         if (event === "SIGNED_OUT") {
           setUser(null);
           setInitialized(true);
           return;
         }
+
         if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session?.user) {
           const resolved = await resolveAuthUser(session.user, mountedRef);
           if (!mountedRef.current) return;
-          if (resolved) {
-            setUser(resolved);
-          }
-          // If profile unavailable, don't set a fake user.
-          // The user stays null → AppShell shows loading → safety timer eventually unblocks.
+          if (resolved) setUser(resolved);
         }
         if (mountedRef.current) setInitialized(true);
       } catch {

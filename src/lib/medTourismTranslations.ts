@@ -89,8 +89,8 @@ export const MT_TRANSLATIONS: Partial<Record<NonEn, Record<string, string>>> = {
       "Q1 2026 तक 24,000+ अफ्रीकी मरीज़ भारत पहुँचे — चिकित्सा यात्रा में तेज़ वृद्धि।",
     "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
       "2024 की तुलना में 42% वृद्धि — कई अनुमान इस साल 100,000+ यात्राओं की ओर।",
-    "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
-      "पूर्व और पश्चिम अफ्रीका अग्रणी: नाइजीरिया, केन्या, तंज़ानिया, घाना, युगांडा और कांगो।",
+    "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.":
+      "पूर्व और पश्चिम अफ्रीका अग्रणी: नाइजीरिया, केन्या, तंज़ानिया, घाना, युगांडा, रुवांडा और कांगो।",
     "What African travelers often plan in India": "अफ्रीकी यात्री भारत में अक्सर क्या प्लान करते हैं",
     "Representative demand mix from industry reports — not a promise of availability.":
       "उद्योग रिपोर्टों से प्रतिनिधि मिश्रण — उपलब्धता की गारंटी नहीं।",
@@ -276,6 +276,11 @@ export const MT_TRANSLATIONS: Partial<Record<NonEn, Record<string, string>>> = {
       "Travel और updates हम संभालते हैं। आप ठीक होने पर ध्यान दें।",
     "Service breakdown": "सेवा सूची",
     "Support coverage": "सहायता कवरेज",
+    "How we allocate support across your medical trip (illustrative shares).":
+      "हम आपकी मेडिकल यात्रा में सहायता कैसे बाँटते हैं (संकेतक अनुपात)।",
+    Medical: "चिकित्सा",
+    Travel: "यात्रा",
+    Assistance: "सहायता",
     "Process timeline": "प्रोसेस टाइमलाइन",
     "of": "में से",
     "You are guided at every step": "हर step पर हम guide करते हैं",
@@ -329,6 +334,25 @@ export const MT_TRANSLATIONS: Partial<Record<NonEn, Record<string, string>>> = {
     "Full Concierge Support": "पूरा concierge support",
     "From visa to recovery — our team handles every detail of your journey.":
       "visa से recovery तक — हम पूरी journey में मदद।",
+    "Estimated Average Savings": "अनुमानित औसत बचत",
+    "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+      "हम परामर्श कॉल के दौरान इस्तेमाल किए गए इलाज के कोट से यथार्थ रेंज दिखाते हैं। अंतिम कीमत निदान और अस्पताल पैकेज पर निर्भर है।",
+    "Heart Bypass: Local vs India": "हार्ट बाइपास: स्थानीय बनाम भारत",
+    "Sample benchmark from partner consultation quotes": "पार्टनर परामर्श कोट से नमूना बेंचमार्क",
+    "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+      "सभी 54 अफ्रीकी संघ देश — स्थानीय बनाम भारत (हार्ट बाइपास बेंचमार्क) की तुलना के लिए क्षैतिज स्वाइप करें।",
+    "Expense Breakdown in India": "भारत में खर्च का विवरण",
+    "Even with travel and stay, overall spend stays lower": "यात्रा और ठहरने के साथ भी, कुल खर्च कम रहता है",
+    "Interactive Savings Calculator": "इंटरैक्टिव बचत कैलकुलेटर",
+    "Select your country and treatment": "अपना देश और इलाज चुनें",
+    "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+      "हजारों अफ्रीकी मरीज़ मान्यता प्राप्त भारतीय अस्पतालों में इलाज के दौरान काफी बचत करते हैं।",
+    Airfare: "हवाई किराया",
+    Accommodation: "ठहरना",
+    Food: "भोजन",
+    Treatment: "इलाज",
+    Local: "स्थानीय",
+    Savings: "बचत",
   },
   ar: {
     "Trusted by patients across Africa": "موثوق من المرضى في إفريقيا",
@@ -413,8 +437,8 @@ export const MT_TRANSLATIONS: Partial<Record<NonEn, Record<string, string>>> = {
       "أكثر من 24 ألف مريض أفريقي وصلوا الهند في الربع الأول 2026 — نمو قوي في السفر الطبي.",
     "42% growth vs 2024 — many projections point to 100,000+ visits this year.":
       "نمو 42% مقارنة بـ 2024 — تقديرات تشير إلى أكثر من 100 ألف زيارة هذا العام.",
-    "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.":
-      "شرق وغرب أفريقيا يتصدران: نيجيريا، كينيا، تنزانيا، غانا، أوغندا والكونغو.",
+    "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.":
+      "شرق وغرب أفريقيا يتصدران: نيجيريا، كينيا، تنزانيا، غانا، أوغندا، رواندا والكونغو.",
     "What African travelers often plan in India": "ما يخطط له المسافرون الأفارقة غالباً في الهند",
     "Representative demand mix from industry reports — not a promise of availability.":
       "مزج طلب تمثيلي من تقارير الصناعة — ليس وعداً بالتوفر.",
@@ -601,6 +625,11 @@ export const MT_TRANSLATIONS: Partial<Record<NonEn, Record<string, string>>> = {
       "نحن نهتم بالسفر والتحديثات. أنت ركز على الشفاء.",
     "Service breakdown": "تفاصيل الخدمة",
     "Support coverage": "نطاق الدعم",
+    "How we allocate support across your medical trip (illustrative shares).":
+      "كيف نوزع الدعم خلال رحلتك العلاجية (حصص توضيحية).",
+    Medical: "طبي",
+    Travel: "السفر",
+    Assistance: "المساعدة",
     "Process timeline": "خطوات العملية",
     "of": "من",
     "You are guided at every step": "نرشدك في كل خطوة",
@@ -654,6 +683,25 @@ export const MT_TRANSLATIONS: Partial<Record<NonEn, Record<string, string>>> = {
     "Full Concierge Support": "دعم كونسييرج كامل",
     "From visa to recovery — our team handles every detail of your journey.":
       "من التأشيرة إلى التعافي — فريقنا يهتم بكل تفاصيل رحلتك.",
+    "Estimated Average Savings": "متوسط التوفير المقدَّر",
+    "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.":
+      "نعرض نطاقات واقعية من عروض العلاج المستخدمة أثناء مكالمات الاستشارة. السعر النهائي يعتمد على التشخيص وحزمة المستشفى.",
+    "Heart Bypass: Local vs India": "تحويلة القلب: المحلي مقابل الهند",
+    "Sample benchmark from partner consultation quotes": "معيار نموذجي من عروض شركاء الاستشارة",
+    "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).":
+      "جميع دول الاتحاد الأفريقي الـ54 — اسحب أفقياً لمقارنة المحلي مقابل الهند (معيار تحويلة القلب).",
+    "Expense Breakdown in India": "تفصيل النفقات في الهند",
+    "Even with travel and stay, overall spend stays lower": "حتى مع السفر والإقامة، يبقى الإنفاق الإجمالي أقل",
+    "Interactive Savings Calculator": "حاسبة التوفير التفاعلية",
+    "Select your country and treatment": "اختر بلدك والعلاج",
+    "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.":
+      "آلاف المرضى من أفريقيا يوفرون كثيراً أثناء تلقي العلاج في مستشفيات هندية معتمدة.",
+    Airfare: "تذاكر الطيران",
+    Accommodation: "الإقامة",
+    Food: "الطعام",
+    Treatment: "العلاج",
+    Local: "المحلي",
+    Savings: "التوفير",
   },
   fr: frPack,
   es: esPack,

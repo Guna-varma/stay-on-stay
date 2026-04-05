@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { animate, motion } from "framer-motion";
 import {
   HeartHandshake,
@@ -49,43 +49,19 @@ import {
 } from "@/lib/medTourismTopicPaths";
 import { WHATSAPP_RW_NUMBER } from "@/lib/whatsappContact";
 import { cn } from "@/lib/utils";
+import { MED_TOURISM_COUNTRIES, buildCostDataForIso } from "@/lib/medTourismCountryData";
 
-type Country = "nigeria" | "kenya" | "ghana" | "south-africa";
 type Treatment = "Heart Bypass" | "Hip Replacement" | "Dental Implants" | "Fertility / IVF";
 
-const countryLabel: Record<Country, string> = {
-  nigeria: "Nigeria",
-  kenya: "Kenya",
-  ghana: "Ghana",
-  "south-africa": "South Africa",
+/** Maps calculator options to procedure rows from {@link buildCostDataForIso}. */
+const TREATMENT_PROCEDURE: Record<Treatment, string> = {
+  "Heart Bypass": "Congenital Heart Surgery (e.g. ASD/VSD repair)",
+  "Hip Replacement": "Hip Replacement",
+  "Dental Implants": "Dental Implants & Care",
+  "Fertility / IVF": "IVF and Fertility Treatment",
 };
 
-const pricing: Record<Country, Record<Treatment, { local: number; india: number }>> = {
-  nigeria: {
-    "Heart Bypass": { local: 18000, india: 5500 },
-    "Hip Replacement": { local: 12000, india: 6000 },
-    "Dental Implants": { local: 3000, india: 800 },
-    "Fertility / IVF": { local: 8000, india: 3500 },
-  },
-  kenya: {
-    "Heart Bypass": { local: 16000, india: 5500 },
-    "Hip Replacement": { local: 10500, india: 6000 },
-    "Dental Implants": { local: 2600, india: 800 },
-    "Fertility / IVF": { local: 7200, india: 3500 },
-  },
-  ghana: {
-    "Heart Bypass": { local: 16500, india: 5500 },
-    "Hip Replacement": { local: 11200, india: 6000 },
-    "Dental Implants": { local: 2800, india: 800 },
-    "Fertility / IVF": { local: 7600, india: 3500 },
-  },
-  "south-africa": {
-    "Heart Bypass": { local: 25000, india: 5500 },
-    "Hip Replacement": { local: 15000, india: 6000 },
-    "Dental Implants": { local: 4000, india: 800 },
-    "Fertility / IVF": { local: 10000, india: 3500 },
-  },
-};
+const INDIA_HEART_BENCHMARK_USD = 5500;
 
 function CountUp({ value, suffix = "", prefix = "" }: { value: number; suffix?: string; prefix?: string }) {
   const [display, setDisplay] = useState(0);
@@ -129,117 +105,247 @@ function ScreenShell({
 
 export function CostSavingsScreen() {
   const tx = useMtText();
-  const [country, setCountry] = useState<Country>("nigeria");
+  const [selectedIso, setSelectedIso] = useState("ng");
   const [treatment, setTreatment] = useState<Treatment>("Heart Bypass");
-  const picked = pricing[country][treatment];
-  const savingsPct = Math.round(((picked.local - picked.india) / picked.local) * 100);
 
-  const barData = (["nigeria", "kenya", "ghana", "south-africa"] as Country[]).map((c) => ({
-    country: countryLabel[c],
-    local: pricing[c]["Heart Bypass"].local,
-    india: pricing[c]["Heart Bypass"].india,
-  }));
+  const picked = useMemo(() => {
+    const rows = buildCostDataForIso(selectedIso);
+    const proc = TREATMENT_PROCEDURE[treatment];
+    const row = rows.find((r) => r.procedure === proc);
+    return { local: row?.localUsd ?? 0, india: row?.indiaUsd ?? 0 };
+  }, [selectedIso, treatment]);
+
+  const savingsPct =
+    picked.local > 0 ? Math.round(((picked.local - picked.india) / picked.local) * 100) : 0;
+
+  const barData = useMemo(
+    () =>
+      MED_TOURISM_COUNTRIES.map((c) => ({
+        iso: c.iso.toUpperCase(),
+        name: c.label,
+        local: c.heartBypassLocalUsd,
+        india: INDIA_HEART_BENCHMARK_USD,
+      })),
+    [],
+  );
 
   const expenseBreakdown = [
-    { name: "Treatment", value: 65, fill: "var(--color-treatment)" },
-    { name: "Travel", value: 15, fill: "var(--color-travel)" },
-    { name: "Stay", value: 14, fill: "var(--color-stay)" },
-    { name: "Misc", value: 6, fill: "var(--color-misc)" },
+    { name: "Treatment", value: 58, fill: "var(--color-treatment)" },
+    { name: "Airfare", value: 14, fill: "var(--color-travel)" },
+    { name: "Accommodation", value: 20, fill: "var(--color-stay)" },
+    { name: "Food", value: 8, fill: "var(--color-misc)" },
   ];
 
   return (
     <ScreenShell
-      title="Save Up to 70% on Medical Treatments"
-      subtitle="Get the same quality care at a fraction of the cost, including travel and stay."
+      title={tx("Save Up to 70% on Medical Treatments")}
+      subtitle={tx("Get the same quality care at a fraction of the cost, including travel and stay.")}
     >
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-4">
         <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardDescription>Estimated Average Savings</CardDescription>
+          <CardHeader className="space-y-1 pb-2">
+            <CardDescription>{tx("Estimated Average Savings")}</CardDescription>
             <CardTitle className="text-4xl text-primary">
               <CountUp value={70} suffix="%" />
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.
+          <CardContent className="text-sm leading-relaxed text-muted-foreground">
+            {tx(
+              "We show realistic ranges from treatment quotes used during consultation calls. Final pricing depends on diagnosis and hospital package.",
+            )}
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg">Heart Bypass: Local vs India</CardTitle>
-            <CardDescription>Sample benchmark from partner consultation quotes</CardDescription>
+          <CardHeader className="space-y-1 pb-2">
+            <CardTitle className="text-lg leading-snug">{tx("Heart Bypass: Local vs India")}</CardTitle>
+            <CardDescription>{tx("Sample benchmark from partner consultation quotes")}</CardDescription>
+            <p className="pt-1 text-[11px] leading-snug text-muted-foreground sm:text-xs">
+              {tx(
+                "All 54 African Union countries — swipe sideways to compare local vs India (heart bypass benchmark).",
+              )}
+            </p>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={{ local: { label: "Local Cost", color: "#64748b" }, india: { label: "India Cost", color: "#0ea5e9" } }} className="h-[260px] w-full">
-              <BarChart data={barData}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="country" tickLine={false} axisLine={false} />
-                <YAxis tickFormatter={(v) => `$${Number(v / 1000).toFixed(0)}k`} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Legend />
-                <Bar dataKey="local" fill="var(--color-local)" radius={6} />
-                <Bar dataKey="india" fill="var(--color-india)" radius={6} />
-              </BarChart>
-            </ChartContainer>
+          <CardContent className="px-2 sm:px-6">
+            <div className="overflow-x-auto overscroll-x-contain rounded-lg border border-border/40 bg-muted/10 pb-1 [-webkit-overflow-scrolling:touch]">
+              <div className="min-w-[min(100%,1760px)]">
+                <ChartContainer
+                  config={{
+                    local: { label: tx("Local Cost"), color: "#64748b" },
+                    india: { label: tx("India"), color: "#0ea5e9" },
+                  }}
+                  className="h-[min(300px,50vh)] w-full min-w-[1680px] aspect-auto"
+                >
+                  <BarChart data={barData} margin={{ left: 4, right: 8, top: 8, bottom: 40 }}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="iso"
+                      tickLine={false}
+                      axisLine={false}
+                      interval={0}
+                      tick={{ fontSize: 9 }}
+                      height={32}
+                    />
+                    <YAxis
+                      tickFormatter={(v) => `$${Number(v / 1000).toFixed(0)}k`}
+                      width={40}
+                      tickLine={false}
+                    />
+                    <ChartTooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+                        const row = payload[0]?.payload as (typeof barData)[number];
+                        return (
+                          <div className="max-w-[220px] rounded-lg border bg-background px-3 py-2 text-xs shadow-md">
+                            <p className="font-semibold leading-snug">{tx(row.name)}</p>
+                            <p className="mt-1 text-muted-foreground">
+                              {tx("Local")}: ${row.local.toLocaleString()}
+                            </p>
+                            <p className="text-muted-foreground">
+                              {tx("India")}: ${row.india.toLocaleString()}
+                            </p>
+                          </div>
+                        );
+                      }}
+                    />
+                    <Legend />
+                    <Bar dataKey="local" fill="var(--color-local)" radius={[3, 3, 0, 0]} maxBarSize={22} />
+                    <Bar dataKey="india" fill="var(--color-india)" radius={[3, 3, 0, 0]} maxBarSize={22} />
+                  </BarChart>
+                </ChartContainer>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Expense Breakdown in India</CardTitle>
-            <CardDescription>Even with travel and stay, overall spend stays lower</CardDescription>
+          <CardHeader className="space-y-1 pb-2">
+            <CardTitle className="text-lg">{tx("Expense Breakdown in India")}</CardTitle>
+            <CardDescription>{tx("Even with travel and stay, overall spend stays lower")}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <ChartContainer
-              config={{ treatment: { label: "Treatment", color: "#0284c7" }, travel: { label: "Travel", color: "#0ea5e9" }, stay: { label: "Stay", color: "#7dd3fc" }, misc: { label: "Misc", color: "#bae6fd" } }}
-              className="h-[240px] w-full"
+              config={{
+                treatment: { label: tx("Treatment"), color: "#0284c7" },
+                travel: { label: tx("Airfare"), color: "#0ea5e9" },
+                stay: { label: tx("Accommodation"), color: "#7dd3fc" },
+                misc: { label: tx("Food"), color: "#bae6fd" },
+              }}
+              className="mx-auto h-[min(260px,55vw)] w-full max-w-[320px] aspect-auto sm:max-w-none"
             >
               <PieChart>
-                <Pie data={expenseBreakdown} dataKey="value" nameKey="name" outerRadius={88} innerRadius={56}>
+                <Pie
+                  data={expenseBreakdown}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={88}
+                  innerRadius={48}
+                  paddingAngle={2}
+                  labelLine={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
+                  label={({ name, percent }) =>
+                    `${tx(String(name))} ${((percent ?? 0) * 100).toFixed(0)}%`
+                  }
+                >
                   {expenseBreakdown.map((entry) => (
                     <Cell key={entry.name} fill={entry.fill} />
                   ))}
                 </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip
+                  content={({ payload }) => {
+                    const p = payload?.[0]?.payload as (typeof expenseBreakdown)[number] | undefined;
+                    if (!p) return null;
+                    return (
+                      <div className="rounded-lg border bg-background px-2 py-1.5 text-xs shadow-md">
+                        <span className="font-medium">{tx(p.name)}</span>{" "}
+                        <span className="text-muted-foreground">{p.value}%</span>
+                      </div>
+                    );
+                  }}
+                />
               </PieChart>
             </ChartContainer>
+            <ul className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4" aria-label={tx("Expense Breakdown in India")}>
+              {expenseBreakdown.map((s) => (
+                <li
+                  key={s.name}
+                  className="flex min-h-[44px] flex-col justify-center gap-0.5 rounded-lg border border-border/60 bg-card/60 px-2 py-2"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.fill }} />
+                    <span className="font-medium leading-tight">{tx(s.name)}</span>
+                  </span>
+                  <span className="pl-4 text-sm font-semibold tabular-nums text-foreground">{s.value}%</span>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Interactive Savings Calculator</CardTitle>
-            <CardDescription>Select your country and treatment</CardDescription>
+          <CardHeader className="space-y-1 pb-2">
+            <CardTitle className="text-lg">{tx("Interactive Savings Calculator")}</CardTitle>
+            <CardDescription>{tx("Select your country and treatment")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <Select value={country} onValueChange={(v) => setCountry(v as Country)}>
-                <SelectTrigger><SelectValue placeholder="Country" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="nigeria">Nigeria</SelectItem>
-                  <SelectItem value="kenya">Kenya</SelectItem>
-                  <SelectItem value="ghana">Ghana</SelectItem>
-                  <SelectItem value="south-africa">South Africa</SelectItem>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Select value={selectedIso} onValueChange={setSelectedIso}>
+                <SelectTrigger className="min-h-[48px] w-full">
+                  <SelectValue placeholder={tx("Find your country")} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[min(60vh,360px)]">
+                  {MED_TOURISM_COUNTRIES.map((c) => (
+                    <SelectItem key={c.iso} value={c.iso} className="min-h-[44px]">
+                      <span className="flex items-center gap-2">
+                        <img src={c.flagUrl} alt="" className="h-4 w-6 shrink-0 rounded-[2px]" width={24} height={16} />
+                        <span>{tx(c.label)}</span>
+                        <span className="text-xs text-muted-foreground">({c.localCurrencyCode})</span>
+                      </span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select value={treatment} onValueChange={(v) => setTreatment(v as Treatment)}>
-                <SelectTrigger><SelectValue placeholder="Treatment" /></SelectTrigger>
+                <SelectTrigger className="min-h-[48px] w-full">
+                  <SelectValue placeholder="Treatment" />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Heart Bypass">Heart Bypass</SelectItem>
-                  <SelectItem value="Hip Replacement">Hip Replacement</SelectItem>
-                  <SelectItem value="Dental Implants">Dental Implants</SelectItem>
-                  <SelectItem value="Fertility / IVF">Fertility / IVF</SelectItem>
+                  <SelectItem value="Heart Bypass" className="min-h-[44px]">
+                    {tx("Heart Bypass")}
+                  </SelectItem>
+                  <SelectItem value="Hip Replacement" className="min-h-[44px]">
+                    {tx("Hip Replacement")}
+                  </SelectItem>
+                  <SelectItem value="Dental Implants" className="min-h-[44px]">
+                    {tx("Dental Implants")}
+                  </SelectItem>
+                  <SelectItem value="Fertility / IVF" className="min-h-[44px]">
+                    {tx("Fertility / IVF")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Local</p><p className="font-semibold">${picked.local.toLocaleString()}</p></div>
-              <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">India</p><p className="font-semibold text-primary">${picked.india.toLocaleString()}</p></div>
-              <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Savings</p><p className="font-semibold text-emerald-600">{savingsPct}%</p></div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="rounded-xl border bg-muted/20 p-4 text-center">
+                <p className="text-xs font-medium text-muted-foreground">{tx("Local")}</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums">${picked.local.toLocaleString()}</p>
+              </div>
+              <div className="rounded-xl border bg-muted/20 p-4 text-center">
+                <p className="text-xs font-medium text-muted-foreground">{tx("India")}</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums text-primary">${picked.india.toLocaleString()}</p>
+              </div>
+              <div className="rounded-xl border bg-muted/20 p-4 text-center">
+                <p className="text-xs font-medium text-muted-foreground">{tx("Savings")}</p>
+                <p className="mt-1 text-lg font-semibold tabular-nums text-emerald-600">{savingsPct}%</p>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {tx(
+                "Thousands of patients from Africa save significantly while receiving treatment in accredited Indian hospitals.",
+              )}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -596,12 +702,13 @@ export function ConciergeScreen() {
   const tx = useMtText();
   const [activeStep, setActiveStep] = useState(0);
   const stepRefs = useRef<Array<HTMLDivElement | null>>([]);
+  /** Representative split of concierge effort — same visualization pattern as “Expense Breakdown in India”. */
   const supportSplit = [
-    { name: "Medical", value: 40, fill: "#0284c7" },
-    { name: "Travel", value: 22, fill: "#0ea5e9" },
-    { name: "Accommodation", value: 20, fill: "#7dd3fc" },
-    { name: "Assistance", value: 18, fill: "#bae6fd" },
-  ];
+    { name: "Medical", value: 40, fill: "var(--color-medical)" },
+    { name: "Travel", value: 22, fill: "var(--color-travel)" },
+    { name: "Accommodation", value: 20, fill: "var(--color-accommodation)" },
+    { name: "Assistance", value: 18, fill: "var(--color-assistance)" },
+  ] as const;
   const services = [
     { icon: PlaneTakeoff, title: "Visa & Flight Assistance" },
     { icon: Hospital, title: "Hospital Coordination" },
@@ -715,18 +822,72 @@ export function ConciergeScreen() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="text-lg">{tx("Support coverage")}</CardTitle></CardHeader>
-          <CardContent>
-            <ChartContainer config={{ medical: { label: "Medical", color: "#0284c7" }, travel: { label: "Travel", color: "#0ea5e9" }, accommodation: { label: "Accommodation", color: "#7dd3fc" }, assistance: { label: "Assistance", color: "#bae6fd" } }} className="h-[230px] w-full">
+          <CardHeader className="space-y-1 pb-2">
+            <CardTitle className="text-lg">{tx("Support coverage")}</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              {tx("How we allocate support across your medical trip (illustrative shares).")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <ChartContainer
+              config={{
+                medical: { label: tx("Medical"), color: "#0284c7" },
+                travel: { label: tx("Travel"), color: "#0ea5e9" },
+                accommodation: { label: tx("Accommodation"), color: "#7dd3fc" },
+                assistance: { label: tx("Assistance"), color: "#bae6fd" },
+              }}
+              className="mx-auto h-[min(240px,52vw)] w-full max-w-[300px] aspect-auto sm:max-w-none sm:h-[260px]"
+            >
               <PieChart>
-                <Pie data={supportSplit} dataKey="value" nameKey="name" outerRadius={86}>
+                <Pie
+                  data={[...supportSplit]}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={88}
+                  innerRadius={46}
+                  paddingAngle={2}
+                  labelLine={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
+                  label={({ name, percent }) =>
+                    `${tx(String(name))} ${((percent ?? 0) * 100).toFixed(0)}%`
+                  }
+                >
                   {supportSplit.map((entry) => (
                     <Cell key={entry.name} fill={entry.fill} />
                   ))}
                 </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip
+                  content={({ payload }) => {
+                    const p = payload?.[0]?.payload as (typeof supportSplit)[number] | undefined;
+                    if (!p) return null;
+                    return (
+                      <div className="rounded-lg border bg-background px-2 py-1.5 text-xs shadow-md">
+                        <span className="font-medium">{tx(p.name)}</span>{" "}
+                        <span className="text-muted-foreground">{p.value}%</span>
+                      </div>
+                    );
+                  }}
+                />
               </PieChart>
             </ChartContainer>
+            <ul
+              className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4"
+              aria-label={tx("Support coverage")}
+            >
+              {supportSplit.map((s) => (
+                <li
+                  key={s.name}
+                  className="flex min-h-[44px] flex-col justify-center gap-0.5 rounded-lg border border-border/60 bg-card/60 px-2 py-2"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.fill }} />
+                    <span className="font-medium leading-tight">{tx(s.name)}</span>
+                  </span>
+                  <span className="pl-4 text-sm font-semibold tabular-nums text-foreground">{s.value}%</span>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
       </div>
@@ -1102,7 +1263,9 @@ function TreatmentPlanModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-    } catch {}
+    } catch {
+      /* non-blocking: WhatsApp still opens */
+    }
 
     const message = encodeURIComponent(
       `Stay & Travel Request\nName: ${payload.name}\nPhone: ${payload.phone}\nEmail: ${payload.email || "-"}\nCountry: ${payload.country || "-"}\nTravel Dates: ${payload.travelStart || "-"} to ${payload.travelEnd || "-"}\nTreatment Duration: ${payload.treatmentDuration || "-"}\nPersons: ${payload.persons}\nRooms: ${payload.rooms}\nRoom Type: ${payload.roomType}\nAmenities: ${payload.amenities.join(", ") || "-"}\nCab: ${payload.cabNeeded}\nVehicle: ${payload.vehicleType || "-"}\nSupport: ${payload.supportServices.join(", ") || "-"}\nNotes: ${payload.notes || "-"}\nEstimated Cost: $${payload.estimatedMin} - $${payload.estimatedMax}`,

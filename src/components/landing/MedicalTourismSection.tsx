@@ -33,17 +33,18 @@ import {
   Pill,
   Ear,
   Droplets,
+  ChevronsUpDown,
+  Check,
+  Search,
+  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  VIEWER_LOCALE_LINES,
-  LANGUAGE_OPTIONS,
-  type RegionCode,
-  useI18n,
-} from "@/lib/i18n";
+import { LANGUAGE_OPTIONS, useI18n } from "@/lib/i18n";
 import { useMtText } from "@/lib/medTourismText";
 import {
   MT_HERO_DISCLAIMER,
@@ -53,6 +54,24 @@ import {
 import { WHATSAPP_CARE_GUIDE_PREFILL } from "@/lib/whatsappContact";
 import { useWhatsappHref } from "@/hooks/useWhatsappHref";
 import { AFRICA_COUNTRY_FLAGS, africaFlagUrl } from "@/lib/africaCountryFlags";
+import {
+  MED_TOURISM_COUNTRIES,
+  MED_TOURISM_TREATMENT_CATEGORY_FILTERS,
+  buildCostDataForIso,
+  getLocaleLineForMedTourismCountry,
+  getMedTourismCountry,
+  type MedTreatmentCategoryId,
+} from "@/lib/medTourismCountryData";
+import { useUsdToLocalRate } from "@/hooks/useMedTourismFxRate";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { GURUGRAM_PARTNER_HOSPITALS } from "@/lib/partnerHospitalsGurugram";
 import { WhyIndiaScreens } from "@/components/landing/WhyIndiaScreens";
 
@@ -416,110 +435,7 @@ const treatmentDemandMix: { label: string; pct: number; barClass: string }[] = [
   { label: "Other procedures", pct: 23, barClass: "bg-emerald-500" },
 ];
 
-type Country =
-  | "nigeria"
-  | "kenya"
-  | "ghana"
-  | "south-africa"
-  | "rwanda"
-  | "congo"
-  | "somalia"
-  | "uganda"
-  | "angola"
-  | "ethiopia";
-
 type DisplayCurrency = "usd" | "inr";
-
-interface CountryMeta {
-  id: Country;
-  code: string;
-  label: string;
-  flagUrl: string;
-  localCurrencyCode: string;
-  localCurrencySymbol: string;
-  usdToLocal: number;
-}
-
-/** Aligns pricing country rows with header region lines (same copy as LanguageSwitcher) */
-const countryToRegionCode: Record<Country, RegionCode> = {
-  nigeria: "ng",
-  kenya: "ke",
-  ghana: "gh",
-  "south-africa": "za",
-  rwanda: "rw",
-  congo: "cd",
-  somalia: "so",
-  uganda: "ug",
-  angola: "ao",
-  ethiopia: "et",
-};
-
-const countries: CountryMeta[] = [
-  { id: "nigeria", code: "NG", label: "Nigeria", flagUrl: "https://flagcdn.com/w40/ng.png", localCurrencyCode: "NGN", localCurrencySymbol: "₦", usdToLocal: 1550 },
-  { id: "kenya", code: "KE", label: "Kenya", flagUrl: "https://flagcdn.com/w40/ke.png", localCurrencyCode: "KES", localCurrencySymbol: "KSh", usdToLocal: 129 },
-  { id: "ghana", code: "GH", label: "Ghana", flagUrl: "https://flagcdn.com/w40/gh.png", localCurrencyCode: "GHS", localCurrencySymbol: "₵", usdToLocal: 15.5 },
-  { id: "south-africa", code: "ZA", label: "South Africa", flagUrl: "https://flagcdn.com/w40/za.png", localCurrencyCode: "ZAR", localCurrencySymbol: "R", usdToLocal: 18.3 },
-  { id: "rwanda", code: "RW", label: "Rwanda", flagUrl: "https://flagcdn.com/w40/rw.png", localCurrencyCode: "RWF", localCurrencySymbol: "RWF", usdToLocal: 1310 },
-  { id: "congo", code: "CD", label: "Congo", flagUrl: "https://flagcdn.com/w40/cd.png", localCurrencyCode: "CDF", localCurrencySymbol: "CDF", usdToLocal: 2800 },
-  { id: "somalia", code: "SO", label: "Somalia", flagUrl: "https://flagcdn.com/w40/so.png", localCurrencyCode: "SOS", localCurrencySymbol: "SOS", usdToLocal: 570 },
-  { id: "uganda", code: "UG", label: "Uganda", flagUrl: "https://flagcdn.com/w40/ug.png", localCurrencyCode: "UGX", localCurrencySymbol: "UGX", usdToLocal: 3750 },
-  { id: "angola", code: "AO", label: "Angola", flagUrl: "https://flagcdn.com/w40/ao.png", localCurrencyCode: "AOA", localCurrencySymbol: "Kz", usdToLocal: 860 },
-  { id: "ethiopia", code: "ET", label: "Ethiopia", flagUrl: "https://flagcdn.com/w40/et.png", localCurrencyCode: "ETB", localCurrencySymbol: "Br", usdToLocal: 57 },
-];
-
-/** Nigeria baseline local USD vs India midpoint USD; other countries scale local by historic heart-bypass ratio. */
-const COMPARISON_TEMPLATE_NIGERIA: { procedure: string; localUsd: number; indiaUsd: number }[] = [
-  { procedure: "Angioplasty & Stenting (Coronary)", localUsd: 14500, indiaUsd: 4400 },
-  { procedure: "Arthroscopy (Knee/Shoulder)", localUsd: 6400, indiaUsd: 2000 },
-  { procedure: "Bariatric (Weight-Loss) Surgery", localUsd: 13800, indiaUsd: 4500 },
-  { procedure: "Bone Marrow Transplant (Stem Cell)", localUsd: 118000, indiaUsd: 37500 },
-  { procedure: "Breast/Lung/Colorectal Cancer (surgery/chemo/radiotherapy)", localUsd: 34200, indiaUsd: 10500 },
-  { procedure: "Cataract Surgery", localUsd: 2200, indiaUsd: 650 },
-  { procedure: "Congenital Heart Surgery (e.g. ASD/VSD repair)", localUsd: 20800, indiaUsd: 6000 },
-  { procedure: "Cosmetic/Plastic Surgery (rhinoplasty, liposuction, etc.)", localUsd: 10200, indiaUsd: 3000 },
-  { procedure: "Cochlear (Ear) Implant", localUsd: 33200, indiaUsd: 10000 },
-  { procedure: "Dental Implants & Care", localUsd: 3200, indiaUsd: 1000 },
-  { procedure: "Eye Surgery (LASIK, Retina)", localUsd: 4100, indiaUsd: 1250 },
-  { procedure: "Gynecological Surgery (hysterectomy, fibroids)", localUsd: 10200, indiaUsd: 3000 },
-  { procedure: "Hip Replacement", localUsd: 12000, indiaUsd: 6000 },
-  { procedure: "IVF and Fertility Treatment", localUsd: 8200, indiaUsd: 4000 },
-  { procedure: "Knee Replacement", localUsd: 10800, indiaUsd: 5000 },
-  { procedure: "Kidney Stone/Lithotripsy", localUsd: 6600, indiaUsd: 2000 },
-  { procedure: "Kidney Transplant", localUsd: 51000, indiaUsd: 16000 },
-  { procedure: "Liver Transplant", localUsd: 128000, indiaUsd: 40000 },
-  { procedure: "Neurosurgery (Brain Tumor, Spine)", localUsd: 32800, indiaUsd: 10000 },
-  { procedure: "Obstructive Uropathy (e.g. Prostate surgery)", localUsd: 6600, indiaUsd: 2000 },
-  { procedure: "Reconstructive Pediatric Surgery (e.g. cleft lip/palate)", localUsd: 11200, indiaUsd: 3500 },
-];
-
-const HEART_BYPASS_LOCAL_USD: Record<Country, number> = {
-  nigeria: 18000,
-  kenya: 16000,
-  ghana: 16500,
-  "south-africa": 25000,
-  rwanda: 14200,
-  congo: 17200,
-  somalia: 14800,
-  uganda: 15200,
-  angola: 18500,
-  ethiopia: 14600,
-};
-
-const NIGERIA_HEART_REF = HEART_BYPASS_LOCAL_USD.nigeria;
-
-const costData: Record<Country, { procedure: string; localUsd: number; indiaUsd: number }[]> = Object.fromEntries(
-  (Object.keys(HEART_BYPASS_LOCAL_USD) as Country[]).map((id) => {
-    const scale = HEART_BYPASS_LOCAL_USD[id] / NIGERIA_HEART_REF;
-    return [
-      id,
-      COMPARISON_TEMPLATE_NIGERIA.map((row) => ({
-        procedure: row.procedure,
-        indiaUsd: row.indiaUsd,
-        localUsd: Math.max(0, Math.round(row.localUsd * scale)),
-      })),
-    ];
-  }),
-) as Record<Country, { procedure: string; localUsd: number; indiaUsd: number }[]>;
 
 const safetyPoints = [
   { icon: Car, title: "Airport pickup by helper", desc: "A helper meets you when you land. No stress." },
@@ -947,7 +863,7 @@ function TreatmentsBlock() {
           {[
             "24,000+ African patients reached India in Q1 2026 — a sharp rise in medical travel.",
             "42% growth vs 2024 — many projections point to 100,000+ visits this year.",
-            "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.",
+            "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.",
           ].map((text, i) => (
             <motion.div
               key={text}
@@ -1165,21 +1081,38 @@ function CostComparisonBlock() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
   const reduce = useReducedMotion();
-  const [selected, setSelected] = useState<Country>("nigeria");
+  const [selectedIso, setSelectedIso] = useState("ng");
+  const [countryOpen, setCountryOpen] = useState(false);
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>("usd");
-  const comparisons = costData[selected];
-  const countryMeta = countries.find((c) => c.id === selected)!;
+  const [treatmentQuery, setTreatmentQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | MedTreatmentCategoryId>("all");
+  const countryMeta = getMedTourismCountry(selectedIso) ?? MED_TOURISM_COUNTRIES[0];
+  const comparisons = buildCostDataForIso(selectedIso);
+  const liveUsdToLocal = useUsdToLocalRate(countryMeta.localCurrencyCode, countryMeta.usdToLocal);
+
+  useEffect(() => {
+    setTreatmentQuery("");
+    setCategoryFilter("all");
+  }, [selectedIso]);
+
+  const filteredTreatments = useMemo(() => {
+    const needle = treatmentQuery.trim().toLowerCase();
+    return comparisons.filter((row) => {
+      if (categoryFilter !== "all" && row.category !== categoryFilter) return false;
+      if (!needle) return true;
+      const en = row.procedure.toLowerCase();
+      const localized = tx(row.procedure).toLowerCase();
+      return en.includes(needle) || localized.includes(needle);
+    });
+  }, [comparisons, treatmentQuery, categoryFilter, tx]);
   const uiLang = LANGUAGE_OPTIONS.find((l) => l.code === language) ?? LANGUAGE_OPTIONS[0];
   const USD_TO_INR = 83;
 
   const corridorStatLines = [
     "24,000+ African patients reached India in Q1 2026 — a sharp rise in medical travel.",
     "42% growth vs 2024 — many projections point to 100,000+ visits this year.",
-    "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda & Congo.",
+    "East & West Africa lead: Nigeria, Kenya, Tanzania, Ghana, Uganda, Rwanda & Congo.",
   ] as const;
-
-  const localeLine = (countryId: Country) =>
-    tx(VIEWER_LOCALE_LINES[countryToRegionCode[countryId]]);
 
   const formatPrimary = (usdValue: number) => {
     if (displayCurrency === "usd") return `$${usdValue.toLocaleString()}`;
@@ -1187,7 +1120,7 @@ function CostComparisonBlock() {
   };
 
   const formatLocalCurrency = (usdValue: number) => {
-    const localValue = usdValue * countryMeta.usdToLocal;
+    const localValue = usdValue * liveUsdToLocal;
     return `${countryMeta.localCurrencySymbol} ${Math.round(localValue).toLocaleString()}`;
   };
 
@@ -1237,16 +1170,28 @@ function CostComparisonBlock() {
           </span>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-          <p className="text-sm text-muted-foreground">
-            {tx("Selected:")} <span className="font-semibold text-foreground">{tx(countryMeta.label)}</span> · {tx("Currency:")}{" "}
-            <span className="font-semibold text-foreground">{countryMeta.localCurrencyCode}</span> · {tx("Language:")}{" "}
-            <span className="text-muted-foreground">{localeLine(selected)}</span>
-          </p>
-          <div className="flex items-center gap-2">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="text-sm text-muted-foreground">
+              {tx("Selected:")}{" "}
+              <span className="font-semibold text-foreground">{tx(countryMeta.label)}</span>
+              {" · "}
+              {tx("Currency:")}{" "}
+              <span className="font-semibold text-foreground">{countryMeta.localCurrencyCode}</span>
+              {" · "}
+              {tx("Language:")}{" "}
+              <span className="text-muted-foreground">{tx(getLocaleLineForMedTourismCountry(selectedIso))}</span>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {tx(
+                "USD and your local amounts are guides only. Exchange rates refresh when you are online; hospital quotes are final.",
+              )}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
             <span className="text-xs text-muted-foreground">{tx("Display")}</span>
             <Select value={displayCurrency} onValueChange={(v) => setDisplayCurrency(v as DisplayCurrency)}>
-              <SelectTrigger className="w-[120px] h-9">
+              <SelectTrigger className="h-9 w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1260,49 +1205,171 @@ function CostComparisonBlock() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="mb-10 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"
+          transition={{ duration: 0.4, delay: 0.12 }}
+          className="mb-10"
         >
-          {countries.map((c) => (
-            <motion.button
-              key={c.id}
-              type="button"
-              onClick={() => setSelected(c.id)}
-              whileHover={reduce ? undefined : { scale: 1.02 }}
-              whileTap={reduce ? undefined : { scale: 0.98 }}
-              className={cn(
-                "rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors duration-200",
-                selected === c.id
-                  ? "border-primary/40 bg-gradient-to-br from-primary to-primary/85 text-primary-foreground shadow-md"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground",
-              )}
-            >
-              <span className="flex items-center gap-2.5">
-                <img src={c.flagUrl} alt={`${c.label} flag`} className="h-4 w-6 rounded-[2px]" loading="lazy" />
-                <span className="flex items-baseline gap-1.5">
-                  <span>{tx(c.label)}</span>
-                  <span className={cn("text-xs font-normal", selected === c.id ? "text-primary-foreground/75" : "text-muted-foreground")}>
-                    ({c.localCurrencyCode})
-                  </span>
+          <label className="mb-2 block text-sm font-semibold text-foreground" htmlFor="mt-country-combo">
+            {tx("Find your country")}
+          </label>
+          <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                id="mt-country-combo"
+                variant="outline"
+                role="combobox"
+                aria-expanded={countryOpen}
+                className="h-12 w-full max-w-xl justify-between rounded-xl border-border px-4 text-left font-normal shadow-sm"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <img src={countryMeta.flagUrl} alt="" className="h-5 w-7 shrink-0 rounded-[2px]" width={28} height={20} />
+                  <span className="truncate text-sm font-semibold">{tx(countryMeta.label)}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">({countryMeta.localCurrencyCode})</span>
                 </span>
-              </span>
-            </motion.button>
-          ))}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[min(100vw-2rem,36rem)] p-0" align="start">
+              <Command>
+                <CommandInput placeholder={tx("Search country or currency…")} className="h-11" />
+                <CommandList>
+                  <CommandEmpty>{tx("No country found.")}</CommandEmpty>
+                  <CommandGroup className="max-h-[min(60vh,320px)] overflow-y-auto p-1">
+                    {MED_TOURISM_COUNTRIES.map((c) => (
+                      <CommandItem
+                        key={c.iso}
+                        value={`${c.label} ${c.localCurrencyCode} ${c.iso}`.toLowerCase()}
+                        onSelect={() => {
+                          setSelectedIso(c.iso);
+                          setCountryOpen(false);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <Check
+                          className={cn("mr-2 h-4 w-4 shrink-0", selectedIso === c.iso ? "opacity-100" : "opacity-0")}
+                          aria-hidden
+                        />
+                        <img src={c.flagUrl} alt="" className="mr-2 h-4 w-6 shrink-0 rounded-[2px]" width={24} height={16} />
+                        <span className="flex-1 truncate">{tx(c.label)}</span>
+                        <span className="ml-2 shrink-0 text-xs text-muted-foreground">{c.localCurrencyCode}</span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </motion.div>
 
+        <div
+          className={cn(
+            "mb-8 rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-sm sm:p-5",
+            "ring-1 ring-black/[0.03] dark:ring-white/5",
+          )}
+        >
+          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h4 className="font-heading text-base font-bold text-foreground">{tx("Find a treatment")}</h4>
+              <p className="text-xs text-muted-foreground">{tx("Search by name or tap a category — works on phones and tablets.")}</p>
+            </div>
+            <p className="text-xs font-medium tabular-nums text-muted-foreground sm:text-right" aria-live="polite">
+              {tx("Showing")}{" "}
+              <span className="font-semibold text-foreground">{filteredTreatments.length}</span> / {comparisons.length}{" "}
+              {tx("treatments")}
+            </p>
+          </div>
+
+          <div className="relative mb-4">
+            <Search
+              className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+            <Input
+              type="search"
+              enterKeyHint="search"
+              autoComplete="off"
+              value={treatmentQuery}
+              onChange={(e) => setTreatmentQuery(e.target.value)}
+              placeholder={tx("Search treatments (e.g. knee, cancer, eye)…")}
+              className={cn(
+                "h-12 w-full rounded-2xl border-border/80 bg-background pl-10 pr-11 text-base shadow-inner",
+                "placeholder:text-muted-foreground/70",
+                "focus-visible:ring-2 focus-visible:ring-primary/30",
+              )}
+              aria-label={tx("Search treatments")}
+            />
+            {treatmentQuery ? (
+              <button
+                type="button"
+                onClick={() => setTreatmentQuery("")}
+                className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                aria-label={tx("Clear search")}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
+
+          <div className="mb-1">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{tx("Category")}</p>
+            <div
+              className={cn(
+                "flex gap-2 overflow-x-auto pb-2 pt-0.5 [-webkit-overflow-scrolling:touch]",
+                "snap-x snap-mandatory sm:flex-wrap sm:overflow-visible sm:snap-none",
+              )}
+            >
+              {MED_TOURISM_TREATMENT_CATEGORY_FILTERS.map((chip) => {
+                const active = categoryFilter === chip.id;
+                return (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    onClick={() => setCategoryFilter(chip.id)}
+                    className={cn(
+                      "min-h-[44px] shrink-0 snap-start rounded-full border px-4 py-2.5 text-left text-sm font-semibold transition-colors",
+                      "touch-manipulation active:scale-[0.98]",
+                      active
+                        ? "border-primary bg-primary text-primary-foreground shadow-md"
+                        : "border-border/80 bg-muted/40 text-foreground hover:border-primary/40 hover:bg-muted/70",
+                    )}
+                  >
+                    {tx(chip.label)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-4">
-          {comparisons.map((c, i) => {
+          {filteredTreatments.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border/80 bg-muted/20 px-6 py-14 text-center">
+              <p className="font-medium text-foreground">{tx("No treatments match your filters.")}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{tx("Try another word or choose “All treatments”.")}</p>
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-6 min-h-[44px] rounded-xl"
+                onClick={() => {
+                  setTreatmentQuery("");
+                  setCategoryFilter("all");
+                }}
+              >
+                {tx("Reset filters")}
+              </Button>
+            </div>
+          ) : null}
+          {filteredTreatments.map((c, i) => {
             const savings = Math.round(((c.localUsd - c.indiaUsd) / c.localUsd) * 100);
             return (
               <motion.div
-                key={`${selected}-${displayCurrency}-${c.procedure}`}
+                key={`${selectedIso}-${displayCurrency}-${c.procedure}`}
                 initial={{ opacity: 0, y: 24 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.45, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.45, delay: Math.min(i * 0.06, 0.45), ease: [0.22, 1, 0.36, 1] }}
                 whileHover={reduce ? undefined : { y: -3, transition: { duration: 0.2 } }}
                 className={cn(
                   glass,
-                  "flex flex-col gap-5 border-l-4 border-l-primary p-6 sm:flex-row sm:items-center sm:gap-6",
+                  "flex flex-col gap-5 border-l-4 border-l-primary p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6",
                   "transition-shadow duration-300 hover:shadow-premium",
                 )}
               >
