@@ -1,16 +1,19 @@
 import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
-import { Phone, ArrowLeft, Loader2 } from "lucide-react";
+import { Phone, ArrowLeft, Loader2, Mail } from "lucide-react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { signInWithGoogle, isSupabaseConfigured } from "@/lib/supabase";
 import { requestWhatsAppSignInOtp, verifyWhatsAppSignInOtp } from "@/lib/whatsapp-verification";
 import { useAuth } from "@/lib/auth";
+import { authTheme } from "@/components/auth/AuthPageLayout";
+import { cn } from "@/lib/utils";
 
 type Step = "welcome" | "phone" | "otp";
 
@@ -26,6 +29,7 @@ const OTP_RESEND_SECONDS = 45;
 export function AuthModal({ open, onOpenChange, mode = "signin" }: AuthModalProps) {
   const { toast } = useToast();
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState<Step>("welcome");
   const [phoneValue, setPhoneValue] = useState<string>("");
   const [otp, setOtp] = useState("");
@@ -132,72 +136,109 @@ export function AuthModal({ open, onOpenChange, mode = "signin" }: AuthModalProp
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[400px] p-0 gap-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-4">
-          <div className="flex justify-center mb-2">
-            <BrandLogo variant="login" className="h-9 w-[140px]" />
+      <DialogContent className="overflow-hidden border border-white/80 bg-white/95 p-0 shadow-[0_24px_80px_rgba(15,23,42,0.2)] backdrop-blur-xl sm:max-w-[520px]">
+        <DialogHeader className="px-6 pb-4 pt-7 sm:px-8">
+          <div className="mb-3 flex justify-center">
+            <BrandLogo variant="login" className="h-10 w-[152px]" />
           </div>
-          <DialogTitle className="text-center text-lg">
+          <div className="flex justify-center">
+            <span className={authTheme.sectionLabel}>{mode === "signup" ? "Create account" : "Secure sign in"}</span>
+          </div>
+          <DialogTitle className="mt-4 text-center font-heading text-[1.9rem] font-semibold tracking-tight text-foreground">
             {step === "welcome" && "Welcome to StayOnStay"}
-            {step === "phone" && "Continue with Phone"}
+            {step === "phone" && "Continue with WhatsApp"}
             {step === "otp" && "Enter verification code"}
           </DialogTitle>
+          <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
+            {step === "welcome" && "Choose how you want to continue. Email sign in, sign up, and password reset are available too."}
+            {step === "phone" && "Use the mobile number already saved on your StayOnStay profile."}
+            {step === "otp" && "Enter the 6-digit code we sent on WhatsApp."}
+          </p>
         </DialogHeader>
 
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-7 sm:px-8">
           {step === "welcome" && (
             <div className="space-y-3">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-11"
+                className={cn("h-12 w-full rounded-2xl text-base font-medium", authTheme.accentBorder)}
                 onClick={handleGoogle}
                 disabled={loading}
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Continue with Google
               </Button>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase text-muted-foreground">
-                  <span className="bg-background px-2">or</span>
-                </div>
-              </div>
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-11"
+                className={cn("h-12 w-full rounded-2xl text-base font-medium", authTheme.accentBorder)}
                 onClick={handleContinueWithPhone}
                 disabled={loading}
               >
                 <Phone className="h-4 w-4 mr-2" />
                 Continue with Phone
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className={cn("h-12 w-full rounded-2xl text-base font-medium", authTheme.accentBorder)}
+                onClick={() => {
+                  handleOpenChange(false);
+                  navigate("/login");
+                }}
+                disabled={loading}
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                Continue with Email
+              </Button>
+
+              <div className={cn("rounded-[1.5rem] px-4 py-4 text-center", authTheme.surface)}>
+                <p className="text-sm text-muted-foreground">
+                  New to StayOnStay?{" "}
+                  <Link
+                    to="/signup"
+                    className={authTheme.link}
+                    onClick={() => handleOpenChange(false)}
+                  >
+                    Create an account
+                  </Link>
+                </p>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                  Forgot your password?{" "}
+                  <Link
+                    to="/forgot-password"
+                    className={authTheme.link}
+                    onClick={() => handleOpenChange(false)}
+                  >
+                    Get a 6-digit email code
+                  </Link>
+                  .
+                </p>
+              </div>
             </div>
           )}
 
           {step === "phone" && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Country &amp; phone number</Label>
+                <Label className="text-sm font-semibold text-foreground">Country &amp; phone number</Label>
                 <PhoneInput
                   international
                   countryCallingCodeEditable={false}
                   defaultCountry="IN"
                   value={phoneValue}
                   onChange={(v) => setPhoneValue(v ?? "")}
-                  className="flex items-center gap-2 rounded-md border border-input bg-background px-3 h-11 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:border-0 [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:text-sm"
+                  className="flex h-12 items-center gap-2 rounded-2xl border border-border/70 bg-white px-3 shadow-sm [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:border-0 [&_.PhoneInputInput]:outline-none [&_.PhoneInputInput]:text-sm"
                   numberInputProps={{ placeholder: "Phone number" }}
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="button" variant="ghost" size="sm" onClick={() => setStep("welcome")}>
+                <Button type="button" variant="ghost" size="sm" className="rounded-full" onClick={() => setStep("welcome")}>
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   Back
                 </Button>
-                <Button type="button" className="flex-1" onClick={handleSendOtp} disabled={loading}>
+                <Button type="button" className={cn("h-12 flex-1 rounded-2xl text-sm font-semibold", authTheme.accentBg)} onClick={handleSendOtp} disabled={loading}>
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send OTP"}
                 </Button>
               </div>
@@ -206,7 +247,7 @@ export function AuthModal({ open, onOpenChange, mode = "signin" }: AuthModalProp
 
           {step === "otp" && (
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-center text-sm text-muted-foreground">
                 We sent a 6-digit code on <span className="font-medium">WhatsApp</span> (if this number is on your
                 profile). Valid for 10 minutes. Sandbox: join Twilio&apos;s WhatsApp sandbox first.
               </p>
@@ -233,7 +274,7 @@ export function AuthModal({ open, onOpenChange, mode = "signin" }: AuthModalProp
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="w-full"
+                  className="w-full rounded-full"
                   onClick={handleSendOtp}
                   disabled={loading}
                 >
@@ -241,13 +282,13 @@ export function AuthModal({ open, onOpenChange, mode = "signin" }: AuthModalProp
                 </Button>
               )}
               <div className="flex gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setStep("phone")}>
+                <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => setStep("phone")}>
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   Back
                 </Button>
                 <Button
                   type="button"
-                  className="flex-1"
+                  className={cn("h-12 flex-1 rounded-2xl text-sm font-semibold", authTheme.accentBg)}
                   onClick={handleVerifyOtp}
                   disabled={otp.length !== 6 || loading}
                 >

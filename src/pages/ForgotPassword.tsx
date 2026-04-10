@@ -4,12 +4,17 @@ import { useAuth } from "@/lib/auth";
 import { Loader2, Mail } from "lucide-react";
 import { AuthCard, AuthPageLayout, authTheme } from "@/components/auth/AuthPageLayout";
 import { isValidEmail } from "@/lib/auth-forms";
-import { requestEmailPasswordResetOtp, verifyEmailPasswordResetOtp } from "@/lib/email-password-reset";
+import {
+  EMAIL_RESET_OTP_DIGITS,
+  requestEmailPasswordResetOtp,
+  verifyEmailPasswordResetOtp,
+} from "@/lib/email-password-reset";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function ForgotPassword() {
   const { user, isInitialized } = useAuth();
@@ -17,7 +22,6 @@ export default function ForgotPassword() {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
-  const [otpDigits, setOtpDigits] = useState(6);
   const [otp, setOtp] = useState("");
   const [requestLoading, setRequestLoading] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
@@ -53,13 +57,12 @@ export default function ForgotPassword() {
     }
     setRequestLoading(true);
     try {
-      const { digits } = await requestEmailPasswordResetOtp(em);
-      setOtpDigits(Math.min(8, Math.max(4, digits)));
+      await requestEmailPasswordResetOtp(em);
       setOtp("");
       setStep("code");
       toast({
         title: "Check your email",
-        description: "If this address is registered, we sent a code. It expires in 15 minutes.",
+        description: "If this address is registered, we sent a 6-digit code. It expires in 15 minutes.",
       });
     } catch (err) {
       toast({
@@ -74,8 +77,8 @@ export default function ForgotPassword() {
 
   const runVerify = async (codeRaw: string) => {
     const code = codeRaw.replace(/\D/g, "");
-    if (code.length !== otpDigits) {
-      toast({ title: `Enter all ${otpDigits} digits`, variant: "destructive" });
+    if (code.length !== EMAIL_RESET_OTP_DIGITS) {
+      toast({ title: `Enter all ${EMAIL_RESET_OTP_DIGITS} digits`, variant: "destructive" });
       return;
     }
     const em = email.trim().toLowerCase();
@@ -98,21 +101,27 @@ export default function ForgotPassword() {
   return (
     <AuthPageLayout>
       <AuthCard>
-        <h1 className={authTheme.title}>Forgot Password</h1>
-        <p className={cn(authTheme.subtitle, "mt-2")}>
+        <div className="mb-5 flex justify-center">
+          <BrandLogo variant="login" className="h-12 w-[180px] sm:h-14 sm:w-[200px]" />
+        </div>
+        <div className="flex justify-center">
+          <span className={authTheme.sectionLabel}>Password reset</span>
+        </div>
+        <h1 className={cn(authTheme.title, "mt-4")}>Reset your password</h1>
+        <p className={cn(authTheme.subtitle, "mt-3")}>
           {step === "email"
-            ? "Enter your email and we’ll send a one-time code to reset your password."
-            : `Enter the ${otpDigits}-digit code we sent to your inbox.`}
+            ? "Enter your email and we’ll send a one-time 6-digit code to reset your password."
+            : "Enter the 6-digit code we sent to your inbox."}
         </p>
         {hasSb && step === "email" && (
-          <p className="mt-3 rounded-lg bg-amber-50/80 px-3 py-2 text-center text-[11px] leading-snug text-stone-600">
-            Codes are sent by a Supabase Edge Function using your <span className="font-mono">SMTP_*</span> vault
-            values (and matching Edge secrets in production). Not read by the browser app.
+          <p className="mt-4 rounded-[1.5rem] border border-border/60 bg-white/75 px-4 py-3 text-center text-[11px] leading-5 text-muted-foreground">
+            The reset mail is sent securely by the Supabase Edge Function using your configured{" "}
+            <span className="font-mono text-foreground">SMTP_*</span> secrets. The browser never reads those values.
           </p>
         )}
 
         {!hasSb ? (
-          <p className="mt-6 text-center text-sm text-stone-600">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             Password reset requires Supabase.{" "}
             <Link to="/login" className={authTheme.link}>
               Back to sign in
@@ -135,11 +144,11 @@ export default function ForgotPassword() {
             <Button
               type="submit"
               disabled={requestLoading}
-              className={cn("h-12 w-full rounded-xl text-base font-semibold", authTheme.accentBg)}
+              className={cn("h-12 w-full rounded-2xl text-base font-semibold", authTheme.accentBg)}
             >
-              {requestLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send code"}
+              {requestLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send 6-digit code"}
             </Button>
-            <p className="text-center text-sm text-stone-600">
+            <p className="text-center text-sm text-muted-foreground">
               <Link to="/login" className={authTheme.link}>
                 Back to sign in
               </Link>
@@ -147,17 +156,17 @@ export default function ForgotPassword() {
           </form>
         ) : (
           <div className="mt-8 space-y-5">
-            <p className="text-center text-xs text-stone-500">{email}</p>
+            <p className="text-center text-xs text-muted-foreground">{email}</p>
             <div className="flex justify-center">
               <InputOTP
-                maxLength={otpDigits}
+                maxLength={EMAIL_RESET_OTP_DIGITS}
                 value={otp}
                 onChange={setOtp}
                 disabled={verifyLoading}
                 onComplete={(v) => void runVerify(v)}
               >
                 <InputOTPGroup className="gap-1">
-                  {Array.from({ length: otpDigits }, (_, i) => (
+                  {Array.from({ length: EMAIL_RESET_OTP_DIGITS }, (_, i) => (
                     <InputOTPSlot key={i} index={i} />
                   ))}
                 </InputOTPGroup>
@@ -165,15 +174,15 @@ export default function ForgotPassword() {
             </div>
             <Button
               type="button"
-              disabled={verifyLoading || otp.replace(/\D/g, "").length !== otpDigits}
-              className={cn("h-12 w-full rounded-xl text-base font-semibold", authTheme.accentBg)}
+              disabled={verifyLoading || otp.replace(/\D/g, "").length !== EMAIL_RESET_OTP_DIGITS}
+              className={cn("h-12 w-full rounded-2xl text-base font-semibold", authTheme.accentBg)}
               onClick={() => void runVerify(otp)}
             >
               {verifyLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify code"}
             </Button>
             <button
               type="button"
-              className="w-full text-center text-xs text-stone-500 underline-offset-2 hover:underline"
+              className="w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
               onClick={() => {
                 setStep("email");
                 setOtp("");
@@ -181,7 +190,7 @@ export default function ForgotPassword() {
             >
               Use a different email
             </button>
-            <p className="text-center text-sm text-stone-600">
+            <p className="text-center text-sm text-muted-foreground">
               <Link to="/login" className={authTheme.link}>
                 Back to sign in
               </Link>

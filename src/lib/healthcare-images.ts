@@ -32,22 +32,19 @@ export const SERVICE_CARD_IMAGES = [
 
 export const CARE_TEAM_MEMBERS = [
   {
-    image:
-      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=480&q=80&facepad=2",
+    image: "/team/img1.jpg",
     nameKey: "team.1.name",
     roleKey: "team.1.role",
     altKey: "team.1.alt",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=480&q=80&facepad=2",
+    image: "/team/img2.jpg",
     nameKey: "team.2.name",
     roleKey: "team.2.role",
     altKey: "team.2.alt",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=480&q=80&facepad=2",
+    image: "/team/img3.jpg",
     nameKey: "team.3.name",
     roleKey: "team.3.role",
     altKey: "team.3.alt",

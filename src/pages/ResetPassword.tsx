@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ProfileRole } from "@/lib/supabase";
+import { BrandLogo } from "@/components/BrandLogo";
 
 type ReadyState = "loading" | "form" | "invalid";
 
@@ -115,10 +116,13 @@ export default function ResetPassword() {
     return (
       <AuthPageLayout>
         <AuthCard>
+          <div className="mb-5 flex justify-center">
+            <BrandLogo variant="login" className="h-12 w-[180px] sm:h-14 sm:w-[200px]" />
+          </div>
           <h1 className={authTheme.title}>Reset password</h1>
-          <p className="mt-4 text-center text-sm text-stone-600">
-            Supabase is not configured. Add <code className="rounded bg-stone-100 px-1">VITE_SUPABASE_URL</code> and{" "}
-            <code className="rounded bg-stone-100 px-1">VITE_SUPABASE_ANON_KEY</code>.
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Supabase is not configured. Add <code className="rounded bg-muted px-1">VITE_SUPABASE_URL</code> and{" "}
+            <code className="rounded bg-muted px-1">VITE_SUPABASE_ANON_KEY</code>.
           </p>
           <Link to="/forgot-password" className={cn("mt-6 block text-center text-sm", authTheme.link)}>
             Back
@@ -133,8 +137,8 @@ export default function ResetPassword() {
       <AuthPageLayout>
         <AuthCard>
           <div className="flex flex-col items-center gap-4 py-8">
-            <Loader2 className="h-10 w-10 animate-spin text-[#A68948]" aria-hidden />
-            <p className="text-center text-sm text-stone-600">Confirming your reset session…</p>
+            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+            <p className="text-center text-sm text-muted-foreground">Confirming your reset session…</p>
           </div>
         </AuthCard>
       </AuthPageLayout>
@@ -145,6 +149,9 @@ export default function ResetPassword() {
     return (
       <AuthPageLayout>
         <AuthCard>
+          <div className="mb-5 flex justify-center">
+            <BrandLogo variant="login" className="h-12 w-[180px] sm:h-14 sm:w-[200px]" />
+          </div>
           <h1 className={authTheme.title}>Link invalid or expired</h1>
           <p className={cn(authTheme.subtitle, "mt-3")}>
             Request a new code from forgot password. Sessions expire after a short time for security.
@@ -153,7 +160,7 @@ export default function ResetPassword() {
             <Link to="/forgot-password" className={cn(authTheme.link)}>
               Send a new code
             </Link>
-            <Link to="/login" className="text-stone-600 hover:text-stone-800">
+            <Link to="/login" className="text-muted-foreground hover:text-foreground">
               Back to sign in
             </Link>
           </div>
@@ -165,8 +172,14 @@ export default function ResetPassword() {
   return (
     <AuthPageLayout>
       <AuthCard>
+        <div className="mb-5 flex justify-center">
+          <BrandLogo variant="login" className="h-12 w-[180px] sm:h-14 sm:w-[200px]" />
+        </div>
+        <div className="flex justify-center">
+          <span className={authTheme.sectionLabel}>Create new password</span>
+        </div>
         <h1 className={authTheme.title}>Set a new password</h1>
-        <p className={cn(authTheme.subtitle, "mt-2")}>Choose a strong password you haven’t used elsewhere.</p>
+        <p className={cn(authTheme.subtitle, "mt-3")}>Choose a strong password you haven’t used elsewhere.</p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <PasswordField
@@ -188,11 +201,11 @@ export default function ResetPassword() {
           <Button
             type="submit"
             disabled={submitting}
-            className={cn("h-12 w-full rounded-xl text-base font-semibold", authTheme.accentBg)}
+            className={cn("h-12 w-full rounded-2xl text-base font-semibold", authTheme.accentBg)}
           >
             {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Update password"}
           </Button>
-          <p className="text-center text-sm text-stone-600">
+          <p className="text-center text-sm text-muted-foreground">
             <Link to="/login" className={authTheme.link}>
               Back to sign in
             </Link>

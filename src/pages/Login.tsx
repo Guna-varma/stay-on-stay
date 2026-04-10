@@ -12,7 +12,7 @@ import {
 import { requestWhatsAppSignInOtp, verifyWhatsAppSignInOtp } from "@/lib/whatsapp-verification";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { isValidEmail, validatePassword } from "@/lib/auth-forms";
-import { AuthCard, AuthPageLayout, authTheme } from "@/components/auth/AuthPageLayout";
+import { AuthCard, AuthDivider, AuthPageLayout, authTheme } from "@/components/auth/AuthPageLayout";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -517,20 +517,31 @@ export default function Login() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="w-full max-w-[420px]"
+        className="w-full max-w-[460px]"
       >
         <AuthCard>
-          <div className="mb-2 flex justify-center">
-            <BrandLogo variant="login" className="h-11 w-[170px] sm:h-12 sm:w-[190px]" />
+          <div className="mb-5 flex justify-center">
+            <BrandLogo variant="login" className="h-12 w-[180px] sm:h-14 sm:w-[200px]" />
           </div>
-          <h1 className={authTheme.title}>Please Sign in to StayOnStay</h1>
-          <p className={cn(authTheme.subtitle, "mt-2")}>
+          <div className="flex justify-center">
+            <span className={authTheme.sectionLabel}>Secure guest access</span>
+          </div>
+          <h1 className={cn(authTheme.title, "mt-4")}>Welcome back to StayOnStay</h1>
+          <p className={cn(authTheme.subtitle, "mt-3")}>
             {hasSupabase
-              ? "Use your email or Google. New users complete name and mobile once."
-              : "Demo mode: use the test accounts below. Add Supabase for email verification and Google."}
+              ? "Sign in with email and password, continue with Google, or use WhatsApp if your saved mobile number is already on your profile."
+              : "Demo mode is active. Use the test accounts below, or connect Supabase to enable Google sign-in and SMTP password reset."}
           </p>
 
           <form onSubmit={handleEmailPasswordSignIn} className="mt-8 space-y-4">
+            <div className="flex items-center justify-between px-1 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              <span>Email and password</span>
+              {hasSupabase && (
+                <Link to="/forgot-password" className={cn("normal-case tracking-normal", authTheme.link)}>
+                  Forgot password?
+                </Link>
+              )}
+            </div>
             <div className={authTheme.inputWrap}>
               <Mail className={authTheme.inputIcon} aria-hidden />
               <input
@@ -561,27 +572,20 @@ export default function Login() {
           </form>
 
           {!hasSupabase && (
-            <p className="mt-3 rounded-lg bg-stone-100 px-3 py-2 text-center text-[11px] leading-relaxed text-stone-600">
-              Demo: <span className="font-mono text-stone-800">customer@stayonstay.com</span> /{" "}
-              <span className="font-mono text-stone-800">12345678</span>
+            <p className="mt-3 rounded-2xl border border-border/60 bg-white/75 px-4 py-3 text-center text-[11px] leading-relaxed text-muted-foreground">
+              Demo: <span className="font-mono text-foreground">customer@stayonstay.com</span> /{" "}
+              <span className="font-mono text-foreground">12345678</span>
               <span className="block mt-1">Also: owner@, manager@, admin@ — same password.</span>
             </p>
           )}
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-stone-200" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase tracking-wide text-stone-400">
-              <span className="bg-white px-3">or</span>
-            </div>
-          </div>
+          <AuthDivider label="More ways to continue" />
 
           {hasSupabase ? (
             <Button
               type="button"
               variant="outline"
-              className={cn("h-12 w-full rounded-xl border-2 text-base font-medium", authTheme.accentBorder, "bg-white")}
+              className={cn("h-12 w-full rounded-2xl text-base font-medium", authTheme.accentBorder)}
               onClick={handleLoginWithGoogle}
               disabled={googleLoading || emailPasswordLoading}
             >
@@ -612,26 +616,19 @@ export default function Login() {
               )}
             </Button>
           ) : (
-            <p className="text-center text-xs text-stone-500">
-              Google sign-in needs <code className="rounded bg-stone-100 px-1">VITE_SUPABASE_*</code> in{" "}
-              <code className="rounded bg-stone-100 px-1">.env</code>.
+            <p className="text-center text-xs text-muted-foreground">
+              Google sign-in needs <code className="rounded bg-muted px-1">VITE_SUPABASE_*</code> in{" "}
+              <code className="rounded bg-muted px-1">.env</code>.
             </p>
           )}
 
           {hasSupabase && (
             <>
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-stone-200" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase tracking-wide text-stone-400">
-                  <span className="bg-white px-3">or</span>
-                </div>
-              </div>
+              <AuthDivider label="WhatsApp sign in" />
 
-              <div className="rounded-xl border border-stone-200/80 bg-stone-50/50 px-4 py-4">
-                <p className="text-center text-sm font-semibold text-stone-800">Sign in with WhatsApp</p>
-                <p className="mt-1 text-center text-[11px] leading-snug text-stone-500">
+              <div className={cn("px-4 py-4 sm:px-5", authTheme.surface)}>
+                <p className="text-center text-sm font-semibold text-foreground">Sign in with WhatsApp</p>
+                <p className="mt-1 text-center text-[11px] leading-snug text-muted-foreground">
                   Use the same mobile number you saved during profile setup. New here?{" "}
                   <Link to="/signup" className={authTheme.link}>
                     Sign up
@@ -648,7 +645,7 @@ export default function Login() {
                         value={waCountryCode}
                         onChange={(e) => setWaCountryCode(e.target.value)}
                         inputMode="tel"
-                        className="h-11 rounded-lg border-border/80 bg-white text-center text-sm font-semibold"
+                        className="h-11 rounded-2xl border-border/80 bg-white text-center text-sm font-semibold"
                         aria-label="Country code"
                       />
                       <div className="relative">
@@ -659,7 +656,7 @@ export default function Login() {
                           value={waMobile}
                           onChange={(e) => setWaMobile(e.target.value)}
                           inputMode="numeric"
-                          className="h-11 rounded-lg border-border/80 bg-white pl-9 text-sm"
+                          className="h-11 rounded-2xl border-border/80 bg-white pl-9 text-sm"
                           autoComplete="tel-national"
                         />
                       </div>
@@ -667,7 +664,7 @@ export default function Login() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-11 w-full rounded-xl border-2 text-sm font-semibold"
+                      className={cn("h-11 w-full rounded-2xl text-sm font-semibold", authTheme.accentBorder)}
                       onClick={handleWhatsAppRequestCode}
                       disabled={waRequestLoading || emailPasswordLoading || googleLoading}
                     >
@@ -676,7 +673,7 @@ export default function Login() {
                   </div>
                 ) : (
                   <div className="mt-4 space-y-3">
-                    <p className="text-center text-xs text-stone-600">Enter the code from WhatsApp</p>
+                    <p className="text-center text-xs text-muted-foreground">Enter the 6-digit code from WhatsApp</p>
                     <div className="flex justify-center">
                       <InputOTP
                         maxLength={6}
@@ -694,7 +691,7 @@ export default function Login() {
                     </div>
                     <Button
                       type="button"
-                      className={cn("h-11 w-full rounded-xl text-sm font-semibold", authTheme.accentBg)}
+                      className={cn("h-11 w-full rounded-2xl text-sm font-semibold", authTheme.accentBg)}
                       onClick={() => void handleWhatsAppVerify()}
                       disabled={waVerifyLoading || waOtp.replace(/\D/g, "").length !== 6}
                     >
@@ -702,7 +699,7 @@ export default function Login() {
                     </Button>
                     <button
                       type="button"
-                      className="w-full text-center text-xs text-stone-500 underline-offset-2 hover:underline"
+                      className="w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
                       onClick={() => {
                         setWaStep("phone");
                         setWaPendingE164(null);
@@ -713,22 +710,30 @@ export default function Login() {
                     </button>
                   </div>
                 )}
+
+                <div className="mt-4 rounded-2xl border border-white/70 bg-white/75 px-3 py-3 text-center text-[11px] leading-5 text-muted-foreground">
+                  Forgot your password instead? We’ll send a 6-digit reset code to your email using your configured SMTP mail setup.
+                </div>
               </div>
             </>
           )}
 
-          <div className="mt-6 space-y-3 text-center text-sm">
-            {hasSupabase && (
-              <Link to="/forgot-password" className={cn("block", authTheme.link)}>
-                Forgot your password?
-              </Link>
-            )}
-            <p className="text-stone-600">
+          <div className="mt-6 rounded-[1.5rem] border border-border/60 bg-white/70 px-4 py-4 text-center text-sm">
+            <p className="text-muted-foreground">
               Don&apos;t have an account?{" "}
               <Link to="/signup" className={authTheme.link}>
                 Sign up now
               </Link>
             </p>
+            {hasSupabase && (
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Need help resetting access?{" "}
+                <Link to="/forgot-password" className={authTheme.link}>
+                  Use the 6-digit email code flow
+                </Link>
+                .
+              </p>
+            )}
           </div>
         </AuthCard>
       </motion.div>

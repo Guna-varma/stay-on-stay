@@ -1,7 +1,7 @@
 /**
  * Send numeric OTP for password reset (SMTP from env). Supabase Auth “reset email” is not used here.
  * Body: { "email": "user@example.com" }
- * Secrets: SMTP_*, EMAIL_RESET_OTP_DIGITS (4–8, default 6), EMAIL_RESET_OTP_PEPPER or WHATSAPP_OTP_PEPPER,
+ * Secrets: SMTP_*, EMAIL_RESET_OTP_PEPPER or WHATSAPP_OTP_PEPPER,
  *          SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -13,11 +13,7 @@ const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function digitCountFromEnv(): number {
-  const n = parseInt(Deno.env.get("EMAIL_RESET_OTP_DIGITS") ?? "6", 10);
-  if (Number.isNaN(n)) return 6;
-  return Math.min(8, Math.max(4, n));
-}
+const EMAIL_RESET_OTP_DIGITS = 6;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -62,7 +58,7 @@ Deno.serve(async (req) => {
   }
 
   const raw = (body.email ?? "").trim().toLowerCase();
-  const digits = digitCountFromEnv();
+  const digits = EMAIL_RESET_OTP_DIGITS;
 
   if (!raw || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
     return new Response(JSON.stringify({ error: "invalid_email" }), {

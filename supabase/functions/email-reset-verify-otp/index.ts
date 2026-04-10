@@ -10,6 +10,7 @@ const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+const EMAIL_RESET_OTP_DIGITS = 6;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
   const raw = (body.email ?? "").trim().toLowerCase();
   const code = (body.code ?? "").replace(/\D/g, "");
 
-  if (!raw || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw) || code.length < 4 || code.length > 8) {
+  if (!raw || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw) || code.length !== EMAIL_RESET_OTP_DIGITS) {
     return new Response(JSON.stringify({ error: "invalid_email_or_code" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

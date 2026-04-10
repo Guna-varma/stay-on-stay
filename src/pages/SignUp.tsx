@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const GENDER_OPTIONS: { value: GenderValue; label: string }[] = [
   { value: "male", label: "Male" },
@@ -126,11 +127,19 @@ export default function SignUp() {
   return (
     <AuthPageLayout>
       <AuthCard>
-        <h1 className={authTheme.title}>Create Your Account</h1>
-        <p className={cn(authTheme.subtitle, "mt-2")}>Join StayOnStay to book stays and manage your trips.</p>
+        <div className="mb-5 flex justify-center">
+          <BrandLogo variant="login" className="h-12 w-[180px] sm:h-14 sm:w-[200px]" />
+        </div>
+        <div className="flex justify-center">
+          <span className={authTheme.sectionLabel}>Create account</span>
+        </div>
+        <h1 className={cn(authTheme.title, "mt-4")}>Create your StayOnStay account</h1>
+        <p className={cn(authTheme.subtitle, "mt-3")}>
+          Sign up with email and password, then verify your email before your first secure sign in.
+        </p>
 
         {!hasSb ? (
-          <p className="mt-6 text-center text-sm text-stone-600">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             Sign-up requires Supabase configuration.{" "}
             <Link to="/login" className={authTheme.link}>
               Sign in
@@ -167,8 +176,8 @@ export default function SignUp() {
               <Select value={gender || undefined} onValueChange={(v) => setGender(v as GenderValue)}>
                 <SelectTrigger
                   className={cn(
-                    "h-12 rounded-xl border-stone-300 bg-white pl-3 text-left text-stone-800 focus:ring-[#A68948]/25",
-                    !gender && "text-stone-400",
+                    "h-12 rounded-2xl border-border/70 bg-white pl-3 text-left text-foreground shadow-sm focus:ring-primary/10",
+                    !gender && "text-muted-foreground",
                   )}
                 >
                   <SelectValue placeholder="Select Gender" />
@@ -213,12 +222,16 @@ export default function SignUp() {
             <Button
               type="submit"
               disabled={loading}
-              className={cn("h-12 w-full rounded-xl text-base font-semibold", authTheme.accentBg)}
+              className={cn("h-12 w-full rounded-2xl text-base font-semibold", authTheme.accentBg)}
             >
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign Up"}
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Create account"}
             </Button>
 
-            <p className="pt-2 text-center text-sm text-stone-600">
+            <div className={cn("pt-1 text-center", authTheme.helper)}>
+              We’ll send your verification details to the email address above.
+            </div>
+
+            <p className="pt-1 text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link to="/login" className={authTheme.link}>
                 Sign in
