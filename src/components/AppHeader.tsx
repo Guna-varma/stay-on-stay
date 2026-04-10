@@ -33,7 +33,7 @@ function CustomerHeader() {
     <header className="sticky top-0 z-30 flex h-14 items-center border-b border-border/60 bg-background/95 px-4 shadow-sm backdrop-blur-md md:px-6">
       <SidebarTrigger className="mr-2 text-muted-foreground hover:text-foreground md:mr-0" />
       <Link to="/hotels" className="shrink-0">
-        <BrandLogo variant="header" className="h-8 w-[130px] sm:h-9 sm:w-[160px]" />
+        <BrandLogo variant="header" className="max-h-10 sm:max-h-11" />
       </Link>
 
       <nav className="hidden items-center gap-1 lg:ml-6 lg:flex">
@@ -165,7 +165,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-card px-3 shadow-card sm:gap-3 sm:px-4">
       <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-      <BrandLogo variant="header" className="h-8 w-[142px] sm:h-9 sm:w-[168px] shadow-card" />
+      <BrandLogo variant="header" className="max-h-10 sm:max-h-11 shadow-card" />
       <div className="flex-1" />
       <span className="hidden rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground sm:inline">
         {ROLE_LABELS[user.role]}

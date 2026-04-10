@@ -406,7 +406,7 @@ const LandingHeader = () => {
                 <div className="flex h-full flex-col overflow-y-auto">
                   <div className="border-b border-border/60 bg-muted/20 px-4 py-4">
                     <Link to="/" className="inline-block" onClick={() => setMobileOpen(false)}>
-                      <BrandLogo variant="header" className="w-[170px]" />
+                      <BrandLogo variant="header" className="max-w-[min(100%,280px)]" />
                     </Link>
                     <p className="mt-2 text-xs font-medium text-muted-foreground leading-snug">{t("nav.tagline")}</p>
                   </div>

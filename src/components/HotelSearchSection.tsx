@@ -222,8 +222,8 @@ export function HotelSearchSection({ standalone = false, sectionId = "hotels" }:
     </div>
   );
 
-  const content = (
-    <div className="space-y-6">
+  const marketingBlock = (
+    <>
       <Reveal>
         <p className="text-center text-xs font-medium text-muted-foreground mb-3 max-w-lg mx-auto leading-relaxed">
           {t("apartments.galleryCaption")}
@@ -280,6 +280,12 @@ export function HotelSearchSection({ standalone = false, sectionId = "hotels" }:
           {t("apartments.distance")}
         </p>
       </div>
+    </>
+  );
+
+  const content = (
+    <div className="space-y-6">
+      {standalone && marketingBlock}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -628,13 +634,15 @@ export function HotelSearchSection({ standalone = false, sectionId = "hotels" }:
           </div>
         </div>
       </div>
+
+      {!standalone && marketingBlock}
     </div>
   );
   if (standalone) return <div className="pb-8">{content}</div>;
   return (
     <section
       id={sectionId}
-      className="py-12 lg:py-20 bg-gradient-to-b from-muted/25 via-background to-muted/20 border-t border-border/40"
+      className="scroll-mt-20 py-12 lg:py-20 bg-gradient-to-b from-muted/25 via-background to-muted/20 border-t border-border/40"
     >
       <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8">{content}</div>
     </section>

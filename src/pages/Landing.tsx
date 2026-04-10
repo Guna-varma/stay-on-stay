@@ -28,11 +28,11 @@ function LandingMain() {
     >
       <LandingHeader />
       <HeroSearch />
+      <HotelSearchSection sectionId="hotels" />
       <TrustBar />
       <ServicesSection />
       <CareTeamSection />
       <PatientJourneySection />
-      <HotelSearchSection sectionId="hotels" />
       <MedTourismStrip />
       <PackagesPricingSection />
       <Testimonials />

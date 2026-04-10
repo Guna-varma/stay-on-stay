@@ -68,6 +68,53 @@ export async function signInWithGoogle() {
   return data;
 }
 
+/** Email + password sign-in (Supabase Auth). */
+export async function signInWithEmailPassword(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+  if (error) throw error;
+  return data;
+}
+
+export interface SignUpMetadata {
+  full_name: string;
+  gender: string;
+  phone?: string;
+}
+
+/** Register with email/password; metadata stored on raw_user_meta_data for triggers / display. */
+export async function signUpWithEmailPassword(email: string, password: string, meta: SignUpMetadata) {
+  const { data, error } = await supabase.auth.signUp({
+    email: email.trim().toLowerCase(),
+    password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/login`,
+      data: {
+        full_name: meta.full_name.trim(),
+        gender: meta.gender,
+        phone: meta.phone?.trim() || null,
+      },
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
+/** Sends password reset email (Supabase delivers mail — configure Gmail SMTP in Dashboard; see .env.example). */
+export async function sendPasswordResetEmail(email: string) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  if (error) throw error;
+  return data;
+}
+
+/** Call on /reset-password after user opens the email link (session established from URL hash). */
+export async function updateUserPassword(newPassword: string) {
+  const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+  return data;
+}
+
 /** Send OTP to phone (E.164). Supabase → Twilio SMS. */
 export async function signInWithOtp(phone: string) {
   const { data, error } = await supabase.auth.signInWithOtp({

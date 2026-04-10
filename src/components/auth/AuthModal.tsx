@@ -6,9 +6,10 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { Phone, ArrowLeft, Loader2 } from "lucide-react";
-import PhoneInput from "react-phone-number-input";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { signInWithGoogle, signInWithOtp, verifyOtp, isSupabaseConfigured } from "@/lib/supabase";
+import { signInWithGoogle, isSupabaseConfigured } from "@/lib/supabase";
+import { requestWhatsAppSignInOtp, verifyWhatsAppSignInOtp } from "@/lib/whatsapp-verification";
 import { useAuth } from "@/lib/auth";
 
 type Step = "welcome" | "phone" | "otp";
@@ -20,7 +21,7 @@ interface AuthModalProps {
   mode?: "signin" | "signup";
 }
 
-const OTP_RESEND_SECONDS = 30;
+const OTP_RESEND_SECONDS = 45;
 
 export function AuthModal({ open, onOpenChange, mode = "signin" }: AuthModalProps) {
   const { toast } = useToast();
@@ -67,20 +68,29 @@ export function AuthModal({ open, onOpenChange, mode = "signin" }: AuthModalProp
   };
 
   const handleSendOtp = async () => {
-    const normalized = phoneValue?.trim();
+    const normalized = phoneValue?.trim() ?? "";
     if (!normalized) {
       toast({ title: "Enter phone number", variant: "destructive" });
+      return;
+    }
+    if (hasSupabase && !isValidPhoneNumber(normalized)) {
+      toast({ title: "Invalid phone number", description: "Include country code and a valid mobile number.", variant: "destructive" });
       return;
     }
     setLoading(true);
     try {
       if (hasSupabase) {
-        await signInWithOtp(normalized);
-        toast({ title: "Verification code sent", description: "Check your SMS." });
+        await requestWhatsAppSignInOtp(normalized);
+        toast({
+          title: "Check WhatsApp",
+          description:
+            "If this number is saved on your StayOnStay profile, we sent a 6-digit code. Join the Twilio sandbox on your phone if you test in sandbox. Code expires in 10 minutes.",
+        });
       } else {
-        toast({ title: "Demo mode", description: "Use Supabase + Twilio for real OTP. Code: 123456" });
+        toast({ title: "Demo mode", description: "Add VITE_SUPABASE_* and deploy WhatsApp Edge Functions to use real OTP." });
       }
       setStep("otp");
+      setOtp("");
       setResendSeconds(OTP_RESEND_SECONDS);
     } catch (e) {
       toast({ title: "Failed to send code", description: (e as Error).message, variant: "destructive" });
@@ -89,18 +99,19 @@ export function AuthModal({ open, onOpenChange, mode = "signin" }: AuthModalProp
     }
   };
 
-  const handleVerifyOtp = async () => {
-    if (otp.length !== 6) {
+  const handleVerifyOtp = async (codeOverride?: string) => {
+    const pin = (codeOverride ?? otp).replace(/\D/g, "");
+    if (pin.length !== 6) {
       toast({ title: "Enter 6-digit code", variant: "destructive" });
       return;
     }
+    const e164 = phoneValue?.trim() ?? "";
     setLoading(true);
     try {
       if (hasSupabase) {
-        await verifyOtp(phoneValue, otp);
+        await verifyWhatsAppSignInOtp(e164, pin);
         toast({ title: "Signed in successfully" });
         handleOpenChange(false);
-        // Supabase session is active; wire AuthProvider to supabase.auth.onAuthStateChange to sync user
       } else {
         login("customer@stayonstay.com", "12345678");
         toast({ title: "Signed in (demo)" });
@@ -196,14 +207,15 @@ export function AuthModal({ open, onOpenChange, mode = "signin" }: AuthModalProp
           {step === "otp" && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground text-center">
-                We sent a 6-digit code to your phone. Valid for 3 minutes.
+                We sent a 6-digit code on <span className="font-medium">WhatsApp</span> (if this number is on your
+                profile). Valid for 10 minutes. Sandbox: join Twilio&apos;s WhatsApp sandbox first.
               </p>
               <div className="flex justify-center">
                 <InputOTP
                   maxLength={6}
                   value={otp}
                   onChange={setOtp}
-                  onComplete={handleVerifyOtp}
+                  onComplete={(v) => void handleVerifyOtp(v)}
                 >
                   <InputOTPGroup className="gap-1">
                     {[0, 1, 2, 3, 4, 5].map((i) => (

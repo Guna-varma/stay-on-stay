@@ -101,7 +101,7 @@ const HeroSearch = () => {
   };
 
   return (
-    <section className="relative min-h-[480px] sm:min-h-[520px] flex items-center justify-center overflow-hidden">
+    <section className="relative flex w-full items-start justify-center overflow-hidden pb-8 sm:pb-10 md:pb-12 min-h-[min(42vh,420px)] sm:min-h-0">
       <img
         src={HERO_HEALTHCARE_IMAGE}
         alt=""
@@ -116,7 +116,7 @@ const HeroSearch = () => {
       <div className="absolute inset-0" style={{ background: "var(--hero-overlay)" }} />
 
       <motion.div
-        className="relative z-10 max-w-page w-full py-8 sm:py-12 md:py-14 px-3 sm:px-4"
+        className="relative z-10 max-w-page w-full px-3 pt-6 pb-2 sm:px-4 sm:pt-8 sm:pb-4 md:pt-10"
         initial={reduceMotion ? false : { opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}

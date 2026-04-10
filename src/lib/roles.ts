@@ -14,7 +14,7 @@ export interface NavItem {
 export const ROLE_LABELS: Record<UserRole, string> = {
   customer: "Customer",
   owner: "Hotel Owner",
-  manager: "Manager",
+  manager: "Senior Receptionist",
   admin: "Platform Admin",
 };
 

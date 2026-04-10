@@ -23,6 +23,9 @@ import ContactUs from "./pages/ContactUs";
 import WhatsAppSupport from "./pages/WhatsAppSupport";
 import ExploreIndia from "./pages/ExploreIndia";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import AccessDenied from "./pages/AccessDenied";
 import NotFound from "./pages/NotFound";
 
@@ -33,7 +36,7 @@ const Checkout = React.lazy(() => import("./pages/customer/Checkout"));
 const BookingSuccess = React.lazy(() => import("./pages/customer/BookingSuccess"));
 const BookingCancel = React.lazy(() => import("./pages/customer/BookingCancel"));
 const MyBookings = React.lazy(() => import("./pages/customer/MyBookings"));
-const ServiceRequests = React.lazy(() => import("./pages/customer/ServiceRequests"));
+const ServicesGateway = React.lazy(() => import("./pages/ServicesGateway"));
 const NotificationsPage = React.lazy(() => import("./pages/customer/NotificationsPage"));
 const Emergency = React.lazy(() => import("./pages/customer/Emergency"));
 const ReceptionDashboard = React.lazy(() => import("./pages/reception/ReceptionDashboard"));
@@ -84,6 +87,9 @@ const App = () => (
               <Route path="/whatsapp-support" element={<WhatsAppSupport />} />
               <Route path="/explore-india" element={<ExploreIndia />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/access-denied" element={<AccessDenied />} />
 
               {/* Protected routes inside AppShell */}
@@ -98,7 +104,7 @@ const App = () => (
                 <Route path="/booking/success" element={<BookingSuccess />} />
                 <Route path="/booking/cancel" element={<BookingCancel />} />
                 <Route path="/bookings" element={<MyBookings />} />
-                <Route path="/services" element={<ServiceRequests />} />
+                <Route path="/services" element={<ServicesGateway />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/emergency" element={<Emergency />} />
 

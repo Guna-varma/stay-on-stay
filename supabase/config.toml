@@ -8,3 +8,19 @@ verify_jwt = false
 
 [functions.verify-checkout-session]
 verify_jwt = false
+
+# WhatsApp verification template (Twilio Content API). Secrets: TWILIO_* in Dashboard / CLI.
+[functions.send-whatsapp-verification]
+verify_jwt = false
+
+[functions.whatsapp-signin-request-otp]
+verify_jwt = false
+
+[functions.whatsapp-signin-verify-otp]
+verify_jwt = false
+
+[functions.email-reset-request-otp]
+verify_jwt = false
+
+[functions.email-reset-verify-otp]
+verify_jwt = false
