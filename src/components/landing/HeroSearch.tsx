@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, CalendarDays, Users, Locate, MessageCircle, ChevronDown } from "lucide-react";
+import { Search, CalendarDays, Users, MapPin, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -205,38 +205,45 @@ const HeroSearch = () => {
           </Button>
         </div>
 
-        <details className="max-w-5xl mx-auto group">
-          <summary className="list-none cursor-pointer flex items-center justify-center gap-2 py-2 text-sm font-semibold text-white/95 [text-shadow:0_1px_10px_rgba(0,0,0,0.35)] select-none [&::-webkit-details-marker]:hidden">
-            <Search className="h-4 w-4 shrink-0" aria-hidden />
-            {t("hero.searchToggle")}
-            <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
-          </summary>
+        <section className="max-w-5xl mx-auto w-full" aria-labelledby="hero-apartment-search-heading">
+          <div className="mb-2 flex flex-wrap items-center justify-center gap-2 px-1 sm:mb-3">
+            <Search className="h-4 w-4 shrink-0 text-white/95 [filter:drop-shadow(0_1px_6px_rgba(0,0,0,0.45))]" aria-hidden />
+            <h2
+              id="hero-apartment-search-heading"
+              className="text-center text-sm font-semibold tracking-tight text-white/95 [text-shadow:0_1px_12px_rgba(0,0,0,0.45)] sm:text-base"
+            >
+              {t("hero.searchToggle")}
+            </h2>
+          </div>
           <form
             onSubmit={handleSearch}
-            className="bg-card rounded-xl p-3 sm:p-4 shadow-card-hover mt-2"
+            className="relative z-[1] rounded-xl border border-border/50 bg-card p-3 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.25)] ring-2 ring-white/30 sm:p-4 md:p-5"
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-2">
               <div className="flex-1 min-w-0 flex flex-col gap-1">
                 <Label className="text-[11px] font-medium text-muted-foreground uppercase sm:pl-1">
                   {t("hero.search")}
                 </Label>
-                <div className="flex items-center gap-2 bg-muted rounded-lg pl-3 pr-1.5 py-1 h-11 sm:h-12 focus-within:ring-1 focus-within:ring-primary/30 transition-all">
-                  <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder={t("hero.location.placeholder")}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-transparent border-0 shadow-none focus-visible:ring-0 h-auto py-0 text-sm min-w-0 flex-1"
-                  />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2">
+                  <div className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg bg-muted px-3 py-2 sm:h-12 sm:py-0 focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                    <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                    <Input
+                      type="text"
+                      placeholder={t("hero.location.placeholder")}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-transparent border-0 shadow-none focus-visible:ring-0 h-9 min-h-0 py-0 text-sm min-w-0 flex-1"
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={handleNearMe}
                     disabled={nearMeLoading}
-                    className="shrink-0 flex items-center gap-1.5 rounded-full bg-muted-foreground/15 hover:bg-muted-foreground/25 text-foreground px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60"
+                    aria-label={t("hero.nearMe")}
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-3 text-xs font-semibold text-primary shadow-sm ring-1 ring-primary/10 transition-colors hover:bg-primary/15 disabled:opacity-60 sm:min-w-[7.5rem] sm:self-auto min-h-11 sm:h-12 sm:px-4"
                   >
-                    <Locate className="h-3.5 w-3.5" />
-                    {nearMeLoading ? "…" : t("hero.nearMe")}
+                    <MapPin className="h-4 w-4 shrink-0" strokeWidth={2.25} aria-hidden />
+                    <span className="whitespace-nowrap">{nearMeLoading ? "…" : t("hero.nearMe")}</span>
                   </button>
                 </div>
               </div>
@@ -308,7 +315,7 @@ const HeroSearch = () => {
               </Button>
             </div>
           </form>
-        </details>
+        </section>
 
         <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-6 text-center">
           {[t("hero.badge1"), t("hero.badge2"), t("hero.badge3")].map((badge) => (
