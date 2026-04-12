@@ -46,11 +46,11 @@ export const frPack: Record<string, string> = {
   "JCI-accredited partner hospitals": "Hôpitaux partenaires accrédités JCI",
   "Trusted Gurugram facilities, in the order many families choose.":
     "Établissements de confiance à Gurugram, dans l’ordre souvent choisi par les familles.",
-  "Accreditation note Paras NABH":
-    "Paras Hospital est accrédité NABH ; les quatre autres listés ici sont des hôpitaux JCI avec lesquels nous travaillons.",
+  "Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.":
+    "Paras et Manipal sont accrédités NABH ; Medanta, Artemis, Fortis et Max sont accrédités JCI.",
   "Representative hospital photo": "Photo illustrative d’hôpital",
   "Representative photo note": "Photo indicative ; l’aspect du bâtiment peut varier.",
-  "Five hospitals we connect you with": "Cinq hôpitaux avec lesquels nous vous mettons en relation",
+  "Six hospitals we connect you with": "Six hôpitaux avec lesquels nous vous mettons en relation",
   "Not sure which hospital fits your case?": "Vous ne savez pas quel hôpital convient à votre cas ?",
   "Our care team helps you choose on WhatsApp, no pressure.":
     "Notre équipe vous aide à choisir sur WhatsApp, sans pression.",
@@ -360,11 +360,11 @@ export const esPack: Record<string, string> = {
   "JCI-accredited partner hospitals": "Hospitales socios acreditados JCI",
   "Trusted Gurugram facilities, in the order many families choose.":
     "Centros de confianza en Gurugram, en el orden que muchas familias eligen.",
-  "Accreditation note Paras NABH":
-    "Paras Hospital tiene acreditación NABH; los otros cuatro listados son hospitales JCI con los que trabajamos.",
+  "Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.":
+    "Paras y Manipal tienen acreditación NABH; Medanta, Artemis, Fortis y Max tienen acreditación JCI.",
   "Representative hospital photo": "Foto ilustrativa del hospital",
   "Representative photo note": "Foto orientativa; el edificio puede verse distinto.",
-  "Five hospitals we connect you with": "Cinco hospitales con los que te conectamos",
+  "Six hospitals we connect you with": "Seis hospitales con los que te conectamos",
   "Not sure which hospital fits your case?": "¿No sabes qué hospital encaja con tu caso?",
   "Our care team helps you choose on WhatsApp, no pressure.":
     "Nuestro equipo te ayuda a elegir por WhatsApp, sin presión.",
@@ -674,11 +674,11 @@ export const swPack: Record<string, string> = {
   "JCI-accredited partner hospitals": "Hospital washirika wenye idhini ya JCI",
   "Trusted Gurugram facilities, in the order many families choose.":
     "Vituo vinavyoaminika Gurugram, kwa mpangilio familia nyingi huchagua.",
-  "Accreditation note Paras NABH":
-    "Paras Hospital ina idhini ya NABH; nne zingine hapa ni Hospital za JCI tunazofanya nao kazi.",
+  "Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.":
+    "Paras na Manipal wana idhini ya NABH; Medanta, Artemis, Fortis na Max wana idhini ya JCI.",
   "Representative hospital photo": "Picha ya mfano ya Hospital",
   "Representative photo note": "Picha ni mfano; jengo linaweza kuonekana tofauti.",
-  "Five hospitals we connect you with": "Hospital 5 tunazokuunganisha nawe",
+  "Six hospitals we connect you with": "Hospital 6 tunazokuunganisha nawe",
   "Not sure which hospital fits your case?": "Hujui Hospital gani inafaa hali yako?",
   "Our care team helps you choose on WhatsApp, no pressure.":
     "Timu yetu inakusaidia kuchagua WhatsApp bila shinikizo.",
@@ -989,11 +989,11 @@ export const ptPack: Record<string, string> = {
   "JCI-accredited partner hospitals": "Hospitais parceiros credenciados JCI",
   "Trusted Gurugram facilities, in the order many families choose.":
     "Centros confiáveis em Gurugram, na ordem que muitas famílias escolhem.",
-  "Accreditation note Paras NABH":
-    "Paras Hospital é credenciado NABH; os outros quatro listados são hospitais JCI com os quais trabalhamos.",
+  "Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.":
+    "Paras e Manipal são credenciados NABH; Medanta, Artemis, Fortis e Max são credenciados JCI.",
   "Representative hospital photo": "Foto ilustrativa do hospital",
   "Representative photo note": "Foto meramente ilustrativa; o prédio pode variar.",
-  "Five hospitals we connect you with": "Cinco hospitais com os quais conectamos você",
+  "Six hospitals we connect you with": "Seis hospitais com os quais conectamos você",
   "Not sure which hospital fits your case?": "Não sabe qual hospital combina com seu caso?",
   "Our care team helps you choose on WhatsApp, no pressure.":
     "Nossa equipe ajuda você a escolher no WhatsApp, sem pressão.",
@@ -1303,11 +1303,11 @@ export const rwPack: Record<string, string> = {
   "JCI-accredited partner hospitals": "Partner hospitals zifite JCI accreditation",
   "Trusted Gurugram facilities, in the order many families choose.":
     "Hospitals zizewe za Gurugram, ku rutonde imiryango myinshi ishitamo.",
-  "Accreditation note Paras NABH":
-    "Paras Hospital ifite NABH accreditation; izindi 4 muri liste ni JCI hospitals dukorana nazo.",
+  "Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.":
+    "Paras na Manipal bifite NABH accreditation; Medanta, Artemis, Fortis na Max bifite JCI accreditation.",
   "Representative hospital photo": "Representative hospital photo",
   "Representative photo note": "Photo n'iya kwerekana gusa; inyubako ishobora kugaragara ukundi.",
-  "Five hospitals we connect you with": "Hospitals 5 tuguconnecta nazo",
+  "Six hospitals we connect you with": "Hospitals 6 tuguconnecta nazo",
   "Not sure which hospital fits your case?": "Ntiwizeye iy'hospital ikwiye case yawe?",
   "Our care team helps you choose on WhatsApp, no pressure.":
     "Care team yacu itufasha guhitamo kuri WhatsApp, nta pressure.",
@@ -1600,10 +1600,11 @@ export const yoPack: Record<string, string> = {
   "After the five steps above: your time in India": "Lehin awon steps marun yen: akoko re ni India",
   "JCI-accredited partner hospitals": "Awon partner hospitals pelu JCI accreditation",
   "Trusted Gurugram facilities, in the order many families choose.": "Awon facilities ti a fokan tan ni Gurugram.",
-  "Accreditation note Paras NABH": "Paras Hospital ni NABH accreditation; idamerin to ku je JCI hospitals ti a n ba sise pọ.",
+  "Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.":
+    "Paras ati Manipal ni NABH accreditation; Medanta, Artemis, Fortis ati Max ni JCI accreditation.",
   "Representative hospital photo": "Representative hospital photo",
   "Representative photo note": "Photo yi je representative",
-  "Five hospitals we connect you with": "Hospitals marun ti a connect e pelu",
+  "Six hospitals we connect you with": "Hospitals mefa ti a connect e pelu",
   "Not sure which hospital fits your case?": "O ko sure hospital wo lo fit case re?",
   "Our care team helps you choose on WhatsApp, no pressure.": "Care team wa yio help re lati choose lori WhatsApp, ko si pressure.",
   "See more details >": "Wo details miran >",

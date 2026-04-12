@@ -49,11 +49,11 @@ export const MT_TRANSLATIONS: Partial<Record<NonEn, Record<string, string>>> = {
     "JCI-accredited partner hospitals": "JCI मान्यता वाले साझेदार अस्पताल",
     "Trusted Gurugram facilities, in the order many families choose.":
       "गुरुग्राम के भरोसेमंद अस्पताल — जिस क्रम में कई परिवार चुनते हैं।",
-    "Accreditation note Paras NABH":
-      "Paras Hospital NABH मान्यता वाला है; बाकी चार यहाँ सूचीबद्ध JCI मान्यता वाले अस्पताल हैं।",
+    "Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.":
+      "Paras और Manipal Hospital NABH मान्यता वाले हैं; Medanta, Artemis, Fortis और Max JCI मान्यता वाले हैं।",
     "Representative hospital photo": "अस्पताल का प्रतिनिधि फोटो",
     "Representative photo note": "फोटो केवल उदाहरण है; इमारत दिखने में अलग हो सकती है।",
-    "Five hospitals we connect you with": "पाँच अस्पताल जिनसे हम आपको जोड़ते हैं",
+    "Six hospitals we connect you with": "छह अस्पताल जिनसे हम आपको जोड़ते हैं",
     "Not sure which hospital fits your case?": "समझ नहीं आ रहा कौन सा अस्पताल आपके लिए ठीक है?",
     "Our care team helps you choose on WhatsApp, no pressure.":
       "हमारी केयर टीम WhatsApp पर बिना दबाव के चुनने में मदद करती है।",
@@ -397,11 +397,11 @@ export const MT_TRANSLATIONS: Partial<Record<NonEn, Record<string, string>>> = {
     "JCI-accredited partner hospitals": "مستشفيات شركاء معتمدة JCI",
     "Trusted Gurugram facilities, in the order many families choose.":
       "مرافق موثوقة في غورغاون بالترتيب الذي تفضله كثير من العائلات.",
-    "Accreditation note Paras NABH":
-      "مستشفى باراس معتمد NABH؛ الأربعة الآخرون في القائمة مستشفيات JCI نتعاون معها.",
+    "Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.":
+      "باراس ومانيبال معتمدان NABH؛ ميدانتا وأرتيميس وفورتيس وماكس معتمدة JCI.",
     "Representative hospital photo": "صورة توضيحية للمستشفى",
     "Representative photo note": "الصورة للتوضيح؛ قد يختلف مظهر المبنى.",
-    "Five hospitals we connect you with": "خمس مستشفيات نربطك بها",
+    "Six hospitals we connect you with": "ست مستشفيات نربطك بها",
     "Not sure which hospital fits your case?": "لست متأكداً أي مستشفى يناسب حالتك؟",
     "Our care team helps you choose on WhatsApp, no pressure.":
       "فريق العناية يساعدك على الاختيار عبر واتساب بدون ضغط.",

@@ -1,4 +1,4 @@
-/** Medanta → Artemis → Fortis → Max → Paras (Gurugram). Used on /med-tourism hero strip + hospitals anchor. */
+/** Medanta → Artemis → Fortis → Max → Manipal → Paras (Gurugram). Photos: `public/images-service`. */
 export type GurugramPartnerHospital = {
   name: string;
   /** Kept for admin / SEO; optional to show in UI */
@@ -11,6 +11,12 @@ export type GurugramPartnerHospital = {
   websiteUrl: string;
 };
 
+function localHospitalImage(filename: string): string {
+  const base = import.meta.env.BASE_URL;
+  const path = `images-service/${filename}`;
+  return base.endsWith("/") ? `${base}${path}` : `${base}/${path}`;
+}
+
 export const GURUGRAM_PARTNER_HOSPITALS: GurugramPartnerHospital[] = [
   {
     name: "Medanta – The Medicity",
@@ -18,8 +24,7 @@ export const GURUGRAM_PARTNER_HOSPITALS: GurugramPartnerHospital[] = [
     rating: 4.9,
     specialty: "Cardiac, neurology & multi-specialty",
     accreditation: "JCI",
-    image:
-      "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=960&q=80&auto=format&fit=crop",
+    image: localHospitalImage("medanta.webp"),
     websiteUrl: "https://www.medanta.org/",
   },
   {
@@ -28,8 +33,7 @@ export const GURUGRAM_PARTNER_HOSPITALS: GurugramPartnerHospital[] = [
     rating: 4.8,
     specialty: "Multi-specialty",
     accreditation: "JCI",
-    image:
-      "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=960&q=80&auto=format&fit=crop",
+    image: localHospitalImage("artemis.jpg"),
     websiteUrl: "https://www.artemishospitals.com/",
   },
   {
@@ -38,8 +42,7 @@ export const GURUGRAM_PARTNER_HOSPITALS: GurugramPartnerHospital[] = [
     rating: 4.8,
     specialty: "Oncology, transplants & quaternary care",
     accreditation: "JCI",
-    image:
-      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=960&q=80&auto=format&fit=crop",
+    image: localHospitalImage("fortis.webp"),
     websiteUrl: "https://www.fortishealthcare.com/hospitals/fortis-memorial-research-institute-gurgaon",
   },
   {
@@ -48,9 +51,17 @@ export const GURUGRAM_PARTNER_HOSPITALS: GurugramPartnerHospital[] = [
     rating: 4.7,
     specialty: "Multi-specialty",
     accreditation: "JCI",
-    image:
-      "https://images.unsplash.com/photo-1551076805-e1869783b561?w=960&q=80&auto=format&fit=crop",
+    image: localHospitalImage("max.png"),
     websiteUrl: "https://www.maxhealthcare.in/hospitals/gurugram/hospital",
+  },
+  {
+    name: "Manipal Hospital, Gurugram",
+    location: "Sector 23A, Gurugram, India",
+    rating: 4.7,
+    specialty: "Multi-specialty & emergency care",
+    accreditation: "NABH",
+    image: localHospitalImage("manipal.png"),
+    websiteUrl: "https://www.manipalhospitals.com/gurugram/",
   },
   {
     name: "Paras Hospital",
@@ -58,8 +69,7 @@ export const GURUGRAM_PARTNER_HOSPITALS: GurugramPartnerHospital[] = [
     rating: 4.6,
     specialty: "Orthopedics, neurology & multi-specialty",
     accreditation: "NABH",
-    image:
-      "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=960&q=80&auto=format&fit=crop",
+    image: localHospitalImage("paras.jpg"),
     websiteUrl: "https://www.parashospitals.com/",
   },
 ];

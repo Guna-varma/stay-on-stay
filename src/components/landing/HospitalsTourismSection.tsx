@@ -6,7 +6,7 @@ import { WHATSAPP_CARE_GUIDE_PREFILL } from "@/lib/whatsappContact";
 import { useWhatsappHref } from "@/hooks/useWhatsappHref";
 
 /**
- * #hospitals anchor on /med-tourism — five partner hospitals only (no sector / metro / outing lists).
+ * #hospitals anchor on /med-tourism — Gurugram partner hospitals (no sector / metro / outing lists).
  * Mobile: horizontal snap scroll; desktop: responsive grid. Green accents = trust / care continuity with header WhatsApp.
  */
 export default function HospitalsTourismSection() {
@@ -25,15 +25,17 @@ export default function HospitalsTourismSection() {
             {tx("JCI-accredited partner hospitals")}
           </span>
           <h2 className="font-heading mt-4 text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
-            {tx("Five hospitals we connect you with")}
+            {tx("Six hospitals we connect you with")}
           </h2>
           <p className="mt-3 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
             {tx("Trusted Gurugram facilities, in the order many families choose.")}
           </p>
-          <p className="mx-auto mt-2 max-w-2xl text-xs text-muted-foreground sm:text-sm">{tx("Accreditation note Paras NABH")}</p>
+          <p className="mx-auto mt-2 max-w-2xl text-xs text-muted-foreground sm:text-sm">
+            {tx("Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.")}
+          </p>
         </div>
 
-        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:thin] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 [scrollbar-width:thin] sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3 xl:grid-cols-6">
           {GURUGRAM_PARTNER_HOSPITALS.map((h, i) => {
             const isJci = h.accreditation === "JCI";
             return (

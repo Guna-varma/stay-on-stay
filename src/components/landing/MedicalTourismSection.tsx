@@ -122,6 +122,13 @@ const trustProcessSteps: {
 const u = (id: string) =>
   `https://images.unsplash.com/${id}?w=800&q=80&auto=format&fit=crop&ixlib=rb-4.0.3`;
 
+/** Files in `public/` — use BASE_URL so assets resolve when the app is not served from domain root. */
+function publicAsset(relativePath: string): string {
+  const base = import.meta.env.BASE_URL;
+  const path = relativePath.replace(/^\//, "");
+  return base.endsWith("/") ? `${base}${path}` : `${base}/${path}`;
+}
+
 /** Representative photos (Unsplash) — warm, real-world context for trust; not a specific patient or hospital. */
 const journeySteps: {
   icon: LucideIcon;
@@ -129,13 +136,22 @@ const journeySteps: {
   desc: string;
   imageSrc: string;
   imageAlt: string;
+  /**
+   * Aspect box on a wrapper `div` — not on `<img>`. Putting `aspect-*` on an image inside flex often collapses
+   * height and shows a thin horizontal strip; layered `absolute` + `object-cover` avoids that.
+   */
+  imageFrameClass?: string;
+  /** Optional `object-*` on the positioned image (portrait photos). */
+  imageObjectClass?: string;
 }[] = [
   {
     icon: MessageCircle,
     title: "Tell us your problem",
     desc: "Tell us what you need. We listen.",
-    imageSrc: u("photo-1573497019940-1c28c88b4f3e"),
-    imageAlt: "Person on a video call with a laptop, suggesting a remote care conversation",
+    imageSrc: publicAsset("images-service/problem.jpeg"),
+    imageAlt: "Welcoming professional for your first care conversation",
+    imageFrameClass: "aspect-[3/4] sm:aspect-[3/2]",
+    imageObjectClass: "object-top",
   },
   {
     icon: ListChecks,
@@ -796,7 +812,12 @@ function JourneyBlock() {
                         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{tx(step.desc)}</p>
                       </div>
                       <div className="order-1 w-full shrink-0 sm:order-2 sm:w-[min(100%,200px)] md:w-[min(100%,240px)]">
-                        <div className="overflow-hidden rounded-2xl border border-border/80 bg-muted/40 shadow-md ring-1 ring-black/[0.04] dark:ring-white/10">
+                        <div
+                          className={cn(
+                            "relative w-full overflow-hidden rounded-2xl border border-border/80 bg-muted/40 shadow-md ring-1 ring-black/[0.04] dark:ring-white/10",
+                            step.imageFrameClass ?? "aspect-[3/2]",
+                          )}
+                        >
                           <img
                             src={step.imageSrc}
                             alt={step.imageAlt}
@@ -804,7 +825,10 @@ function JourneyBlock() {
                             height={320}
                             loading="lazy"
                             decoding="async"
-                            className="aspect-[3/2] h-auto w-full object-cover transition-transform duration-500 hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100"
+                            className={cn(
+                              "absolute inset-0 h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100",
+                              step.imageObjectClass,
+                            )}
                             sizes="(min-width: 1024px) 240px, (min-width: 640px) 200px, 100vw"
                           />
                         </div>
@@ -1016,10 +1040,12 @@ function HospitalsBlock() {
           <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
             {tx("Trusted Gurugram facilities, in the order many families choose.")}
           </p>
-          <p className="mx-auto mt-2 max-w-2xl text-xs text-muted-foreground">{tx("Accreditation note Paras NABH")}</p>
+          <p className="mx-auto mt-2 max-w-2xl text-xs text-muted-foreground">
+            {tx("Paras and Manipal are NABH-accredited; Medanta, Artemis, Fortis, and Max are JCI-accredited.")}
+          </p>
         </motion.div>
 
-        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3 xl:grid-cols-6">
           {GURUGRAM_PARTNER_HOSPITALS.map((h, i) => (
             <motion.article
               key={h.name}
