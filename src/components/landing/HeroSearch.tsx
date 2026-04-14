@@ -128,7 +128,7 @@ const HeroSearch = () => {
           <p className="mx-auto max-w-2xl text-sm leading-relaxed text-primary-foreground/95 [text-shadow:0_1px_18px_rgba(0,0,0,0.45)] sm:text-base md:text-lg">
             {t("hero.subtitle")}
           </p>
-          <p className="mt-4 text-xs font-semibold text-white/95 [text-shadow:0_1px_14px_rgba(0,0,0,0.42)] sm:text-sm">
+          <p className="mt-6 mx-auto inline-block max-w-2xl rounded-2xl border border-emerald-400/30 bg-black/40 backdrop-blur-md px-6 py-4 text-base font-bold leading-relaxed text-white shadow-2xl sm:text-lg md:text-xl drop-shadow-xl [text-shadow:0_2px_10px_rgba(0,0,0,0.8)]">
             {t("hero.promise")}
           </p>
         </div>
