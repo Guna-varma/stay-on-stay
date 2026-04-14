@@ -9,6 +9,7 @@ import { CartProvider } from "@/lib/cart-context";
 import { I18nProvider } from "@/lib/i18n";
 import { AppShell } from "@/components/AppShell";
 import React from "react";
+import { Loader2 } from "lucide-react";
 
 import Landing from "./pages/Landing";
 import MedTourism from "./pages/MedTourism";
@@ -26,6 +27,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import AuthCallback from "./pages/AuthCallback";
 import AccessDenied from "./pages/AccessDenied";
 import NotFound from "./pages/NotFound";
 
@@ -50,7 +52,15 @@ const Profile = React.lazy(() => import("./pages/Profile"));
 const queryClient = new QueryClient();
 
 function DashboardRouter() {
-  const { user } = useAuth();
+  const { user, isInitialized } = useAuth();
+  if (!isInitialized) {
+    return (
+      <div className="flex min-h-[50vh] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" aria-hidden />
+        <span className="sr-only">Loading dashboard</span>
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/login" replace />;
 
   const roleComponentMap: Record<UserRole, JSX.Element> = {
@@ -86,6 +96,7 @@ const App = () => (
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/whatsapp-support" element={<WhatsAppSupport />} />
               <Route path="/explore-india" element={<ExploreIndia />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -111,6 +122,7 @@ const App = () => (
                 {/* Manager (reception + front-desk) */}
                 <Route path="/checkin" element={<ReceptionDashboard />} />
                 <Route path="/rooms" element={<ReceptionDashboard />} />
+                <Route path="/transport" element={<ReceptionDashboard />} />
                 <Route path="/verifications" element={<ReceptionDashboard />} />
                 <Route path="/staff" element={<ReceptionDashboard />} />
                 <Route path="/reports" element={<ReceptionDashboard />} />

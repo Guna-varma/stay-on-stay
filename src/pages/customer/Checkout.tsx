@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { countAvailableRooms, getPublicHotelDetail, invokeCreateCheckoutSession } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { computeStayPricing, pricingTierLabel } from "@/lib/pricing";
 
 export default function Checkout() {
   const [params] = useSearchParams();
@@ -17,7 +18,12 @@ export default function Checkout() {
   const checkOut = params.get("checkOut") ?? "";
   const [hotelName, setHotelName] = useState("Hotel");
   const [roomTypeName, setRoomTypeName] = useState("Room");
-  const [basePrice, setBasePrice] = useState(0);
+  const [roomTypeRow, setRoomTypeRow] = useState<{
+    final_price: number | null;
+    base_price: number | null;
+    weekly_nightly_rate: number | null;
+    monthly_nightly_rate: number | null;
+  } | null>(null);
   const [guestFirstName, setGuestFirstName] = useState(user?.firstName ?? "");
   const [guestLastName, setGuestLastName] = useState(user?.lastName ?? "");
   const [guestEmail, setGuestEmail] = useState(user?.email ?? "");
@@ -32,7 +38,12 @@ export default function Checkout() {
       const rt = data.room_types.find((r) => r.id === roomTypeId);
       if (rt) {
         setRoomTypeName(rt.name);
-        setBasePrice(Number(rt.base_price ?? 0));
+        setRoomTypeRow({
+          final_price: rt.final_price,
+          base_price: rt.base_price,
+          weekly_nightly_rate: rt.weekly_nightly_rate,
+          monthly_nightly_rate: rt.monthly_nightly_rate,
+        });
       }
     });
     countAvailableRooms(roomTypeId, checkIn, checkOut).then(({ data }) => setAvailable(data));
@@ -42,7 +53,19 @@ export default function Checkout() {
     () => Math.max(1, Math.round((new Date(`${checkOut}T12:00:00Z`).getTime() - new Date(`${checkIn}T12:00:00Z`).getTime()) / 86400000)),
     [checkIn, checkOut],
   );
-  const total = basePrice * nights;
+  const stayPricing = useMemo(() => {
+    if (!roomTypeRow) {
+      return { effectiveNightly: 0, listSubtotal: 0, tier: "standard" as const, lineTotal: 0 };
+    }
+    const fp = Number(roomTypeRow.final_price ?? roomTypeRow.base_price ?? 0);
+    return computeStayPricing({
+      finalPrice: fp,
+      weeklyNightly: roomTypeRow.weekly_nightly_rate,
+      monthlyNightly: roomTypeRow.monthly_nightly_rate,
+      nights,
+    });
+  }, [roomTypeRow, nights]);
+  const total = stayPricing.lineTotal;
 
   const onPay = async () => {
     if (!guestFirstName.trim() || !guestEmail.trim() || !guestPhone.trim()) {
@@ -91,7 +114,14 @@ export default function Checkout() {
         <CardHeader><CardTitle>{hotelName} - {roomTypeName}</CardTitle></CardHeader>
         <CardContent className="space-y-2 text-sm">
           <div className="flex justify-between"><span>Dates</span><span>{checkIn} to {checkOut}</span></div>
-          <div className="flex justify-between"><span>Price</span><span>₹{basePrice.toLocaleString()} x {nights} night(s)</span></div>
+          <div className="flex justify-between"><span>Effective rate</span><span>₹{stayPricing.effectiveNightly.toLocaleString()} / night</span></div>
+          <div className="flex justify-between text-xs text-muted-foreground"><span>{pricingTierLabel(stayPricing.tier)}</span><span>{nights} night(s)</span></div>
+          {stayPricing.tier !== "standard" && stayPricing.listSubtotal > stayPricing.lineTotal && (
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Catalog at standard rate</span>
+              <span className="line-through">₹{stayPricing.listSubtotal.toLocaleString()}</span>
+            </div>
+          )}
           <div className="flex justify-between font-semibold"><span>Total</span><span>₹{total.toLocaleString()}</span></div>
           {available != null && available <= 2 && available > 0 && <p className="text-warning text-xs">Almost sold out - only {available} left.</p>}
           {available === 0 && <p className="text-destructive text-xs">This room type is currently unavailable.</p>}

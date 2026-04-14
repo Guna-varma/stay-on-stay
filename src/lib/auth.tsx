@@ -41,8 +41,6 @@ interface AuthContextType {
   user: AuthUser | null;
   /** False until session is restored (Supabase) or localStorage read (demo). Prevents flash redirect to login. */
   isInitialized: boolean;
-  /** Re-check session from storage (e.g. new tab). Use when initialized but user is null to pick up existing session. */
-  recheckSession: () => Promise<void>;
   login: (email: string, password: string) => { success: boolean; error?: string };
   logoutCurrentDevice: () => Promise<void>;
   logoutAllDevices: () => Promise<void>;
@@ -60,10 +58,10 @@ const CREDENTIALS: Record<string, { password: string; role: UserRole; name: stri
   "manager@stayonstay.com": { password: "12345678", role: "manager", name: "Priya Sharma" },
 };
 
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 min
 const PROFILE_FETCH_MAX_ATTEMPTS = 4;
 const PROFILE_FETCH_BASE_DELAY_MS = 200;
 const SESSION_INIT_TIMEOUT_MS = 6000;
+const AUTH_SYNC_CHANNEL = "sos-auth";
 
 const mockDevices = ["Chrome on Windows 11", "Safari on macOS", "Chrome on Android", "Firefox on Ubuntu"];
 const mockIPs = ["103.21.58.142", "49.36.128.91", "182.74.55.210", "14.139.60.15"];
@@ -127,6 +125,31 @@ function sessionUserToAuthUser(sessionUser: { id: string; email?: string; user_m
   };
 }
 
+/** When profiles row is slow/unreachable, infer role from JWT metadata (set in Supabase for staff if needed). */
+function inferUserRoleFromSession(sessionUser: {
+  user_metadata?: Record<string, unknown>;
+  app_metadata?: Record<string, unknown>;
+}): UserRole {
+  const raw =
+    sessionUser.user_metadata?.role ??
+    sessionUser.app_metadata?.role ??
+    sessionUser.user_metadata?.user_role;
+  const s = typeof raw === "string" ? raw.toLowerCase().trim() : "";
+  if (s === "owner" || s === "manager" || s === "admin" || s === "customer") return s;
+  return "customer";
+}
+
+/** Last-resort user so the shell does not spin forever when getProfile fails after retries. */
+function fallbackAuthUserFromSession(sessionUser: {
+  id: string;
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+  app_metadata?: Record<string, unknown>;
+}): AuthUser {
+  const base = sessionUserToAuthUser(sessionUser as Parameters<typeof sessionUserToAuthUser>[0]);
+  return { ...base, role: inferUserRoleFromSession(sessionUser) };
+}
+
 function createMockUser(email: string, role: UserRole, name: string): AuthUser {
   const [firstName = "", ...rest] = name.trim().split(/\s+/);
   const lastName = rest.join(" ");
@@ -146,33 +169,6 @@ function createMockUser(email: string, role: UserRole, name: string): AuthUser {
   };
 }
 
-function clearStoredAuthState() {
-  localStorage.removeItem("sos_user");
-}
-
-function hydrateStoredUser(user: Partial<AuthUser> & Pick<AuthUser, "id" | "email" | "role" | "loginTime">): AuthUser {
-  const firstName = (user.firstName ?? "").trim();
-  const lastName = (user.lastName ?? "").trim();
-  const name = (user.displayName ?? user.name ?? "").trim();
-  const email = user.email ?? "";
-  const displayName = getDisplayName({ firstName, lastName, name, email });
-
-  return {
-    id: user.id,
-    email,
-    firstName,
-    lastName,
-    displayName,
-    initials: getInitials({ firstName, lastName, name: displayName, email }),
-    role: user.role,
-    name: displayName || "User",
-    profileComplete: Boolean(firstName && lastName),
-    avatarUrl: user.avatarUrl ?? user.avatar,
-    avatar: user.avatar ?? user.avatarUrl,
-    loginTime: user.loginTime,
-  };
-}
-
 async function fetchProfileWithRetry(userId: string): Promise<Profile | null> {
   for (let attempt = 1; attempt <= PROFILE_FETCH_MAX_ATTEMPTS; attempt++) {
     try {
@@ -188,31 +184,30 @@ async function fetchProfileWithRetry(userId: string): Promise<Profile | null> {
   return null;
 }
 
-function getInitialUser(): AuthUser | null {
+function clearStoredDemoAuthState() {
+  localStorage.removeItem("sos_user");
+}
+
+function getInitialDemoUser(): AuthUser | null {
   if (isSupabaseConfigured()) return null;
   const stored = localStorage.getItem("sos_user");
   if (!stored) return null;
   try {
-    const parsed = JSON.parse(stored) as Partial<AuthUser> & Pick<AuthUser, "id" | "email" | "role" | "loginTime">;
-    if (Date.now() - parsed.loginTime > SESSION_TIMEOUT) {
-      localStorage.removeItem("sos_user");
-      return null;
-    }
-    return hydrateStoredUser(parsed);
+    return JSON.parse(stored) as AuthUser;
   } catch {
     return null;
   }
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
-  ]);
+function createAuthSyncChannel(): BroadcastChannel | null {
+  if (typeof window === "undefined" || typeof BroadcastChannel === "undefined") {
+    return null;
+  }
+  return new BroadcastChannel(AUTH_SYNC_CHANNEL);
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(getInitialUser);
+  const [user, setUser] = useState<AuthUser | null>(getInitialDemoUser);
   const [initialized, setInitialized] = useState(!isSupabaseConfigured());
 
   const [loginLogs, setLoginLogs] = useState<LoginLog[]>(() => {
@@ -221,9 +216,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   /**
-   * Resolve the user's real role from their profile. If the profile fetch fails,
-   * retry with increasing delays. NEVER fall back to a guessed "customer" role —
-   * that causes the wrong dashboard to flash for owners/admins/managers.
+   * Prefer `profiles` row for role and name. If fetch fails after retries, fall back to
+   * session-only user with role from JWT `user_metadata.role` / `app_metadata.role` when set.
    */
   const resolveAuthUser = useCallback(async (
     sessionUser: { id: string; email?: string; user_metadata?: Record<string, any> },
@@ -232,20 +226,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const profileData = await fetchProfileWithRetry(sessionUser.id);
     if (!mountedRef.current) return null;
     if (profileData) {
+      if (!profileData.is_active) {
+        try {
+          await supabaseLogoutCurrentDevice();
+        } catch {
+          /* best effort */
+        }
+        return null;
+      }
       const { name, avatar } = getUserDisplay(sessionUser);
       return profileToAuthUser(profileData, name, avatar);
     }
-    return null;
+    return fallbackAuthUserFromSession(sessionUser);
   }, []);
 
   const refreshFromSession = useCallback(async () => {
     if (!isSupabaseConfigured()) return;
     try {
-      const { data } = await withTimeout(getSession(), 3000, { session: null });
-      if (!data.session?.user) return;
+      const { data, error } = await getSession();
+      if (error) return;
+      if (!data.session?.user) {
+        setUser(null);
+        return;
+      }
       const ref = { current: true };
       const resolved = await resolveAuthUser(data.session.user, ref);
-      if (resolved) setUser(resolved);
+      setUser(resolved);
     } catch {
       /* swallow — session refresh is best-effort */
     }
@@ -263,6 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const mountedRef = { current: true };
+    const authSyncChannel = createAuthSyncChannel();
 
     const safetyTimer = setTimeout(() => {
       if (mountedRef.current) setInitialized(true);
@@ -274,18 +281,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === "INITIAL_SESSION") {
           if (session?.user) {
             const resolved = await resolveAuthUser(session.user, mountedRef);
-            if (mountedRef.current && resolved) setUser(resolved);
+            if (mountedRef.current) setUser(resolved);
           } else if (
             typeof window !== "undefined" &&
             window.location.hash.includes("access_token")
           ) {
             // OAuth implicit/PKCE fragment: session can appear shortly after storage write
             await new Promise((r) => setTimeout(r, 200));
-            const { data } = await withTimeout(getSession(), 4000, { session: null });
+            const { data } = await getSession();
             if (mountedRef.current && data.session?.user) {
               const resolved = await resolveAuthUser(data.session.user, mountedRef);
-              if (mountedRef.current && resolved) setUser(resolved);
+              if (mountedRef.current) setUser(resolved);
             }
+          } else if (mountedRef.current) {
+            setUser(null);
           }
           if (mountedRef.current) setInitialized(true);
           return;
@@ -294,13 +303,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === "SIGNED_OUT") {
           setUser(null);
           setInitialized(true);
+          authSyncChannel?.postMessage({ type: "auth-state-changed" });
           return;
         }
 
         if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session?.user) {
           const resolved = await resolveAuthUser(session.user, mountedRef);
           if (!mountedRef.current) return;
-          if (resolved) setUser(resolved);
+          setUser(resolved);
+          if (event === "SIGNED_IN") {
+            authSyncChannel?.postMessage({ type: "auth-state-changed" });
+          }
         }
         if (mountedRef.current) setInitialized(true);
       } catch {
@@ -311,6 +324,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       mountedRef.current = false;
       clearTimeout(safetyTimer);
+      authSyncChannel?.close();
       subscription.unsubscribe();
     };
   }, [resolveAuthUser]);
@@ -336,15 +350,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshFromSession]);
 
   useEffect(() => {
-    if (!user || !isSupabaseConfigured()) return;
-    const interval = setInterval(() => {
-      if (Date.now() - user.loginTime > SESSION_TIMEOUT) {
-        setUser(null);
-        supabaseLogoutCurrentDevice();
+    if (!isSupabaseConfigured()) return;
+
+    const channel = createAuthSyncChannel();
+    if (!channel) return;
+
+    channel.onmessage = (event: MessageEvent<{ type?: string }>) => {
+      if (event.data?.type === "auth-state-changed") {
+        refreshFromSession();
       }
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [user]);
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [refreshFromSession]);
+
+  /* Removed artificial 30-min SESSION_TIMEOUT. Supabase manages JWT expiry
+     and auto-refreshes tokens via autoRefreshToken: true. */
 
   const login = useCallback((email: string, password: string) => {
     if (isSupabaseConfigured()) return { success: false, error: "Use Google or OTP to sign in." };
@@ -375,20 +398,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logoutCurrentDevice = useCallback(async () => {
     if (isSupabaseConfigured()) await supabaseLogoutCurrentDevice();
+    else clearStoredDemoAuthState();
     setUser(null);
-    clearStoredAuthState();
   }, []);
 
   const logoutAllDevices = useCallback(async () => {
     if (isSupabaseConfigured()) {
       await supabaseLogoutAllDevices();
+    } else {
+      clearStoredDemoAuthState();
     }
     setUser(null);
-    clearStoredAuthState();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isInitialized: initialized, recheckSession: refreshFromSession, login, logoutCurrentDevice, logoutAllDevices, loginLogs }}>
+    <AuthContext.Provider value={{ user, isInitialized: initialized, login, logoutCurrentDevice, logoutAllDevices, loginLogs }}>
       {children}
     </AuthContext.Provider>
   );

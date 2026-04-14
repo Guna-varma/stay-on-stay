@@ -33,6 +33,7 @@ export const ROLE_NAV: Record<UserRole, NavItem[]> = {
   ],
   owner: [
     { title: "Dashboard", path: "/dashboard", icon: Home },
+    { title: "Transport Ops", path: "/transport", icon: CheckCircle },
     { title: "Revenue Analytics", path: "/analytics/revenue", icon: BarChart3 },
     { title: "Occupancy", path: "/analytics/occupancy", icon: Activity },
     { title: "Expenses", path: "/analytics/expenses", icon: Lock },

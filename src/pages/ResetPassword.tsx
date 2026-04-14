@@ -154,11 +154,11 @@ export default function ResetPassword() {
           </div>
           <h1 className={authTheme.title}>Link invalid or expired</h1>
           <p className={cn(authTheme.subtitle, "mt-3")}>
-            Request a new code from forgot password. Sessions expire after a short time for security.
+            Open the reset link from your email again, or start over below. Links expire after a short time to keep your account safe.
           </p>
           <div className="mt-8 flex flex-col gap-3 text-center text-sm">
             <Link to="/forgot-password" className={cn(authTheme.link)}>
-              Send a new code
+              Email me a new reset link
             </Link>
             <Link to="/login" className="text-muted-foreground hover:text-foreground">
               Back to sign in

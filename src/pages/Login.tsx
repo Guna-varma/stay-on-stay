@@ -70,14 +70,13 @@ function validatePhoneByCountry(countryCode: string, mobileNumber: string): stri
 }
 
 export default function Login() {
-  const { user, isInitialized, recheckSession, login: loginDemo } = useAuth();
+  const { user, isInitialized, login: loginDemo } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [googleLoading, setGoogleLoading] = useState(false);
   const [onboardingLoading, setOnboardingLoading] = useState(true);
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
-  const [sessionRecheckDone, setSessionRecheckDone] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
@@ -96,22 +95,8 @@ export default function Login() {
 
   const hasSupabase = isSupabaseConfigured();
 
-  // New tab / same browser: re-check session once so we don't show login if already signed in
-  useEffect(() => {
-    if (!isInitialized || user || !hasSupabase) {
-      if (isInitialized && !user) setSessionRecheckDone(true);
-      return;
-    }
-    let cancelled = false;
-    const t = setTimeout(() => {
-      if (!cancelled) setSessionRecheckDone(true);
-    }, 600);
-    recheckSession();
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
-  }, [isInitialized, user, hasSupabase, recheckSession]);
+  /* Session restoration is now handled entirely by AuthProvider via
+     onAuthStateChange(INITIAL_SESSION). OAuth goes to /auth/callback. */
 
   // Show message when redirected after OAuth state expired (bad_oauth_state)
   useEffect(() => {
@@ -257,7 +242,7 @@ export default function Login() {
       setWaOtp("");
       toast({
         title: "Check WhatsApp",
-        description: "If this number is saved on your StayOnStay profile, we sent a 6-digit code. It expires in 10 minutes.",
+        description: "If this number is on your profile, open WhatsApp for your sign-in code. It expires in 10 minutes.",
       });
     } catch (err) {
       toast({
@@ -273,7 +258,7 @@ export default function Login() {
   const handleWhatsAppVerify = async (codeOverride?: string) => {
     const code = (codeOverride ?? waOtp).replace(/\D/g, "");
     if (code.length !== 6) {
-      toast({ title: "Enter the 6-digit code", variant: "destructive" });
+      toast({ title: "Enter the full code from WhatsApp", variant: "destructive" });
       return;
     }
     if (!waPendingE164) {
@@ -485,31 +470,6 @@ export default function Login() {
     );
   }
 
-  // Returned from Google with tokens in URL but session not yet recovered – show brief “Signing you in…”
-  const hasOAuthHash = typeof window !== "undefined" && window.location.hash.includes("access_token");
-  if (!user && isInitialized && hasOAuthHash) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Signing you in…</p>
-        </div>
-      </div>
-    );
-  }
-
-  // New tab / same browser: briefly check for existing session before showing login form
-  if (!user && isInitialized && !sessionRecheckDone) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Checking sign-in…</p>
-        </div>
-      </div>
-    );
-  }
-
   // Not signed in: email/password, Google, links (reference UI)
   return (
     <AuthPageLayout>
@@ -517,7 +477,7 @@ export default function Login() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="w-full max-w-[460px]"
+        className="w-full max-w-[min(28rem,100%)]"
       >
         <AuthCard>
           <div className="mb-5 flex justify-center">
@@ -529,8 +489,8 @@ export default function Login() {
           <h1 className={cn(authTheme.title, "mt-4")}>Welcome back to StayOnStay</h1>
           <p className={cn(authTheme.subtitle, "mt-3")}>
             {hasSupabase
-              ? "Sign in with email and password, continue with Google, or use WhatsApp if your saved mobile number is already on your profile."
-              : "Demo mode is active. Use the test accounts below, or connect Supabase to enable Google sign-in and SMTP password reset."}
+              ? "Sign in with email, Google, or WhatsApp — WhatsApp works when your mobile number is already on your profile."
+              : "Demo mode: use the test accounts below, or connect your project settings to enable Google sign-in and email password reset."}
           </p>
 
           <form onSubmit={handleEmailPasswordSignIn} className="mt-8 space-y-4">
@@ -673,7 +633,7 @@ export default function Login() {
                   </div>
                 ) : (
                   <div className="mt-4 space-y-3">
-                    <p className="text-center text-xs text-muted-foreground">Enter the 6-digit code from WhatsApp</p>
+                    <p className="text-center text-xs text-muted-foreground">Enter the code from WhatsApp</p>
                     <div className="flex justify-center">
                       <InputOTP
                         maxLength={6}
@@ -711,8 +671,12 @@ export default function Login() {
                   </div>
                 )}
 
-                <div className="mt-4 rounded-2xl border border-white/70 bg-white/75 px-3 py-3 text-center text-[11px] leading-5 text-muted-foreground">
-                  Forgot your password instead? We’ll send a 6-digit reset code to your email using your configured SMTP mail setup.
+                <div className="mt-4 rounded-2xl border border-white/45 bg-white/35 px-3 py-3 text-center text-[11px] leading-relaxed text-muted-foreground backdrop-blur-sm">
+                  Forgot your password?{" "}
+                  <Link to="/forgot-password" className={authTheme.link}>
+                    click here
+                  </Link>{" "}
+                  — we’ll email you steps to reset it.
                 </div>
               </div>
             </>
@@ -726,12 +690,11 @@ export default function Login() {
               </Link>
             </p>
             {hasSupabase && (
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Need help resetting access?{" "}
                 <Link to="/forgot-password" className={authTheme.link}>
-                  Use the 6-digit email code flow
+                  click here
                 </Link>
-                .
               </p>
             )}
           </div>

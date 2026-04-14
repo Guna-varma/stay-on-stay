@@ -6,18 +6,29 @@ import {
   SEED_HK_TASKS,
   SEED_SERVICE_REQUESTS,
   SEED_TRIPS,
+  SEED_TRANSLATORS,
+  SEED_VEHICLES,
+  SEED_VENDORS,
   SEED_VERIFICATIONS,
 } from "@/data/operations-seed";
 import type {
+  CreateTripInput,
   ReceptionCheckIn,
   ReceptionCheckOut,
   OpsServiceRequest,
   TransportTrip,
   TransportDriver,
+  TransportVehicle,
+  Translator,
+  Vendor,
   VerificationQueueItem,
   HousekeepingTask,
 } from "@/lib/operations-types";
 import { toast } from "sonner";
+
+function newId(prefix: string) {
+  return `${prefix}-${typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : Date.now()}`;
+}
 
 export function useReceptionState() {
   const [checkins, setCheckins] = useState<ReceptionCheckIn[]>(() => [...SEED_CHECKINS]);
@@ -25,6 +36,9 @@ export function useReceptionState() {
   const [services, setServices] = useState<OpsServiceRequest[]>(() => [...SEED_SERVICE_REQUESTS]);
   const [trips, setTrips] = useState<TransportTrip[]>(() => [...SEED_TRIPS]);
   const [drivers, setDrivers] = useState<TransportDriver[]>(() => [...SEED_DRIVERS]);
+  const [vehicles, setVehicles] = useState<TransportVehicle[]>(() => [...SEED_VEHICLES]);
+  const [translators, setTranslators] = useState<Translator[]>(() => [...SEED_TRANSLATORS]);
+  const [vendors, setVendors] = useState<Vendor[]>(() => [...SEED_VENDORS]);
   const [hkTasks, setHkTasks] = useState<HousekeepingTask[]>(() => [...SEED_HK_TASKS]);
   const [verifications, setVerifications] = useState<VerificationQueueItem[]>(() => [...SEED_VERIFICATIONS]);
 
@@ -55,18 +69,136 @@ export function useReceptionState() {
   }, []);
 
   const startTrip = useCallback((id: string) => {
-    let driverName: string | undefined;
-    setTrips((prev) => {
-      const trip = prev.find((t) => t.id === id);
-      driverName = trip?.driverName;
-      return prev.map((t) => (t.id === id ? { ...t, status: "active" as const } : t));
-    });
-    if (driverName) {
-      setDrivers((prev) =>
-        prev.map((d) => (d.name === driverName ? { ...d, status: "on_trip" as const } : d)),
-      );
+    const trip = trips.find((t) => t.id === id);
+    if (!trip || trip.status !== "scheduled") {
+      toast.error("Only a scheduled trip can be started");
+      return;
     }
+    const matchId = trip.driverId;
+    const matchName = trip.driverName;
+    setTrips((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, status: "active" as const } : t)),
+    );
+    setDrivers((dprev) =>
+      dprev.map((d) => {
+        const isDriver =
+          (matchId && d.id === matchId) || (!matchId && d.name === matchName);
+        return isDriver ? { ...d, status: "on_trip" as const } : d;
+      }),
+    );
     toast.success("Trip started");
+  }, [trips]);
+
+  const createTrip = useCallback(
+    (input: CreateTripInput) => {
+      const driver = drivers.find((d) => d.id === input.driverId);
+      if (!driver) {
+        toast.error("Select a valid driver");
+        return;
+      }
+      if (driver.status !== "available") {
+        toast.error("Choose an available driver, or mark another trip complete first");
+        return;
+      }
+      const row: TransportTrip = {
+        id: newId("tr"),
+        type: input.type,
+        status: "scheduled",
+        guestName: input.guestName.trim(),
+        route: input.route.trim(),
+        scheduledAt: input.scheduledAt,
+        driverName: driver.name,
+        driverId: driver.id,
+        vehicleId: input.vehicleId,
+        checkInRef: input.checkInRef,
+        roomLabel: input.roomLabel?.trim() || undefined,
+        priceInr: Math.max(0, input.priceInr),
+      };
+      setTrips((prev) => [...prev, row]);
+      toast.success("Trip scheduled and assigned");
+    },
+    [drivers],
+  );
+
+  const cancelTrip = useCallback((id: string) => {
+    setTrips((prev) =>
+      prev.map((t) => (t.id === id && t.status === "scheduled" ? { ...t, status: "cancelled" as const } : t)),
+    );
+    toast.message("Trip cancelled");
+  }, []);
+
+  const upsertDriver = useCallback((row: TransportDriver) => {
+    setDrivers((prev) => {
+      const i = prev.findIndex((d) => d.id === row.id);
+      if (i === -1) return [...prev, row];
+      const next = [...prev];
+      next[i] = row;
+      return next;
+    });
+    toast.success("Driver saved");
+  }, []);
+
+  const removeDriver = useCallback((id: string) => {
+    const d = drivers.find((x) => x.id === id);
+    const busy = trips.some(
+      (t) =>
+        (t.driverId === id || (d && t.driverName === d.name)) &&
+        (t.status === "scheduled" || t.status === "active"),
+    );
+    if (busy) {
+      toast.error("Complete or cancel active trips for this driver first");
+      return;
+    }
+    setDrivers((prev) => prev.filter((x) => x.id !== id));
+    toast.success("Driver removed");
+  }, [trips, drivers]);
+
+  const upsertVehicle = useCallback((row: TransportVehicle) => {
+    setVehicles((prev) => {
+      const i = prev.findIndex((v) => v.id === row.id);
+      if (i === -1) return [...prev, row];
+      const next = [...prev];
+      next[i] = row;
+      return next;
+    });
+    toast.success("Vehicle saved");
+  }, []);
+
+  const removeVehicle = useCallback((id: string) => {
+    setVehicles((prev) => prev.filter((v) => v.id !== id));
+    toast.success("Vehicle removed");
+  }, []);
+
+  const upsertTranslator = useCallback((row: Translator) => {
+    setTranslators((prev) => {
+      const i = prev.findIndex((t) => t.id === row.id);
+      if (i === -1) return [...prev, row];
+      const next = [...prev];
+      next[i] = row;
+      return next;
+    });
+    toast.success("Translator saved");
+  }, []);
+
+  const removeTranslator = useCallback((id: string) => {
+    setTranslators((prev) => prev.filter((t) => t.id !== id));
+    toast.success("Translator removed");
+  }, []);
+
+  const upsertVendor = useCallback((row: Vendor) => {
+    setVendors((prev) => {
+      const i = prev.findIndex((v) => v.id === row.id);
+      if (i === -1) return [...prev, row];
+      const next = [...prev];
+      next[i] = row;
+      return next;
+    });
+    toast.success("Vendor saved");
+  }, []);
+
+  const removeVendor = useCallback((id: string) => {
+    setVendors((prev) => prev.filter((v) => v.id !== id));
+    toast.success("Vendor removed");
   }, []);
 
   const approveVerification = useCallback((id: string) => {
@@ -97,19 +229,18 @@ export function useReceptionState() {
       todayCheckIns: checkins.length,
       todayCheckOuts: todayOut,
       pendingVerifications: pendingV,
-      /** Placeholder total when no live room count — overridden in UI */
       availableRoomsHint: 35,
       openServiceRequests: openServices,
       activeTrips: trips.filter((t) => t.status === "active").length,
       scheduledTrips: trips.filter((t) => t.status === "scheduled").length,
       availableDrivers: drivers.filter((d) => d.status === "available").length,
-      activeVehicles: 4,
+      activeVehicles: vehicles.filter((v) => v.status === "active").length,
       hkPending: hkTasks.filter((t) => t.status === "pending").length,
       hkProgress: hkTasks.filter((t) => t.status === "in_progress").length,
       hkDone: hkTasks.filter((t) => t.status === "completed").length,
       hkUrgent: hkTasks.filter((t) => t.status === "urgent").length,
     };
-  }, [checkins, checkouts, verifications, services, trips, drivers, hkTasks]);
+  }, [checkins, checkouts, verifications, services, trips, drivers, vehicles, hkTasks]);
 
   return {
     checkins,
@@ -117,6 +248,9 @@ export function useReceptionState() {
     services,
     trips,
     drivers,
+    vehicles,
+    translators,
+    vendors,
     hkTasks,
     verifications,
     kpi,
@@ -125,6 +259,16 @@ export function useReceptionState() {
     processCheckout,
     resolveService,
     startTrip,
+    createTrip,
+    cancelTrip,
+    upsertDriver,
+    removeDriver,
+    upsertVehicle,
+    removeVehicle,
+    upsertTranslator,
+    removeTranslator,
+    upsertVendor,
+    removeVendor,
     approveVerification,
     advanceHkTask,
   };

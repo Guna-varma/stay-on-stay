@@ -157,6 +157,10 @@ export const SEED_TRIPS: TransportTrip[] = [
     route: "IGI Airport T3 → Artemis Care Suites",
     scheduledAt: "2026-03-12T14:30:00",
     driverName: "Mohit Chauhan",
+    driverId: "dr-2",
+    vehicleId: "v-2",
+    checkInRef: "ci-2",
+    roomLabel: "h2-r5",
     priceInr: 1800,
   },
   {
@@ -167,6 +171,10 @@ export const SEED_TRIPS: TransportTrip[] = [
     route: "MedStay Grand → Medanta Hospital",
     scheduledAt: "2026-03-10T09:00:00",
     driverName: "Raju Yadav",
+    driverId: "dr-1",
+    vehicleId: "v-1",
+    checkInRef: "ci-1",
+    roomLabel: "h1-r2",
     priceInr: 500,
   },
   {
@@ -177,6 +185,8 @@ export const SEED_TRIPS: TransportTrip[] = [
     route: "Artemis Care Suites → Medanta",
     scheduledAt: "2026-03-11T11:00:00",
     driverName: "Suresh Nair",
+    driverId: "dr-3",
+    vehicleId: "v-2",
     priceInr: 650,
   },
 ];
@@ -196,7 +206,7 @@ export const SEED_DRIVERS: TransportDriver[] = [
     phone: "+91 98765 43211",
     license: "HR 0620110054321",
     rating: 4.6,
-    status: "on_trip",
+    status: "available",
   },
   {
     id: "dr-3",
@@ -204,7 +214,7 @@ export const SEED_DRIVERS: TransportDriver[] = [
     phone: "+91-98765-43212",
     license: "HR-0620110098765",
     rating: 4.9,
-    status: "available",
+    status: "on_trip",
   },
   {
     id: "dr-4",

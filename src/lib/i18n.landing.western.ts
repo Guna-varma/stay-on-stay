@@ -31,7 +31,7 @@ export const FR_LANDING: Record<string, string> = {
     "Guérir commence par un lieu calme — à quelques minutes des meilleurs hôpitaux d'Inde",
   "hero.subtitle":
     "Un accompagnement bienveillant tout au long du parcours : logements prêts pour la convalescence, transfert aéroport, trajets hôpital et un guide humain sur WhatsApp. Vous vous reposez — nous coordonnons chaque détail.",
-  "hero.promise": "Plus de 10 000 nuits-patients nous font confiance. Votre santé, notre priorité.",
+  "hero.promise": "Plus de 10 000 nuits-patients nous font confiance, avec plus de 50 chambres de récupération entièrement équipées disponibles. Votre santé, notre priorité.",
   "hero.bookNow": "Réserver mon séjour",
   "hero.whatsappCta": "Discuter sur WhatsApp",
   "hero.whatsappPrefill": "Bonjour, j'aimerais de l'aide pour organiser mon séjour médical en Inde.",
@@ -233,7 +233,7 @@ export const ES_LANDING: Record<string, string> = {
     "Sanar empieza por un lugar tranquilo para alojarse — a minutos de los mejores hospitales de la India",
   "hero.subtitle":
     "Apoyo compasivo en todo el viaje: hogares listos para recuperarse, recogida en aeropuerto, traslados al hospital y un guía humano en WhatsApp. Usted descansa — nosotros coordinamos cada detalle.",
-  "hero.promise": "Más de 10 000 noches-paciente de confianza. Su salud, nuestra prioridad.",
+  "hero.promise": "Más de 10 000 noches-paciente de confianza, con más de 50 habitaciones de recuperación totalmente equipadas disponibles. Su salud, nuestra prioridad.",
   "hero.bookNow": "Reservar mi estancia",
   "hero.whatsappCta": "Chatear en WhatsApp",
   "hero.whatsappPrefill": "Hola, me gustaría ayuda para planificar mi estancia médica en la India.",
@@ -433,7 +433,7 @@ export const AR_LANDING: Record<string, string> = {
   "hero.title": "الشفاء يبدأ بمكان هادئ للإقامة — على بعد دقائق من أفضل مستشفيات الهند",
   "hero.subtitle":
     "دعم رحيم طوال رحلتك: منازل جاهزة للتعافي، استقبال من المطار، نقل للمستشفى، ومرشد بشري على واتساب. أنت ترتاح — ننسق كل التفاصيل.",
-  "hero.promise": "أكثر من 10 آلاف ليلة مريض بثقة. صحتك أولويتنا.",
+  "hero.promise": "أكثر من 10 آلاف ليلة مريض بثقة، مع توفر أكثر من 50 غرفة تعافي مجهزة بالكامل. صحتك أولويتنا.",
   "hero.bookNow": "احجز إقامتي",
   "hero.whatsappCta": "تحدث على واتساب",
   "hero.whatsappPrefill": "مرحباً، أود المساعدة في تخطيط إقامتي الطبية في الهند.",

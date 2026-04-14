@@ -75,9 +75,6 @@ import {
 import { GURUGRAM_PARTNER_HOSPITALS } from "@/lib/partnerHospitalsGurugram";
 import { WhyIndiaScreens } from "@/components/landing/WhyIndiaScreens";
 
-const HERO_IMG =
-  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&q=80&auto=format&fit=crop&ixlib=rb-4.0.3";
-
 const sectionPad = "py-20 md:py-28 px-4 sm:px-6 lg:px-8";
 const glass =
   "rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl shadow-elevated";
@@ -128,6 +125,9 @@ function publicAsset(relativePath: string): string {
   const path = relativePath.replace(/^\//, "");
   return base.endsWith("/") ? `${base}${path}` : `${base}/${path}`;
 }
+
+/** `/med-tourism` hero — local asset in `public/images-service` (replaces Unsplash interior stock). */
+const HERO_IMG = publicAsset("images-service/medical-tourism-landing.jpg");
 
 /** Representative photos (Unsplash) — warm, real-world context for trust; not a specific patient or hospital. */
 const journeySteps: {

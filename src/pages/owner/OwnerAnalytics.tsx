@@ -55,6 +55,8 @@ import OwnerOccupancy from "./OwnerOccupancy";
 import OwnerExpenses from "./OwnerExpenses";
 import OwnerRoomPerformance from "./OwnerRoomPerformance";
 import OwnerForecast from "./OwnerForecast";
+import { computeStayPricing, pricingTierLabel } from "@/lib/pricing";
+import { enrichAddressFromGoogleMapsUrl, looksLikeShortMapsLink } from "@/lib/maps-link";
 
 interface OwnerHotelView extends HotelRecord {
   roomCount: number;
@@ -70,6 +72,10 @@ interface RoomForm {
   roomNumbers: string[];
   discountType: DiscountType;
   discountValue: string;
+  /** Optional: lower ₹/night for stays of 7+ nights */
+  weeklyNightlyRate: string;
+  /** Optional: ₹/night for stays of 28+ nights (overrides weekly when both apply) */
+  monthlyNightlyRate: string;
   images: File[];
 }
 
@@ -91,6 +97,8 @@ const emptyRoom = (): RoomForm => ({
   roomNumbers: [""],
   discountType: "none",
   discountValue: "",
+  weeklyNightlyRate: "",
+  monthlyNightlyRate: "",
   images: [],
 });
 
@@ -148,6 +156,8 @@ export default function OwnerAnalytics() {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
+  const [hotelMapsUrl, setHotelMapsUrl] = useState("");
+  const [mapsLookupLoading, setMapsLookupLoading] = useState(false);
   const [coverFiles, setCoverFiles] = useState<File[]>([]);
   const [savingHotel, setSavingHotel] = useState(false);
 
@@ -276,6 +286,31 @@ export default function OwnerAnalytics() {
     }
   };
 
+  const handleFillAddressFromMaps = async () => {
+    const raw = hotelMapsUrl.trim();
+    if (!raw) {
+      toast.error("Paste a Google Maps link first.");
+      return;
+    }
+    if (looksLikeShortMapsLink(raw)) {
+      toast.error("Open the place in Google Maps and copy the full URL from the address bar (short links cannot be read).");
+      return;
+    }
+    setMapsLookupLoading(true);
+    try {
+      const r = await enrichAddressFromGoogleMapsUrl(raw);
+      setAddress(r.address);
+      setCity(r.city);
+      setCountry(r.country);
+      if (r.hint) toast.success(r.hint);
+      else toast.success("Address fields updated from the link.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not read that link.");
+    } finally {
+      setMapsLookupLoading(false);
+    }
+  };
+
   const handleCreateHotel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id) return;
@@ -289,6 +324,7 @@ export default function OwnerAnalytics() {
       address,
       city,
       country,
+      googleMapsUrl: hotelMapsUrl.trim() || undefined,
       imageFiles: coverFiles.length > 0 ? coverFiles : undefined,
       amenityIds: Array.from(selectedAmenityIds),
       landmarks: validLandmarks,
@@ -298,7 +334,7 @@ export default function OwnerAnalytics() {
     if (error || !hotel) { toast.error(error?.message ?? "Failed to create hotel"); return; }
 
     toast.success("Hotel created! Now add rooms.");
-    setHotelName(""); setDescription(""); setAddress(""); setCity(""); setCountry("");
+    setHotelName(""); setDescription(""); setAddress(""); setCity(""); setCountry(""); setHotelMapsUrl("");
     setCoverFiles([]); setSelectedAmenityIds(new Set()); setLandmarks([]);
     await refreshHotels();
     setAddRoomsForHotelId(hotel.id);
@@ -328,6 +364,14 @@ export default function OwnerAnalytics() {
         if (r.discountValue.trim() === "" || !Number.isFinite(dv) || dv <= 0) { toast.error(`Room type ${i + 1}: discount value is required`); return; }
         if (r.discountType === "percentage" && dv > 100) { toast.error(`Room type ${i + 1}: percentage cannot exceed 100`); return; }
       }
+      if (r.weeklyNightlyRate.trim() !== "") {
+        const w = Number(r.weeklyNightlyRate.trim());
+        if (!Number.isFinite(w) || w <= 0) { toast.error(`Room type ${i + 1}: weekly rate must be a positive number`); return; }
+      }
+      if (r.monthlyNightlyRate.trim() !== "") {
+        const m = Number(r.monthlyNightlyRate.trim());
+        if (!Number.isFinite(m) || m <= 0) { toast.error(`Room type ${i + 1}: extended-stay rate must be a positive number`); return; }
+      }
     }
 
     setSavingRooms(true);
@@ -339,6 +383,8 @@ export default function OwnerAnalytics() {
           basePrice: Number(rf.basePrice),
           discountType: rf.discountType,
           discountValue: rf.discountType !== "none" ? Number(rf.discountValue.trim()) : 0,
+          weeklyNightlyRate: rf.weeklyNightlyRate.trim() === "" ? null : Number(rf.weeklyNightlyRate.trim()),
+          monthlyNightlyRate: rf.monthlyNightlyRate.trim() === "" ? null : Number(rf.monthlyNightlyRate.trim()),
         });
         if (rtErr || !rt) { toast.error(rtErr?.message ?? "Error"); setSavingRooms(false); return; }
 
@@ -483,13 +529,50 @@ export default function OwnerAnalytics() {
             <CardContent>
               <form onSubmit={handleCreateHotel} className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Google Maps link (location)</Label>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <Input
+                        value={hotelMapsUrl}
+                        onChange={(e) => setHotelMapsUrl(e.target.value)}
+                        placeholder="https://www.google.com/maps/place/..."
+                        type="url"
+                        autoComplete="off"
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={mapsLookupLoading || !hotelMapsUrl.trim()}
+                        onClick={handleFillAddressFromMaps}
+                        className="shrink-0"
+                      >
+                        {mapsLookupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        {mapsLookupLoading ? "Looking up…" : "Fill address from link"}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Paste the full maps.google.com URL. We resolve coordinates via OpenStreetMap when possible, or read the
+                      place name from the link. Short goo.gl links are not supported—use the full URL.
+                    </p>
+                    {hotelMapsUrl.trim() ? (
+                      <a
+                        href={hotelMapsUrl.trim().startsWith("http") ? hotelMapsUrl.trim() : `https://${hotelMapsUrl.trim()}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        <ExternalLink className="h-3 w-3" /> Preview in Maps
+                      </a>
+                    ) : null}
+                  </div>
                   <div className="space-y-2">
                     <Label>Hotel name *</Label>
                     <Input value={hotelName} onChange={(e) => setHotelName(e.target.value)} placeholder="Sunrise Medical Stay" required />
                   </div>
                   <div className="space-y-2">
                     <Label>Address</Label>
-                    <Input value={address} onChange={(e) => setAddress(e.target.value)} />
+                    <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Filled from Maps or type manually" />
                   </div>
                   <div className="space-y-2">
                     <Label>City</Label>
@@ -658,6 +741,57 @@ export default function OwnerAnalytics() {
                           <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs font-medium">
                             {rf.discountType === "percentage" ? `${rf.discountValue}% OFF` : `₹${rf.discountValue} OFF`}
                           </span>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>7+ nights (₹/night)</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            placeholder="Optional lower nightly"
+                            value={rf.weeklyNightlyRate}
+                            onChange={(e) => updateRoomForm(idx, { weeklyNightlyRate: e.target.value })}
+                          />
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Weekly-style stays</p>
+                        </div>
+                        <div>
+                          <Label>28+ nights (₹/night)</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            placeholder="Optional monthly-style"
+                            value={rf.monthlyNightlyRate}
+                            onChange={(e) => updateRoomForm(idx, { monthlyNightlyRate: e.target.value })}
+                          />
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Extended stay / corporate</p>
+                        </div>
+                      </div>
+                      {fp != null && fp > 0 && (
+                        <div className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground space-y-1">
+                          <p className="font-medium text-foreground">Sample totals (before tax)</p>
+                          {(() => {
+                            const wn = rf.weeklyNightlyRate.trim() === "" ? null : Number(rf.weeklyNightlyRate);
+                            const mn = rf.monthlyNightlyRate.trim() === "" ? null : Number(rf.monthlyNightlyRate);
+                            const p7 = computeStayPricing({
+                              finalPrice: fp,
+                              weeklyNightly: wn != null && Number.isFinite(wn) ? wn : null,
+                              monthlyNightly: mn != null && Number.isFinite(mn) ? mn : null,
+                              nights: 7,
+                            });
+                            const p30 = computeStayPricing({
+                              finalPrice: fp,
+                              weeklyNightly: wn != null && Number.isFinite(wn) ? wn : null,
+                              monthlyNightly: mn != null && Number.isFinite(mn) ? mn : null,
+                              nights: 30,
+                            });
+                            return (
+                              <>
+                                <p>7 nights: ₹{p7.lineTotal.toLocaleString()} — {pricingTierLabel(p7.tier)}</p>
+                                <p>30 nights: ₹{p30.lineTotal.toLocaleString()} — {pricingTierLabel(p30.tier)}</p>
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
                       {/* Room count + individual room numbers */}

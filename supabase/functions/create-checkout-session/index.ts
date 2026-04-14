@@ -4,6 +4,7 @@
  */
 import Stripe from "https://esm.sh/stripe@14.21.0?dts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { computeStayPricing } from "../_shared/stay-pricing.ts";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
   apiVersion: "2023-10-16",
@@ -85,7 +86,7 @@ Deno.serve(async (req) => {
 
     const { data: rt, error: rtErr } = await supabase
       .from("room_types")
-      .select("id, name, base_price, hotel_id")
+      .select("id, name, base_price, hotel_id, final_price, weekly_nightly_rate, monthly_nightly_rate")
       .eq("id", room_type_id)
       .maybeSingle();
 
@@ -102,7 +103,16 @@ Deno.serve(async (req) => {
     const cin = new Date(check_in_date + "T12:00:00Z");
     const cout = new Date(check_out_date + "T12:00:00Z");
     const nights = Math.max(1, Math.round((cout.getTime() - cin.getTime()) / (86400 * 1000)));
-    const unitAmountPaise = Math.round(Number(rt.base_price) * nights * 100);
+    const finalPrice = Number((rt as { final_price?: number | null }).final_price ?? rt.base_price ?? 0);
+    const weeklyNightly = (rt as { weekly_nightly_rate?: number | null }).weekly_nightly_rate;
+    const monthlyNightly = (rt as { monthly_nightly_rate?: number | null }).monthly_nightly_rate;
+    const pricing = computeStayPricing({
+      finalPrice,
+      weeklyNightly: weeklyNightly != null ? Number(weeklyNightly) : null,
+      monthlyNightly: monthlyNightly != null ? Number(monthlyNightly) : null,
+      nights,
+    });
+    const unitAmountPaise = Math.round(pricing.lineTotal * 100);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -115,7 +125,7 @@ Deno.serve(async (req) => {
             unit_amount: unitAmountPaise,
             product_data: {
               name: `${hotelName} — ${rt.name}`,
-              description: `${check_in_date} → ${check_out_date} (${nights} night(s))`,
+              description: `${check_in_date} → ${check_out_date} (${nights} night(s)) · ${pricing.tier}`,
             },
           },
         },
@@ -131,6 +141,10 @@ Deno.serve(async (req) => {
         guest_last_name: body.guest_last_name ?? "",
         guest_email: body.guest_email ?? "",
         guest_phone: body.guest_phone ?? "",
+        nights: String(nights),
+        pricing_tier: pricing.tier,
+        list_price_subtotal: String(pricing.listSubtotal),
+        effective_nightly: String(pricing.effectiveNightly),
       },
     });
 

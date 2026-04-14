@@ -36,6 +36,7 @@ import {
   type PublicRoomTypeCard,
 } from "@/lib/supabase";
 import { HotelCoverCarousel } from "@/components/HotelCoverCarousel";
+import { computeStayPricing, pricingTierLabel } from "@/lib/pricing";
 
 function heroCoverUrls(h: PublicHotelCard): string[] {
   const u = publicHotelCoverUrls(h);
@@ -84,8 +85,15 @@ function DiscountBadge({ rt }: { rt: PublicRoomTypeCard }) {
 
 function PriceBlock({ rt, nights }: { rt: PublicRoomTypeCard; nights: number }) {
   const hasDiscount = rt.discount_type !== "none" && rt.discount_value > 0;
-  const displayPrice = rt.final_price ?? rt.base_price ?? 0;
-  const total = displayPrice * nights;
+  const finalPrice = Number(rt.final_price ?? rt.base_price ?? 0);
+  const stay = computeStayPricing({
+    finalPrice,
+    weeklyNightly: rt.weekly_nightly_rate,
+    monthlyNightly: rt.monthly_nightly_rate,
+    nights,
+  });
+  const showLongStaySavings =
+    stay.tier !== "standard" && stay.listSubtotal > stay.lineTotal;
 
   return (
     <div className="text-right space-y-0.5">
@@ -96,13 +104,18 @@ function PriceBlock({ rt, nights }: { rt: PublicRoomTypeCard; nights: number }) 
           </span>
         )}
         <span className="text-lg font-bold text-primary">
-          ₹{displayPrice.toLocaleString()}
+          ₹{stay.effectiveNightly.toLocaleString()}
         </span>
       </div>
-      <p className="text-xs text-muted-foreground">/night</p>
+      <p className="text-xs text-muted-foreground">/night · {pricingTierLabel(stay.tier)}</p>
       {hasDiscount && <DiscountBadge rt={rt} />}
+      {showLongStaySavings && (
+        <p className="text-[11px] text-muted-foreground">
+          vs standard total ₹{stay.listSubtotal.toLocaleString()}
+        </p>
+      )}
       <p className="text-xs font-medium mt-1">
-        Total: ₹{total.toLocaleString()} ({nights}n)
+        Total: ₹{stay.lineTotal.toLocaleString()} ({nights}n)
       </p>
     </div>
   );

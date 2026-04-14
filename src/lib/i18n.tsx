@@ -234,7 +234,7 @@ const LANDING_EN: Record<string, string> = {
   "hero.title": "Healing starts with a calm place to stay — minutes from India’s best hospitals",
   "hero.subtitle":
     "Compassionate support for your whole journey: recovery-ready homes, airport pickup, hospital transfers, and a human care guide on WhatsApp. You rest — we coordinate every detail.",
-  "hero.promise": "Trusted by 10,000+ patient nights. Your health, our priority.",
+  "hero.promise": "Trusted by 10,000+ patient nights with 50+ fully equipped recovery rooms available. Your health, our priority.",
   "hero.bookNow": "Book my stay",
   "hero.whatsappCta": "Chat on WhatsApp",
   "hero.whatsappPrefill": "Hello, I’d like help planning my medical stay in India.",

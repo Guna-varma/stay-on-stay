@@ -73,7 +73,8 @@ export default function AdminAddHotel() {
   const filteredOwners = profiles.filter(
     (p) =>
       p.role === "owner" &&
-      p.email.toLowerCase().includes(ownerEmail.trim().toLowerCase())
+      p.is_active &&
+      (p.email ?? "").toLowerCase().includes(ownerEmail.trim().toLowerCase())
   );
 
   const toggleAmenity = (id: string) => {

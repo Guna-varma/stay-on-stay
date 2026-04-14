@@ -48,10 +48,11 @@ export default function Landing() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // OAuth callback with tokens in hash: Supabase may redirect to Site URL (/) instead of /login; send to /login so session is restored and user is routed correctly
+  // OAuth callback with tokens in hash: if Supabase lands on the site root,
+  // forward the browser to the dedicated callback route instead of /login.
   useEffect(() => {
     if (window.location.pathname === "/" && window.location.hash.includes("access_token")) {
-      window.location.replace(`/login${window.location.hash}`);
+      window.location.replace(`/auth/callback${window.location.hash}`);
       return;
     }
   }, []);

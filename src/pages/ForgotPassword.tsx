@@ -32,6 +32,17 @@ export default function ForgotPassword() {
     navigate(user.role === "customer" ? "/hotels" : "/dashboard", { replace: true });
   }, [isInitialized, user, navigate]);
 
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" aria-hidden />
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </div>
+      </div>
+    );
+  }
+
   if (isInitialized && user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FDFBF0]">
@@ -62,7 +73,7 @@ export default function ForgotPassword() {
       setStep("code");
       toast({
         title: "Check your email",
-        description: "If this address is registered, we sent a 6-digit code. It expires in 15 minutes.",
+        description: "If this address is registered, you’ll receive a short code. It expires in 15 minutes.",
       });
     } catch (err) {
       toast({
@@ -110,13 +121,12 @@ export default function ForgotPassword() {
         <h1 className={cn(authTheme.title, "mt-4")}>Reset your password</h1>
         <p className={cn(authTheme.subtitle, "mt-3")}>
           {step === "email"
-            ? "Enter your email and we’ll send a one-time 6-digit code to reset your password."
-            : "Enter the 6-digit code we sent to your inbox."}
+            ? "Enter your email. We’ll send you a short code so you can pick a new password."
+            : "Enter the code from your email."}
         </p>
         {hasSb && step === "email" && (
-          <p className="mt-4 rounded-[1.5rem] border border-border/60 bg-white/75 px-4 py-3 text-center text-[11px] leading-5 text-muted-foreground">
-            The reset mail is sent securely by the Supabase Edge Function using your configured{" "}
-            <span className="font-mono text-foreground">SMTP_*</span> secrets. The browser never reads those values.
+          <p className="mt-4 rounded-[1.5rem] border border-white/45 bg-white/35 px-4 py-3 text-center text-xs leading-relaxed text-muted-foreground backdrop-blur-sm">
+            The message comes from our secure email service. You may need to check spam or promotions.
           </p>
         )}
 
@@ -146,7 +156,7 @@ export default function ForgotPassword() {
               disabled={requestLoading}
               className={cn("h-12 w-full rounded-2xl text-base font-semibold", authTheme.accentBg)}
             >
-              {requestLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send 6-digit code"}
+              {requestLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send reset email"}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               <Link to="/login" className={authTheme.link}>

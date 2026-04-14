@@ -26,7 +26,7 @@ export const rwLandingPack: Record<string, string> = {
     
     "hero.title": "Gukira bitangirana n'ahantu hatuje ho kuba — iminota micye uvuye mu ma Hospitals akomeye",
     "hero.subtitle": "Ubufasha bwuzuye muri journey yawe: inzu zo kuruhukiramo, airport pickup, hospital transfers, ndetse na care guide kuri WhatsApp. Uraruhuka — twebwe tugahangana na buli kimwe.",
-    "hero.promise": "Byizewe n'abantu 10,000+. Ubuzima bwawe, priority yacu.",
+    "hero.promise": "Byizewe n'abantu 10,000+ nijoro, hamwe n'ibyumba birenga 50 byo gukira bifite ibikoresho byose bihari. Ubuzima bwawe, priority yacu.",
     "hero.bookNow": "Bookina aho uzaba",
     "hero.whatsappCta": "Chat kuri WhatsApp",
     "hero.whatsappPrefill": "Muraho, ndashaka ubufasha bwo gutegura urugendo rwanjye rwo kwivuza mu India.",

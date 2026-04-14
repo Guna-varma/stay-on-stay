@@ -56,10 +56,9 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/login`,
+      redirectTo: `${window.location.origin}/auth/callback`,
       queryParams: {
-        access_type: "offline",
-        prompt: "consent",
+        prompt: "select_account",
       },
     },
   });
@@ -154,6 +153,11 @@ export interface Profile {
   avatar_url: string | null;
   role: ProfileRole;
   created_at: string;
+  updated_at: string | null;
+  is_active: boolean;
+  deactivated_at: string | null;
+  deactivated_by: string | null;
+  deactivation_reason: string | null;
 }
 
 /** Fetch the current user's profile (id, email, role). RLS: users can read own row. */
@@ -163,7 +167,7 @@ export async function getProfile(userId: string): Promise<{ data: Profile | null
     async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, first_name, last_name, avatar_url, role, created_at")
+        .select("id, email, first_name, last_name, avatar_url, role, created_at, updated_at, is_active, deactivated_at, deactivated_by, deactivation_reason")
         .eq("id", userId)
         .single();
       if (error) return { data: null, error };
@@ -327,10 +331,90 @@ export async function updateUserRole(
 export async function listProfilesForAdmin(): Promise<{ data: Profile[]; error: Error | null }> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, role, created_at")
+    .select("id, email, first_name, last_name, avatar_url, role, created_at, updated_at, is_active, deactivated_at, deactivated_by, deactivation_reason")
     .order("created_at", { ascending: false });
   if (error) return { data: [], error };
   return { data: (data ?? []) as Profile[], error: null };
+}
+
+export interface AdminUserListCursor {
+  createdAt: string;
+  id: string;
+}
+
+export interface AdminUserListFilters {
+  search?: string;
+  role?: ProfileRole | "all";
+  isActive?: boolean | "all";
+  pageSize?: number;
+  cursor?: AdminUserListCursor | null;
+}
+
+export interface AdminManageUserPayload {
+  targetUserId: string;
+  role?: ProfileRole;
+  isActive?: boolean;
+  reason?: string | null;
+}
+
+export interface AdminManageUserResult {
+  action: "set_role" | "set_status";
+  user: Profile;
+  message?: string;
+}
+
+export async function listUsersForAdmin(
+  filters: AdminUserListFilters = {}
+): Promise<{ data: Profile[]; error: Error | null; nextCursor: AdminUserListCursor | null }> {
+  const pageSize = Math.min(Math.max(filters.pageSize ?? 50, 1), 100);
+  const { data, error } = await supabase.rpc("admin_list_users", {
+    search_text: filters.search?.trim() ? filters.search.trim() : null,
+    filter_role: filters.role && filters.role !== "all" ? filters.role : null,
+    filter_active: typeof filters.isActive === "boolean" ? filters.isActive : null,
+    cursor_created_at: filters.cursor?.createdAt ?? null,
+    cursor_id: filters.cursor?.id ?? null,
+    page_size: pageSize,
+  });
+
+  if (error) return { data: [], error, nextCursor: null };
+
+  const rows = (data ?? []) as Profile[];
+  const lastRow = rows.length === pageSize ? rows[rows.length - 1] : null;
+
+  return {
+    data: rows,
+    error: null,
+    nextCursor: lastRow ? { createdAt: lastRow.created_at, id: lastRow.id } : null,
+  };
+}
+
+async function invokeAdminManageUser(
+  body: Record<string, unknown>
+): Promise<{ data: AdminManageUserResult | null; error: Error | null }> {
+  const { data, error } = await supabase.functions.invoke("admin-manage-user", { body });
+  if (error) return { data: null, error };
+  return { data: (data as AdminManageUserResult) ?? null, error: null };
+}
+
+export async function adminUpdateUserRole(
+  input: Required<Pick<AdminManageUserPayload, "targetUserId" | "role">>
+): Promise<{ data: AdminManageUserResult | null; error: Error | null }> {
+  return invokeAdminManageUser({
+    action: "set_role",
+    targetUserId: input.targetUserId,
+    role: input.role,
+  });
+}
+
+export async function adminUpdateUserStatus(
+  input: Required<Pick<AdminManageUserPayload, "targetUserId" | "isActive">> & Pick<AdminManageUserPayload, "reason">
+): Promise<{ data: AdminManageUserResult | null; error: Error | null }> {
+  return invokeAdminManageUser({
+    action: "set_status",
+    targetUserId: input.targetUserId,
+    isActive: input.isActive,
+    reason: input.reason?.trim() ? input.reason.trim() : null,
+  });
 }
 
 
@@ -339,6 +423,10 @@ export async function listProfilesForAdmin(): Promise<{ data: Profile[]; error: 
 // -----------------------------------------------------------------------------
 
 export type RoomStatus = "available" | "occupied" | "maintenance" | "cleaning";
+export type WalkInDraftStatus = "draft" | "room_held" | "docs_pending" | "ready" | "completed" | "cancelled" | "expired";
+export type WalkInDocumentStatus = "missing" | "partial" | "complete";
+export type RoomHoldStatus = "active" | "consumed" | "expired" | "cancelled";
+export type WalkInSubjectKind = "primary_guest" | "companion";
 
 export interface HotelRecord {
   id: string;
@@ -347,6 +435,8 @@ export interface HotelRecord {
   address: string | null;
   city: string | null;
   country: string | null;
+  /** Owner-provided Google Maps link to the property */
+  google_maps_url?: string | null;
   image_url: string | null;
   owner_id: string;
   created_at: string;
@@ -362,6 +452,10 @@ export interface RoomTypeRecord {
   discount_type: string;
   discount_value: number;
   final_price: number | null;
+  /** Optional lower nightly rate for stays of 7+ nights. */
+  weekly_nightly_rate: number | null;
+  /** Optional nightly rate for stays of 28+ nights (overrides weekly when applicable). */
+  monthly_nightly_rate: number | null;
   created_at: string;
 }
 
@@ -374,6 +468,201 @@ export interface RoomRecord {
   created_at: string;
 }
 
+export interface WalkInDraftGuestPayload {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  country_code?: string;
+  nationality?: string;
+  guest_category?: "domestic" | "foreign";
+  guestCategory?: "domestic" | "foreign";
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  state_region?: string;
+  country?: string;
+  postal_code?: string;
+  id_type?: string;
+  id_number?: string;
+  passport_number?: string;
+  passport_expiry_date?: string;
+  passport_issued_country?: string;
+  visa_type?: string;
+  visa_expiry_date?: string;
+  preferred_language?: string;
+  notes?: string;
+  visa_required?: boolean;
+}
+
+export interface WalkInCompanionPayload {
+  temp_key: string;
+  full_name: string;
+  relationship?: string;
+  nationality?: string;
+  guest_category?: "domestic" | "foreign";
+  document_type?: string;
+  document_number?: string;
+}
+
+export interface WalkInDraftRecord {
+  id: string;
+  draft_code: string;
+  hotel_id: string;
+  created_by: string;
+  assigned_operator_id: string;
+  taken_over_by: string | null;
+  taken_over_at: string | null;
+  assigned_room_id: string | null;
+  primary_guest_id: string | null;
+  status: WalkInDraftStatus;
+  guest_payload: WalkInDraftGuestPayload;
+  companions_payload: WalkInCompanionPayload[];
+  check_in_date: string;
+  check_out_date: string;
+  guest_category: "domestic" | "foreign" | null;
+  primary_guest_name: string | null;
+  primary_phone: string | null;
+  document_status: WalkInDocumentStatus;
+  last_activity_at: string;
+  revision: number;
+  hold_expires_at: string | null;
+  completed_booking_id: string | null;
+  created_at: string;
+  updated_at: string;
+  cancelled_at: string | null;
+}
+
+export interface WalkInDraftQueueRecord {
+  id: string;
+  draft_code: string;
+  hotel_id: string;
+  assigned_operator_id: string;
+  assigned_operator_name: string | null;
+  assigned_room_id: string | null;
+  room_number: string | null;
+  status: WalkInDraftStatus;
+  guest_category: "domestic" | "foreign" | null;
+  primary_guest_name: string | null;
+  primary_phone: string | null;
+  document_status: WalkInDocumentStatus;
+  hold_expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+  is_owner: boolean;
+  can_take_over: boolean;
+}
+
+export interface RoomHoldRecord {
+  id: string;
+  hotel_id: string;
+  room_id: string;
+  draft_id: string;
+  held_by: string;
+  expires_at: string;
+  status: RoomHoldStatus;
+  created_at: string;
+}
+
+export interface GuestDocumentRecord {
+  id: string;
+  hotel_id: string;
+  draft_id: string | null;
+  booking_id: string | null;
+  guest_id: string | null;
+  companion_id: string | null;
+  subject_kind: WalkInSubjectKind;
+  subject_temp_key: string | null;
+  document_type: string;
+  is_required: boolean;
+  file_name: string;
+  storage_path: string;
+  mime_type: string;
+  file_size: number;
+  checksum: string | null;
+  document_number: string | null;
+  issued_country: string | null;
+  uploaded_via: "frontdesk";
+  verification_status: "pending" | "verified" | "rejected";
+  uploaded_by: string | null;
+  uploaded_at: string;
+  notes: string | null;
+}
+
+export interface FrontdeskBookingRecord {
+  id: string;
+  booking_code: string | null;
+  booking_source: string | null;
+  check_in_date: string;
+  check_out_date: string;
+  status: "confirmed" | "checked_in";
+  room_id: string;
+  room_type_name_snapshot: string | null;
+  frontdesk_notes: string | null;
+  room: { room_number: string | null } | null;
+  guest: {
+    first_name: string | null;
+    last_name: string | null;
+    nationality: string | null;
+    passport_number: string | null;
+    id_type: string | null;
+    id_number: string | null;
+  } | null;
+}
+
+export interface CheckoutQueueRecord {
+  booking_id: string;
+  guest_name: string;
+  room_no: string;
+  scheduled_checkout_date: string;
+  balance_due: number;
+  checkout_ready: boolean;
+  blockers: string[];
+  next_room_state: "cleaning" | "inspection" | "available";
+  estimated_available_at: string | null;
+}
+
+export interface CheckoutPreviewRecord extends CheckoutQueueRecord {
+  hotel_id: string;
+  status: string;
+}
+
+export interface CheckoutProcessResult {
+  processed: boolean;
+  result_type: "processed" | "already_checked_out";
+  booking_id: string;
+  room_id: string;
+  room_no: string;
+  booking_status: string;
+  room_state: string;
+  task_id: string | null;
+}
+
+export interface RoomAvailabilityRecord {
+  room_id: string;
+  room_no: string;
+  occupancy_status: string;
+  housekeeping_status: string;
+  effective_room_state: "available" | "booked" | "occupied" | "checkout_due" | "cleaning" | "blocked";
+  unavailable_reason: string;
+  estimated_available_at: string | null;
+  next_check_in_at: string | null;
+}
+
+export interface WalkInPreflightResult {
+  can_finalize: boolean;
+  blockers: string[];
+  hold_expires_at: string | null;
+  effective_room_state: string;
+  document_status: WalkInDocumentStatus;
+}
+
+export interface TakeOverWalkInDraftResult {
+  draft_id: string;
+  assigned_operator_id: string;
+  hold_expires_at: string | null;
+}
+
 export interface RoomTypeSeedInput {
   name: string;
   description?: string;
@@ -381,6 +670,8 @@ export interface RoomTypeSeedInput {
   basePrice?: number;
   discountType?: "none" | "percentage" | "flat";
   discountValue?: number;
+  weeklyNightlyRate?: number | null;
+  monthlyNightlyRate?: number | null;
   roomCount: number;
   roomPrefix?: string;
   /** Optional gallery images per room type (uploaded after room_type row exists). */
@@ -617,7 +908,7 @@ export async function uploadRoomTypeImageCompressed(
 export async function listHotelsForOwner(ownerId: string): Promise<{ data: HotelRecord[]; error: Error | null }> {
   const { data, error } = await supabase
     .from("hotels")
-    .select("id, name, description, address, city, country, image_url, owner_id, created_at")
+    .select("id, name, description, address, city, country, google_maps_url, image_url, owner_id, created_at")
     .eq("owner_id", ownerId)
     .order("created_at", { ascending: false });
 
@@ -632,7 +923,9 @@ export async function listOwnerHotels(ownerId: string): Promise<{ data: HotelRec
 export async function listRoomTypesByHotel(hotelId: string): Promise<{ data: RoomTypeRecord[]; error: Error | null }> {
   const { data, error } = await supabase
     .from("room_types")
-    .select("id, hotel_id, name, description, max_guests, base_price, discount_type, discount_value, final_price, created_at")
+    .select(
+      "id, hotel_id, name, description, max_guests, base_price, discount_type, discount_value, final_price, weekly_nightly_rate, monthly_nightly_rate, created_at",
+    )
     .eq("hotel_id", hotelId)
     .order("created_at", { ascending: true });
 
@@ -651,7 +944,19 @@ export async function listRoomsByHotel(hotelId: string): Promise<{ data: RoomRec
   return { data: (data ?? []) as RoomRecord[], error: null };
 }
 
-export async function createRoomType(hotelId: string, input: { name: string; description?: string; maxGuests?: number; basePrice?: number; discountType?: string; discountValue?: number }): Promise<{ data: RoomTypeRecord | null; error: Error | null }> {
+export async function createRoomType(
+  hotelId: string,
+  input: {
+    name: string;
+    description?: string;
+    maxGuests?: number;
+    basePrice?: number;
+    discountType?: string;
+    discountValue?: number;
+    weeklyNightlyRate?: number | null;
+    monthlyNightlyRate?: number | null;
+  },
+): Promise<{ data: RoomTypeRecord | null; error: Error | null }> {
   const { data, error } = await supabase
     .from("room_types")
     .insert({
@@ -662,8 +967,12 @@ export async function createRoomType(hotelId: string, input: { name: string; des
       base_price: input.basePrice ?? null,
       discount_type: input.discountType ?? "none",
       discount_value: input.discountValue ?? 0,
+      weekly_nightly_rate: input.weeklyNightlyRate ?? null,
+      monthly_nightly_rate: input.monthlyNightlyRate ?? null,
     })
-    .select("id, hotel_id, name, description, max_guests, base_price, discount_type, discount_value, final_price, created_at")
+    .select(
+      "id, hotel_id, name, description, max_guests, base_price, discount_type, discount_value, final_price, weekly_nightly_rate, monthly_nightly_rate, created_at",
+    )
     .single();
 
   if (error) return { data: null, error };
@@ -690,6 +999,89 @@ export async function updateRoomStatus(roomId: string, status: RoomStatus): Prom
   const { error } = await supabase.from("rooms").update({ status }).eq("id", roomId);
   return { error };
 }
+
+function deriveDraftShadowFields(guestPayload: WalkInDraftGuestPayload) {
+  const guestCategory =
+    guestPayload.guest_category ??
+    guestPayload.guestCategory ??
+    null;
+  const first = guestPayload.first_name?.trim() ?? "";
+  const last = guestPayload.last_name?.trim() ?? "";
+  return {
+    guest_category: guestCategory,
+    primary_guest_name: [first, last].filter(Boolean).join(" ").trim() || null,
+    primary_phone: guestPayload.phone?.trim() || null,
+  };
+}
+
+function normalizeWalkInDraftRow(row: any): WalkInDraftRecord {
+  return {
+    id: String(row.id),
+    draft_code: String(row.draft_code),
+    hotel_id: String(row.hotel_id),
+    created_by: String(row.created_by),
+    assigned_operator_id: String(row.assigned_operator_id),
+    taken_over_by: row.taken_over_by ? String(row.taken_over_by) : null,
+    taken_over_at: row.taken_over_at ?? null,
+    assigned_room_id: row.assigned_room_id ? String(row.assigned_room_id) : null,
+    primary_guest_id: row.primary_guest_id ? String(row.primary_guest_id) : null,
+    status: row.status as WalkInDraftStatus,
+    guest_payload: (row.guest_payload ?? {}) as WalkInDraftGuestPayload,
+    companions_payload: Array.isArray(row.companions_payload) ? (row.companions_payload as WalkInCompanionPayload[]) : [],
+    check_in_date: String(row.check_in_date),
+    check_out_date: String(row.check_out_date),
+    guest_category: (row.guest_category as "domestic" | "foreign" | null) ?? null,
+    primary_guest_name: row.primary_guest_name ?? null,
+    primary_phone: row.primary_phone ?? null,
+    document_status: row.document_status as WalkInDocumentStatus,
+    last_activity_at: String(row.last_activity_at),
+    revision: Number(row.revision ?? 1),
+    hold_expires_at: row.hold_expires_at ?? null,
+    completed_booking_id: row.completed_booking_id ?? null,
+    created_at: String(row.created_at),
+    updated_at: String(row.updated_at),
+    cancelled_at: row.cancelled_at ?? null,
+  };
+}
+
+function normalizeWalkInDraftQueueRow(row: any): WalkInDraftQueueRecord {
+  return {
+    id: String(row.id),
+    draft_code: String(row.draft_code),
+    hotel_id: String(row.hotel_id),
+    assigned_operator_id: String(row.assigned_operator_id),
+    assigned_operator_name: row.assigned_operator_name ?? null,
+    assigned_room_id: row.assigned_room_id ? String(row.assigned_room_id) : null,
+    room_number: row.room_number ?? null,
+    status: row.status as WalkInDraftStatus,
+    guest_category: (row.guest_category as "domestic" | "foreign" | null) ?? null,
+    primary_guest_name: row.primary_guest_name ?? null,
+    primary_phone: row.primary_phone ?? null,
+    document_status: row.document_status as WalkInDocumentStatus,
+    hold_expires_at: row.hold_expires_at ?? null,
+    created_at: String(row.created_at),
+    updated_at: String(row.updated_at),
+    is_owner: Boolean(row.is_owner),
+    can_take_over: Boolean(row.can_take_over),
+  };
+}
+
+const FRONTDESK_ALLOWED_DOCUMENT_TYPES = new Set([
+  "passport",
+  "visa",
+  "government_id",
+  "address_proof",
+  "other",
+]);
+
+const FRONTDESK_ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+]);
+
+const FRONTDESK_MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
 
 export async function createHotelWithRooms(ownerId: string, payload: CreateHotelInput): Promise<{ data: { hotel: HotelRecord; roomTypes: RoomTypeRecord[]; rooms: RoomRecord[] } | null; error: Error | null }> {
   try {
@@ -730,6 +1122,8 @@ export async function createHotelWithRooms(ownerId: string, payload: CreateHotel
         basePrice: typeInput.basePrice,
         discountType: typeInput.discountType,
         discountValue: typeInput.discountValue,
+        weeklyNightlyRate: typeInput.weeklyNightlyRate ?? null,
+        monthlyNightlyRate: typeInput.monthlyNightlyRate ?? null,
       });
       if (createdType.error || !createdType.data) return { data: null, error: createdType.error ?? new Error("Could not create room type") };
       createdTypes.push(createdType.data);
@@ -784,6 +1178,467 @@ export async function getManagerAssignedHotel(userId: string): Promise<{ data: H
 
   if (hotelError) return { data: null, error: hotelError };
   return { data: hotel as HotelRecord, error: null };
+}
+
+export async function createWalkInDraft(
+  hotelId: string,
+  createdBy: string,
+  checkOutDate: string,
+): Promise<{ data: WalkInDraftRecord | null; error: Error | null }> {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const fallbackCheckOut = tomorrow.toISOString().split("T")[0];
+  const { data, error } = await supabase
+    .from("walkin_checkin_drafts")
+    .insert({
+      hotel_id: hotelId,
+      created_by: createdBy,
+      assigned_operator_id: createdBy,
+      check_out_date: checkOutDate || fallbackCheckOut,
+      guest_payload: {},
+      companions_payload: [],
+    })
+    .select("*")
+    .single();
+
+  if (error) return { data: null, error };
+  const sync = await supabase.rpc("sync_walkin_draft_document_status", { p_draft_id: data.id });
+  if (sync.error) return { data: null, error: sync.error };
+  const syncRow = Array.isArray(sync.data) ? sync.data[0] : sync.data;
+  return { data: normalizeWalkInDraftRow(syncRow), error: null };
+}
+
+export async function updateWalkInDraft(
+  draftId: string,
+  updates: {
+    guest_payload?: WalkInDraftGuestPayload;
+    companions_payload?: WalkInCompanionPayload[];
+    check_out_date?: string;
+    primary_guest_id?: string | null;
+  },
+): Promise<{ data: WalkInDraftRecord | null; error: Error | null }> {
+  const payload: Record<string, unknown> = {};
+  if (updates.guest_payload) {
+    payload.guest_payload = updates.guest_payload;
+    Object.assign(payload, deriveDraftShadowFields(updates.guest_payload));
+  }
+  if (updates.companions_payload) payload.companions_payload = updates.companions_payload;
+  if (updates.check_out_date) payload.check_out_date = updates.check_out_date;
+  if (Object.prototype.hasOwnProperty.call(updates, "primary_guest_id")) {
+    payload.primary_guest_id = updates.primary_guest_id;
+  }
+
+  const { error } = await supabase
+    .from("walkin_checkin_drafts")
+    .update(payload)
+    .eq("id", draftId);
+
+  if (error) return { data: null, error };
+
+  const sync = await supabase.rpc("sync_walkin_draft_document_status", { p_draft_id: draftId });
+  if (sync.error) return { data: null, error: sync.error };
+  const syncRow = Array.isArray(sync.data) ? sync.data[0] : sync.data;
+  return { data: normalizeWalkInDraftRow(syncRow), error: null };
+}
+
+export async function getWalkInDraftById(
+  draftId: string,
+): Promise<{ data: WalkInDraftRecord | null; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("walkin_checkin_drafts")
+    .select("*")
+    .eq("id", draftId)
+    .single();
+  if (error) return { data: null, error };
+  return { data: normalizeWalkInDraftRow(data), error: null };
+}
+
+export async function listFrontdeskDraftQueue(
+  hotelId: string,
+): Promise<{ data: WalkInDraftQueueRecord[]; error: Error | null }> {
+  const { data, error } = await supabase.rpc("list_frontdesk_draft_queue", { p_hotel_id: hotelId });
+  if (error) return { data: [], error };
+  const rows = Array.isArray(data) ? data : data ? [data] : [];
+  return { data: rows.map(normalizeWalkInDraftQueueRow), error: null };
+}
+
+export async function listRoomHoldsForHotel(
+  hotelId: string,
+): Promise<{ data: RoomHoldRecord[]; error: Error | null }> {
+  const expireResult = await supabase.rpc("expire_walkin_room_holds", { p_hotel_id: hotelId });
+  if (expireResult.error) {
+    console.warn("Failed to expire stale room holds before listing", expireResult.error);
+  }
+  const nowIso = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("room_holds")
+    .select("id, hotel_id, room_id, draft_id, held_by, expires_at, status, created_at")
+    .eq("hotel_id", hotelId)
+    .eq("status", "active")
+    .gt("expires_at", nowIso);
+
+  if (error) return { data: [], error };
+  return { data: (data ?? []) as RoomHoldRecord[], error: null };
+}
+
+export async function listFrontdeskBookingsForHotel(
+  hotelId: string,
+): Promise<{ data: FrontdeskBookingRecord[]; error: Error | null }> {
+  const today = new Date().toISOString().split("T")[0];
+  // `bookings` in the current production schema does not have a `deleted_at` column.
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(`
+      id,
+      booking_code,
+      booking_source,
+      check_in_date,
+      check_out_date,
+      status,
+      room_id,
+      room_type_name_snapshot,
+      frontdesk_notes,
+      room:room_id(room_number),
+      guest:guest_id(first_name, last_name, nationality, passport_number, id_type, id_number)
+    `)
+    .eq("hotel_id", hotelId)
+    .eq("check_in_date", today)
+    .in("status", ["confirmed", "checked_in"])
+    .order("created_at", { ascending: false });
+
+  if (error) return { data: [], error };
+  return { data: (data ?? []) as FrontdeskBookingRecord[], error: null };
+}
+
+export async function listCheckoutQueueForHotel(
+  hotelId: string,
+  targetDate: string = new Date().toISOString().split("T")[0],
+): Promise<{ data: CheckoutQueueRecord[]; error: Error | null }> {
+  const { data, error } = await supabase.rpc("rpc_get_checkout_queue", {
+    p_hotel_id: hotelId,
+    p_target_date: targetDate,
+  });
+  if (error) return { data: [], error };
+  const rows = Array.isArray(data) ? data : data ? [data] : [];
+  return {
+    data: rows.map((row) => ({
+      booking_id: String(row.booking_id),
+      guest_name: row.guest_name ?? "Guest",
+      room_no: row.room_no ?? "Unknown",
+      scheduled_checkout_date: String(row.scheduled_checkout_date),
+      balance_due: Number(row.balance_due ?? 0),
+      checkout_ready: Boolean(row.checkout_ready),
+      blockers: Array.isArray(row.blockers) ? row.blockers.map(String) : [],
+      next_room_state: (row.next_room_state ?? "cleaning") as "cleaning" | "inspection" | "available",
+      estimated_available_at: row.estimated_available_at ?? null,
+    })),
+    error: null,
+  };
+}
+
+export async function getCheckoutPreview(
+  bookingId: string,
+): Promise<{ data: CheckoutPreviewRecord | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("rpc_get_checkout_preview", {
+    p_booking_id: bookingId,
+  });
+  if (error) return { data: null, error };
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return { data: null, error: null };
+  return {
+    data: {
+      booking_id: String(row.booking_id),
+      hotel_id: String(row.hotel_id),
+      guest_name: row.guest_name ?? "Guest",
+      room_no: row.room_no ?? "Unknown",
+      status: row.status ?? "confirmed",
+      scheduled_checkout_date: String(row.scheduled_checkout_date),
+      balance_due: Number(row.balance_due ?? 0),
+      checkout_ready: Boolean(row.checkout_ready),
+      blockers: Array.isArray(row.blockers) ? row.blockers.map(String) : [],
+      next_room_state: (row.next_room_state ?? "cleaning") as "cleaning" | "inspection" | "available",
+      estimated_available_at: row.estimated_available_at ?? null,
+    },
+    error: null,
+  };
+}
+
+export async function processCheckout(
+  bookingId: string,
+  input?: { paymentReceived?: number; markRoomDirty?: boolean; notes?: string },
+): Promise<{ data: CheckoutProcessResult | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("rpc_process_checkout", {
+    p_booking_id: bookingId,
+    p_payment_received: Number(input?.paymentReceived ?? 0),
+    p_mark_room_dirty: input?.markRoomDirty ?? true,
+    p_notes: input?.notes ?? null,
+  });
+  if (error) return { data: null, error };
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return { data: null, error: null };
+  invalidateCache("bookings");
+  invalidateCache("rooms");
+  invalidateCache("tasks");
+  invalidateCache("manager_dashboard");
+  return {
+    data: {
+      processed: Boolean(row.processed),
+      result_type: row.result_type === "already_checked_out" ? "already_checked_out" : "processed",
+      booking_id: String(row.booking_id),
+      room_id: String(row.room_id),
+      room_no: row.room_no ?? "Unknown",
+      booking_status: row.booking_status ?? "checked_out",
+      room_state: row.room_state ?? "cleaning",
+      task_id: row.task_id ? String(row.task_id) : null,
+    },
+    error: null,
+  };
+}
+
+export async function listRoomAvailabilityForHotel(
+  hotelId: string,
+): Promise<{ data: RoomAvailabilityRecord[]; error: Error | null }> {
+  const { data, error } = await supabase.rpc("rpc_get_room_availability", { p_hotel_id: hotelId });
+  if (error) return { data: [], error };
+  const rows = Array.isArray(data) ? data : data ? [data] : [];
+  return {
+    data: rows.map((row) => ({
+      room_id: String(row.room_id),
+      room_no: row.room_no ?? "Unknown",
+      occupancy_status: row.occupancy_status ?? "available",
+      housekeeping_status: row.housekeeping_status ?? "clean",
+      effective_room_state: (row.effective_room_state ?? "available") as RoomAvailabilityRecord["effective_room_state"],
+      unavailable_reason: row.unavailable_reason ?? "Available",
+      estimated_available_at: row.estimated_available_at ?? null,
+      next_check_in_at: row.next_check_in_at ?? null,
+    })),
+    error: null,
+  };
+}
+
+export async function holdRoomForWalkIn(
+  draftId: string,
+  roomId: string,
+): Promise<{ data: { hold_id: string; hold_expires_at: string; effective_room_state: string } | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("hold_room_for_walkin", {
+    p_draft_id: draftId,
+    p_room_id: roomId,
+  });
+  if (error) return { data: null, error };
+  const row = Array.isArray(data) ? data[0] : data;
+  return { data: row ?? null, error: null };
+}
+
+export async function releaseWalkInRoomHold(
+  draftId: string,
+): Promise<{ error: Error | null }> {
+  const { error } = await supabase.rpc("release_walkin_room_hold", { p_draft_id: draftId });
+  return { error };
+}
+
+export async function preflightWalkInCheckIn(
+  draftId: string,
+): Promise<{ data: WalkInPreflightResult | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("preflight_walkin_checkin", { p_draft_id: draftId });
+  if (error) return { data: null, error };
+  const row = Array.isArray(data) ? data[0] : data;
+  return { data: (row as WalkInPreflightResult) ?? null, error: null };
+}
+
+export async function finalizeWalkInCheckIn(
+  draftId: string,
+): Promise<{ data: { result_type: "created" | "already_completed"; booking_id: string; booking_code: string; guest_id: string; room_id: string; room_number: string; status: string } | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("finalize_walkin_checkin", { p_draft_id: draftId });
+  if (error) return { data: null, error };
+  const row = Array.isArray(data) ? data[0] : data;
+  invalidateCache("bookings");
+  invalidateCache("rooms");
+  return { data: row ?? null, error: null };
+}
+
+export async function cancelWalkInDraft(
+  draftId: string,
+): Promise<{ error: Error | null }> {
+  const { error } = await supabase.rpc("cancel_walkin_draft", { p_draft_id: draftId });
+  return { error };
+}
+
+export async function takeOverWalkInDraft(
+  draftId: string,
+): Promise<{ data: TakeOverWalkInDraftResult | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("take_over_walkin_draft", { p_draft_id: draftId });
+  if (error) return { data: null, error };
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    data: row
+      ? {
+          draft_id: String(row.draft_id),
+          assigned_operator_id: String(row.assigned_operator_id),
+          hold_expires_at: row.hold_expires_at ?? null,
+        }
+      : null,
+    error: null,
+  };
+}
+
+export async function listGuestDocumentsForDraft(
+  draftId: string,
+): Promise<{ data: GuestDocumentRecord[]; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("guest_documents")
+    .select("*")
+    .eq("draft_id", draftId)
+    .order("uploaded_at", { ascending: false });
+  if (error) return { data: [], error };
+  return { data: (data ?? []) as GuestDocumentRecord[], error: null };
+}
+
+export async function createSignedGuestDocumentUrl(
+  storagePath: string,
+  expiresInSeconds = 300,
+): Promise<{ data: string | null; error: Error | null }> {
+  const { data, error } = await supabase.storage
+    .from("guest-documents")
+    .createSignedUrl(storagePath, expiresInSeconds);
+
+  if (error) return { data: null, error };
+  return { data: data.signedUrl, error: null };
+}
+
+export async function uploadGuestDocumentForDraft(input: {
+  hotelId: string;
+  draftId: string;
+  subjectKind: WalkInSubjectKind;
+  subjectTempKey?: string | null;
+  documentType: string;
+  file: File;
+  isRequired?: boolean;
+  documentNumber?: string | null;
+  issuedCountry?: string | null;
+  notes?: string | null;
+}): Promise<{ data: GuestDocumentRecord | null; error: Error | null }> {
+  const documentType = input.documentType.trim().toLowerCase();
+  if (!FRONTDESK_ALLOWED_DOCUMENT_TYPES.has(documentType)) {
+    return { data: null, error: new Error("Unsupported document type") };
+  }
+  if (!FRONTDESK_ALLOWED_MIME_TYPES.has(input.file.type)) {
+    return { data: null, error: new Error("Unsupported file format") };
+  }
+  if (input.file.size > FRONTDESK_MAX_DOCUMENT_BYTES) {
+    return { data: null, error: new Error("File exceeds 10MB limit") };
+  }
+
+  const ext = input.file.name.includes(".") ? input.file.name.split(".").pop()?.toLowerCase() : undefined;
+  const safeExt = ext || (input.file.type === "application/pdf" ? "pdf" : "jpg");
+  const subjectKey =
+    input.subjectKind === "primary_guest"
+      ? "primary"
+      : input.subjectTempKey?.trim() || crypto.randomUUID();
+  const storagePath = `hotels/${input.hotelId}/walkin-drafts/${input.draftId}/subjects/${subjectKey}/${documentType}/${crypto.randomUUID()}.${safeExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("guest-documents")
+    .upload(storagePath, input.file, {
+      upsert: false,
+      contentType: input.file.type,
+    });
+
+  if (uploadError) return { data: null, error: uploadError as Error };
+
+  const { data: currentUser } = await getUser();
+  const { data, error } = await supabase
+    .from("guest_documents")
+    .insert({
+      hotel_id: input.hotelId,
+      draft_id: input.draftId,
+      subject_kind: input.subjectKind,
+      subject_temp_key: input.subjectKind === "companion" ? subjectKey : null,
+      document_type: documentType,
+      is_required: input.isRequired ?? false,
+      file_name: input.file.name,
+      storage_path: storagePath,
+      mime_type: input.file.type,
+      file_size: input.file.size,
+      document_number: input.documentNumber?.trim() || null,
+      issued_country: input.issuedCountry?.trim() || null,
+      uploaded_by: currentUser.user?.id ?? null,
+      notes: input.notes?.trim() || null,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    await supabase.storage.from("guest-documents").remove([storagePath]);
+    return { data: null, error };
+  }
+
+  const syncResult = await supabase.rpc("sync_walkin_draft_document_status", { p_draft_id: input.draftId });
+  if (syncResult.error) {
+    console.warn("Failed to sync walk-in draft document status after upload", syncResult.error);
+  }
+  return { data: data as GuestDocumentRecord, error: null };
+}
+
+export async function deleteGuestDocument(
+  documentId: string,
+  storagePath: string,
+  draftId?: string | null,
+): Promise<{ error: Error | null }> {
+  const { error: storageError } = await supabase.storage
+    .from("guest-documents")
+    .remove([storagePath]);
+  if (storageError) return { error: storageError as Error };
+
+  const { error } = await supabase
+    .from("guest_documents")
+    .delete()
+    .eq("id", documentId);
+  if (!error && draftId) {
+    const syncResult = await supabase.rpc("sync_walkin_draft_document_status", { p_draft_id: draftId });
+    if (syncResult.error) {
+      console.warn("Failed to sync walk-in draft document status after delete", syncResult.error);
+    }
+  }
+  return { error };
+}
+
+export interface FrontdeskGuestSearchResult {
+  guest_id: string;
+  full_name: string;
+  email: string | null;
+  nationality: string | null;
+  phone: string | null;
+  passport_number: string | null;
+  id_type: string | null;
+  id_number: string | null;
+  match_type: "exact" | "similar";
+}
+
+export async function searchFrontdeskGuestMatches(
+  hotelId: string,
+  query: string,
+): Promise<{ data: FrontdeskGuestSearchResult[]; error: Error | null }> {
+  const q = query.trim();
+  if (q.length < 3) return { data: [], error: null };
+  const { data, error } = await supabase.rpc("search_frontdesk_guest_matches", {
+    p_hotel_id: hotelId,
+    p_query: q,
+  });
+  if (error) return { data: [], error };
+  return {
+    data: ((Array.isArray(data) ? data : data ? [data] : []) as any[]).map((row) => ({
+      guest_id: String(row.guest_id),
+      full_name: row.full_name ?? "Guest",
+      email: row.email ?? null,
+      nationality: row.nationality ?? null,
+      phone: row.phone ?? null,
+      passport_number: row.passport_number ?? null,
+      id_type: row.id_type ?? null,
+      id_number: row.id_number ?? null,
+      match_type: row.match_type === "exact" ? "exact" : "similar",
+    })),
+    error: null,
+  };
 }
 
 export async function listCustomersForOwnerPromotion(ownerId: string, hotelId: string, searchEmail?: string): Promise<{ data: OwnerPromotableUser[]; error: Error | null }> {
@@ -932,6 +1787,8 @@ export interface PublicRoomTypeCard {
   discount_type: string;
   discount_value: number;
   final_price: number | null;
+  weekly_nightly_rate: number | null;
+  monthly_nightly_rate: number | null;
   images: string[];
   room_numbers: string[];
   available_count?: number;
@@ -1005,6 +1862,14 @@ function normalizePublicHotelCatalogFromRpc(raw: unknown): PublicHotelCard[] {
             discount_type: String(r.discount_type ?? "none"),
             discount_value: Number(r.discount_value ?? 0),
             final_price: (r.final_price as number | null) ?? (r.base_price as number | null) ?? null,
+            weekly_nightly_rate:
+              r.weekly_nightly_rate != null && r.weekly_nightly_rate !== ""
+                ? Number(r.weekly_nightly_rate)
+                : null,
+            monthly_nightly_rate:
+              r.monthly_nightly_rate != null && r.monthly_nightly_rate !== ""
+                ? Number(r.monthly_nightly_rate)
+                : null,
             images: Array.isArray(r.images) ? r.images.map(String) : [],
             room_numbers,
           };
@@ -1087,7 +1952,9 @@ async function listPublicHotelsWithRoomTypesLegacy(): Promise<{ data: PublicHote
   const [roomTypesResult, imagesResult, hotelCoverResult, amenitiesJoinResult, amenitiesResult, landmarksResult, roomsResult] = await Promise.all([
     supabase
       .from("room_types")
-      .select("id, hotel_id, name, description, max_guests, base_price, discount_type, discount_value, final_price")
+      .select(
+        "id, hotel_id, name, description, max_guests, base_price, discount_type, discount_value, final_price, weekly_nightly_rate, monthly_nightly_rate",
+      )
       .in("hotel_id", hotelIds)
       .is("deleted_at", null)
       .order("created_at", { ascending: true }),
@@ -1181,6 +2048,8 @@ async function listPublicHotelsWithRoomTypesLegacy(): Promise<{ data: PublicHote
       discount_type: String(rt.discount_type ?? "none"),
       discount_value: Number(rt.discount_value ?? 0),
       final_price: (rt.final_price as number | null) ?? (rt.base_price as number | null) ?? null,
+      weekly_nightly_rate: (rt.weekly_nightly_rate as number | null) ?? null,
+      monthly_nightly_rate: (rt.monthly_nightly_rate as number | null) ?? null,
       images: imagesByType.get(String(rt.id)) ?? [],
       room_numbers: roomNumbersByType.get(String(rt.id)) ?? [],
     });
@@ -1460,6 +2329,7 @@ export async function createHotelOnly(ownerId: string, payload: {
   address?: string;
   city?: string;
   country?: string;
+  googleMapsUrl?: string;
   /** Up to 3 cover photos (compressed); first is also stored on hotels.image_url. */
   imageFiles?: File[];
   /** @deprecated use imageFiles; if set without imageFiles, treated as a single cover. */
@@ -1492,10 +2362,11 @@ export async function createHotelOnly(ownerId: string, payload: {
         address: payload.address?.trim() || null,
         city: payload.city?.trim() || null,
         country: payload.country?.trim() || null,
+        google_maps_url: payload.googleMapsUrl?.trim() || null,
         image_url: imageUrl,
         owner_id: ownerId,
       })
-      .select("id, name, description, address, city, country, image_url, owner_id, created_at")
+      .select("id, name, description, address, city, country, google_maps_url, image_url, owner_id, created_at")
       .single();
 
     if (hotelError) return { data: null, error: hotelError };
@@ -2078,6 +2949,10 @@ export interface StaffMember {
   designation: StaffDesignation;
   hotel_id: string | null;
   is_active: boolean;
+  license_number?: string | null;
+  transport_status?: "available" | "on_trip" | "off_duty" | "assigned" | "on_leave" | null;
+  rating?: number | null;
+  daily_rate_inr?: number | null;
   car_name?: string | null;
   car_number?: string | null;
   seating_capacity?: number | null;
@@ -2090,6 +2965,10 @@ export interface StaffInput {
   mobile_number: string;
   designation: StaffDesignation;
   hotel_id?: string | null;
+  license_number?: string | null;
+  transport_status?: "available" | "on_trip" | "off_duty" | "assigned" | "on_leave" | null;
+  rating?: number | null;
+  daily_rate_inr?: number | null;
   car_name?: string | null;
   car_number?: string | null;
   seating_capacity?: number | null;
@@ -2134,6 +3013,10 @@ export async function createStaff(input: StaffInput): Promise<{ data: StaffMembe
       mobile_number: input.mobile_number,
       designation: input.designation,
       hotel_id: input.hotel_id || null,
+      license_number: input.license_number || null,
+      transport_status: input.transport_status ?? null,
+      rating: input.rating ?? null,
+      daily_rate_inr: input.daily_rate_inr ?? null,
       car_name: input.car_name || null,
       car_number: input.car_number || null,
       seating_capacity: input.seating_capacity || null,
@@ -2219,6 +3102,14 @@ export interface TaskInput {
   scheduled_at?: string;
 }
 
+function normalizeTaskRow(row: any): Task {
+  return {
+    ...(row as Task),
+    staff: row?.staff ?? null,
+    room: row?.room ?? row?.rooms ?? null,
+  };
+}
+
 export async function listTasks(hotelId: string, status?: TaskStatus, limit = 50): Promise<{ data: Task[]; error: Error | null }> {
   return getCachedOrFetch(
     `tasks_${hotelId}_${status || 'all'}`,
@@ -2239,7 +3130,7 @@ export async function listTasks(hotelId: string, status?: TaskStatus, limit = 50
 
       const { data, error } = await query;
       if (error) return { data: [], error };
-      return { data: (data ?? []) as Task[], error: null };
+      return { data: (data ?? []).map(normalizeTaskRow), error: null };
     },
     CACHE_TTL.HOTELS
   );
@@ -2261,7 +3152,7 @@ export async function createTask(userId: string, input: TaskInput): Promise<{ da
 
   if (error) return { data: null, error };
   invalidateCache('tasks');
-  return { data: data as Task, error: null };
+  return { data: normalizeTaskRow(data), error: null };
 }
 
 export async function updateTask(taskId: string, updates: {
@@ -2292,7 +3183,56 @@ export async function updateTask(taskId: string, updates: {
 
   if (error) return { data: null, error };
   invalidateCache('tasks');
-  return { data: data as Task, error: null };
+  return { data: normalizeTaskRow(data), error: null };
+}
+
+export async function assignTaskViaRpc(
+  taskId: string,
+  staffId: string,
+): Promise<{ data: { task_id: string; assigned_staff_id: string; task_status: string } | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("rpc_assign_task", {
+    p_task_id: taskId,
+    p_staff_id: staffId,
+  });
+  if (error) return { data: null, error };
+  const row = Array.isArray(data) ? data[0] : data;
+  invalidateCache("tasks");
+  return {
+    data: row
+      ? {
+          task_id: String(row.task_id),
+          assigned_staff_id: String(row.assigned_staff_id),
+          task_status: String(row.task_status),
+        }
+      : null,
+    error: null,
+  };
+}
+
+export async function updateTaskStatusViaRpc(
+  taskId: string,
+  status: TaskStatus,
+  note?: string,
+): Promise<{ data: { task_id: string; task_status: string; started_at: string | null; completed_at: string | null } | null; error: Error | null }> {
+  const { data, error } = await supabase.rpc("rpc_update_task_status", {
+    p_task_id: taskId,
+    p_status: status,
+    p_note: note ?? null,
+  });
+  if (error) return { data: null, error };
+  const row = Array.isArray(data) ? data[0] : data;
+  invalidateCache("tasks");
+  return {
+    data: row
+      ? {
+          task_id: String(row.task_id),
+          task_status: String(row.task_status),
+          started_at: row.started_at ?? null,
+          completed_at: row.completed_at ?? null,
+        }
+      : null,
+    error: null,
+  };
 }
 
 export async function deleteTask(taskId: string): Promise<{ error: Error | null }> {
@@ -2322,6 +3262,12 @@ export interface BookingInput {
   payment_method?: string;
   hotel_name_snapshot: string;
   room_type_name_snapshot: string;
+  /** Rack total (catalog nightly × nights) before long-stay or manual discount. */
+  list_price_subtotal?: number | null;
+  pricing_tier?: "standard" | "weekly" | "monthly" | null;
+  negotiated_discount_type?: "none" | "percentage" | "flat" | null;
+  negotiated_discount_value?: number;
+  negotiated_note?: string | null;
 }
 
 export async function createBookingAsManager(input: BookingInput): Promise<{ data: any; error: Error | null }> {
@@ -2396,7 +3342,18 @@ export interface ServiceRequest {
   assigned_task_id: string | null;
   created_at: string;
   room?: { room_number: string };
-  booking?: { guest_id: string };
+  booking?: {
+    guest_id: string;
+    guest?: { first_name: string | null; last_name: string | null } | null;
+  };
+}
+
+function normalizeServiceRequestRow(row: any): ServiceRequest {
+  return {
+    ...(row as ServiceRequest),
+    room: row?.room ?? row?.rooms ?? null,
+    booking: row?.booking ?? row?.bookings ?? null,
+  };
 }
 
 export async function listServiceRequests(status?: TaskStatus): Promise<{ data: ServiceRequest[]; error: Error | null }> {
@@ -2414,7 +3371,41 @@ export async function listServiceRequests(status?: TaskStatus): Promise<{ data: 
 
   const { data, error } = await query;
   if (error) return { data: [], error };
-  return { data: (data ?? []) as ServiceRequest[], error: null };
+  return { data: (data ?? []).map(normalizeServiceRequestRow), error: null };
+}
+
+export async function listServiceRequestsForHotel(
+  hotelId: string,
+  status?: TaskStatus,
+): Promise<{ data: ServiceRequest[]; error: Error | null }> {
+  let query = supabase
+    .from("service_requests")
+    .select(`
+      *,
+      rooms:room_id(room_number),
+      bookings:booking_id!inner(hotel_id, guest_id, guest:guest_id(first_name, last_name))
+    `)
+    .eq("bookings.hotel_id", hotelId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (status) query = query.eq("status", status);
+
+  const { data, error } = await query;
+  if (error) return { data: [], error };
+  return { data: (data ?? []).map(normalizeServiceRequestRow), error: null };
+}
+
+export async function resolveServiceRequest(
+  requestId: string,
+): Promise<{ error: Error | null }> {
+  const { error } = await supabase
+    .from("service_requests")
+    .update({ status: "completed", resolved_at: new Date().toISOString() })
+    .eq("id", requestId);
+  if (error) return { error };
+  invalidateCache("tasks");
+  return { error: null };
 }
 
 export async function assignServiceRequest(requestId: string, staffId: string): Promise<{ error: Error | null }> {
@@ -2452,6 +3443,405 @@ export async function assignServiceRequest(requestId: string, staffId: string): 
     .eq("id", requestId);
 
   invalidateCache('tasks');
+  return { error };
+}
+
+// Transport (live front-desk operations)
+// -----------------------------------------------------------------------------
+
+export type TransportTripStatus = "scheduled" | "active" | "completed" | "cancelled";
+export type TransportTripType = "Airport Pickup" | "Daily Cab" | "Hospital" | "Discharge";
+export type TransportVehicleStatus = "active" | "maintenance" | "retired";
+export type TransportDriverStatus = "available" | "on_trip" | "off_duty";
+export type TransportTranslatorStatus = "available" | "assigned" | "on_leave";
+
+export interface TransportTripRecord {
+  id: string;
+  hotel_id: string;
+  trip_type: TransportTripType;
+  status: TransportTripStatus;
+  guest_name: string;
+  room_label: string | null;
+  checkin_ref: string | null;
+  route: string;
+  scheduled_at: string;
+  driver_staff_id: string | null;
+  vehicle_id: string | null;
+  price_inr: number;
+  notes: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+  driver?: { id: string; name: string | null } | null;
+  vehicle?: { id: string; name: string | null; plate: string | null } | null;
+}
+
+export interface TransportVehicleRecord {
+  id: string;
+  hotel_id: string;
+  name: string;
+  body_type: string;
+  plate: string;
+  capacity: number;
+  status: TransportVehicleStatus;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface TransportVendorRecord {
+  id: string;
+  hotel_id: string;
+  name: string;
+  category: string;
+  contact: string;
+  active: boolean;
+  created_at: string;
+}
+
+function normalizeTransportTripRow(row: any): TransportTripRecord {
+  return {
+    ...(row as TransportTripRecord),
+    driver: row?.driver ?? row?.staff ?? null,
+    vehicle: row?.vehicle ?? row?.transport_vehicles ?? null,
+  };
+}
+
+async function resolveTransportCreatedBy(userId: string): Promise<string | null> {
+  if (!userId) return null;
+  const { data } = await getProfile(userId);
+  return data?.id ?? null;
+}
+
+export async function listTransportTripsForHotel(
+  hotelId: string,
+): Promise<{ data: TransportTripRecord[]; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("transport_trips")
+    .select(`
+      *,
+      driver:driver_staff_id(id, name),
+      vehicle:vehicle_id(id, name, plate)
+    `)
+    .eq("hotel_id", hotelId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+
+  if (error) return { data: [], error };
+  return { data: (data ?? []).map(normalizeTransportTripRow), error: null };
+}
+
+export async function createTransportTrip(input: {
+  hotelId: string;
+  createdBy: string;
+  tripType: TransportTripType;
+  guestName: string;
+  roomLabel?: string | null;
+  checkinRef?: string | null;
+  route: string;
+  scheduledAt: string;
+  driverStaffId: string;
+  vehicleId?: string | null;
+  priceInr: number;
+  notes?: string | null;
+}): Promise<{ data: TransportTripRecord | null; error: Error | null }> {
+  const createdBy = await resolveTransportCreatedBy(input.createdBy);
+  const { data, error } = await supabase
+    .from("transport_trips")
+    .insert({
+      hotel_id: input.hotelId,
+      trip_type: input.tripType,
+      status: "scheduled",
+      guest_name: input.guestName.trim(),
+      room_label: input.roomLabel?.trim() || null,
+      checkin_ref: input.checkinRef?.trim() || null,
+      route: input.route.trim(),
+      scheduled_at: input.scheduledAt,
+      driver_staff_id: input.driverStaffId,
+      vehicle_id: input.vehicleId || null,
+      price_inr: Math.max(0, input.priceInr || 0),
+      notes: input.notes?.trim() || null,
+      created_by: createdBy,
+    })
+    .select(`
+      *,
+      driver:driver_staff_id(id, name),
+      vehicle:vehicle_id(id, name, plate)
+    `)
+    .single();
+
+  if (error) return { data: null, error };
+
+  await supabase
+    .from("staff")
+    .update({ transport_status: "assigned" })
+    .eq("id", input.driverStaffId);
+
+  invalidateCache("transport");
+  invalidateCache("staff");
+  return { data: normalizeTransportTripRow(data), error: null };
+}
+
+export async function updateTransportTripStatus(
+  tripId: string,
+  status: TransportTripStatus,
+): Promise<{ data: TransportTripRecord | null; error: Error | null }> {
+  const { data: existing, error: existingError } = await supabase
+    .from("transport_trips")
+    .select("id, driver_staff_id")
+    .eq("id", tripId)
+    .single();
+  if (existingError) return { data: null, error: existingError };
+
+  const patch: Record<string, unknown> = { status };
+  if (status === "active") patch.started_at = new Date().toISOString();
+  if (status === "completed") patch.completed_at = new Date().toISOString();
+  if (status === "cancelled") patch.cancelled_at = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("transport_trips")
+    .update(patch)
+    .eq("id", tripId)
+    .select(`
+      *,
+      driver:driver_staff_id(id, name),
+      vehicle:vehicle_id(id, name, plate)
+    `)
+    .single();
+
+  if (error) return { data: null, error };
+
+  if (existing?.driver_staff_id) {
+    const driverStatus =
+      status === "active" ? "on_trip" : status === "scheduled" ? "assigned" : "available";
+    await supabase
+      .from("staff")
+      .update({ transport_status: driverStatus })
+      .eq("id", existing.driver_staff_id);
+  }
+
+  invalidateCache("transport");
+  invalidateCache("staff");
+  return { data: normalizeTransportTripRow(data), error: null };
+}
+
+export async function listTransportDriversForHotel(
+  hotelId: string,
+): Promise<{ data: StaffMember[]; error: Error | null }> {
+  return listStaff(hotelId, "driver");
+}
+
+export async function upsertTransportDriver(input: {
+  hotelId: string;
+  id?: string;
+  name: string;
+  phone: string;
+  license: string;
+  rating: number;
+  status: TransportDriverStatus;
+}): Promise<{ data: StaffMember | null; error: Error | null }> {
+  if (input.id) {
+    return updateStaff(input.id, {
+      name: input.name,
+      mobile_number: input.phone,
+      license_number: input.license,
+      rating: input.rating,
+      transport_status: input.status,
+      designation: "driver",
+      hotel_id: input.hotelId,
+    });
+  }
+  return createStaff({
+    name: input.name,
+    mobile_number: input.phone,
+    designation: "driver",
+    hotel_id: input.hotelId,
+    license_number: input.license,
+    rating: input.rating,
+    transport_status: input.status,
+  });
+}
+
+export async function removeTransportDriver(
+  staffId: string,
+): Promise<{ error: Error | null }> {
+  return deleteStaff(staffId);
+}
+
+export async function listTransportTranslatorsForHotel(
+  hotelId: string,
+): Promise<{ data: StaffMember[]; error: Error | null }> {
+  return listStaff(hotelId, "translator");
+}
+
+export async function upsertTransportTranslator(input: {
+  hotelId: string;
+  id?: string;
+  name: string;
+  languages: string[];
+  rating: number;
+  rateInrPerDay: number;
+  status: TransportTranslatorStatus;
+}): Promise<{ data: StaffMember | null; error: Error | null }> {
+  if (input.id) {
+    return updateStaff(input.id, {
+      name: input.name,
+      designation: "translator",
+      hotel_id: input.hotelId,
+      languages: input.languages,
+      rating: input.rating,
+      daily_rate_inr: input.rateInrPerDay,
+      transport_status: input.status,
+    });
+  }
+  return createStaff({
+    name: input.name,
+    mobile_number: `translator-${crypto.randomUUID()}`,
+    designation: "translator",
+    hotel_id: input.hotelId,
+    languages: input.languages,
+    rating: input.rating,
+    daily_rate_inr: input.rateInrPerDay,
+    transport_status: input.status,
+  });
+}
+
+export async function removeTransportTranslator(
+  staffId: string,
+): Promise<{ error: Error | null }> {
+  return deleteStaff(staffId);
+}
+
+export async function listTransportVehiclesForHotel(
+  hotelId: string,
+): Promise<{ data: TransportVehicleRecord[]; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("transport_vehicles")
+    .select("*")
+    .eq("hotel_id", hotelId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  if (error) return { data: [], error };
+  return { data: (data ?? []) as TransportVehicleRecord[], error: null };
+}
+
+export async function upsertTransportVehicle(input: {
+  hotelId: string;
+  id?: string;
+  name: string;
+  bodyType: string;
+  plate: string;
+  capacity: number;
+  status: TransportVehicleStatus;
+  userId: string;
+}): Promise<{ data: TransportVehicleRecord | null; error: Error | null }> {
+  if (input.id) {
+    const { data, error } = await supabase
+      .from("transport_vehicles")
+      .update({
+        name: input.name,
+        body_type: input.bodyType,
+        plate: input.plate,
+        capacity: input.capacity,
+        status: input.status,
+      })
+      .eq("id", input.id)
+      .select("*")
+      .single();
+    if (error) return { data: null, error };
+    invalidateCache("transport");
+    return { data: data as TransportVehicleRecord, error: null };
+  }
+  const createdBy = await resolveTransportCreatedBy(input.userId);
+  const { data, error } = await supabase
+    .from("transport_vehicles")
+    .insert({
+      hotel_id: input.hotelId,
+      name: input.name,
+      body_type: input.bodyType,
+      plate: input.plate,
+      capacity: input.capacity,
+      status: input.status,
+      created_by: createdBy,
+    })
+    .select("*")
+    .single();
+  if (error) return { data: null, error };
+  invalidateCache("transport");
+  return { data: data as TransportVehicleRecord, error: null };
+}
+
+export async function removeTransportVehicle(id: string): Promise<{ error: Error | null }> {
+  const { error } = await supabase
+    .from("transport_vehicles")
+    .update({ deleted_at: new Date().toISOString(), is_active: false })
+    .eq("id", id);
+  if (!error) invalidateCache("transport");
+  return { error };
+}
+
+export async function listTransportVendorsForHotel(
+  hotelId: string,
+): Promise<{ data: TransportVendorRecord[]; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("transport_vendors")
+    .select("*")
+    .eq("hotel_id", hotelId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  if (error) return { data: [], error };
+  return { data: (data ?? []) as TransportVendorRecord[], error: null };
+}
+
+export async function upsertTransportVendor(input: {
+  hotelId: string;
+  id?: string;
+  name: string;
+  category: string;
+  contact: string;
+  active: boolean;
+  userId: string;
+}): Promise<{ data: TransportVendorRecord | null; error: Error | null }> {
+  if (input.id) {
+    const { data, error } = await supabase
+      .from("transport_vendors")
+      .update({
+        name: input.name,
+        category: input.category,
+        contact: input.contact,
+        active: input.active,
+      })
+      .eq("id", input.id)
+      .select("*")
+      .single();
+    if (error) return { data: null, error };
+    invalidateCache("transport");
+    return { data: data as TransportVendorRecord, error: null };
+  }
+  const createdBy = await resolveTransportCreatedBy(input.userId);
+  const { data, error } = await supabase
+    .from("transport_vendors")
+    .insert({
+      hotel_id: input.hotelId,
+      name: input.name,
+      category: input.category,
+      contact: input.contact,
+      active: input.active,
+      created_by: createdBy,
+    })
+    .select("*")
+    .single();
+  if (error) return { data: null, error };
+  invalidateCache("transport");
+  return { data: data as TransportVendorRecord, error: null };
+}
+
+export async function removeTransportVendor(id: string): Promise<{ error: Error | null }> {
+  const { error } = await supabase
+    .from("transport_vendors")
+    .update({ deleted_at: new Date().toISOString(), active: false })
+    .eq("id", id);
+  if (!error) invalidateCache("transport");
   return { error };
 }
 
@@ -2804,3 +4194,38 @@ export async function getHotelQualityScores(): Promise<{ data: HotelQualityScore
   };
 }
 
+// -----------------------------------------------------------------------------
+// Customer notifications (booking confirmations, etc.)
+// -----------------------------------------------------------------------------
+
+export interface CustomerNotification {
+  id: string;
+  user_id: string;
+  title: string;
+  body: string;
+  notification_type: string;
+  metadata: Record<string, unknown>;
+  read_at: string | null;
+  created_at: string;
+}
+
+export async function fetchCustomerNotifications(): Promise<{
+  data: CustomerNotification[];
+  error: Error | null;
+}> {
+  const { data, error } = await supabase
+    .from("customer_notifications")
+    .select("id, user_id, title, body, notification_type, metadata, read_at, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) return { data: [], error };
+  return { data: (data ?? []) as CustomerNotification[], error: null };
+}
+
+export async function markCustomerNotificationRead(id: string): Promise<{ error: Error | null }> {
+  const { error } = await supabase
+    .from("customer_notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("id", id);
+  return { error };
+}

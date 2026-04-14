@@ -21,7 +21,7 @@ export interface ReceptionCheckOut {
   balanceInr: number;
 }
 
-export type RoomTileStatus = "available" | "booked" | "maintenance" | "occupied" | "cleaning";
+export type RoomTileStatus = "available" | "booked" | "maintenance" | "occupied" | "cleaning" | "held_self" | "held_other";
 
 export interface PropertyRoomTile {
   number: string;
@@ -57,7 +57,7 @@ export interface HousekeepingTask {
   assignee?: string;
 }
 
-export type TripStatus = "scheduled" | "active" | "completed";
+export type TripStatus = "scheduled" | "active" | "completed" | "cancelled";
 export type TripType = "Airport Pickup" | "Daily Cab" | "Hospital" | "Discharge";
 
 export interface TransportTrip {
@@ -68,10 +68,16 @@ export interface TransportTrip {
   route: string;
   scheduledAt: string;
   driverName: string;
+  /** Stable link for driver status updates */
+  driverId?: string;
+  vehicleId?: string;
+  /** Optional link to front-desk check-in row */
+  checkInRef?: string;
+  roomLabel?: string;
   priceInr: number;
 }
 
-export type DriverStatus = "available" | "on_trip";
+export type DriverStatus = "available" | "on_trip" | "off_duty";
 
 export interface TransportDriver {
   id: string;
@@ -82,7 +88,7 @@ export interface TransportDriver {
   status: DriverStatus;
 }
 
-export type VehicleStatus = "active" | "maintenance";
+export type VehicleStatus = "active" | "maintenance" | "retired";
 
 export interface TransportVehicle {
   id: string;
@@ -93,7 +99,7 @@ export interface TransportVehicle {
   status: VehicleStatus;
 }
 
-export type TranslatorStatus = "available" | "assigned";
+export type TranslatorStatus = "available" | "assigned" | "on_leave";
 
 export interface Translator {
   id: string;
@@ -128,4 +134,17 @@ export interface StaffShift {
   area: string;
   shift: string;
   status: "on_duty" | "off";
+}
+
+/** Payload for scheduling a trip from the reception transport console */
+export interface CreateTripInput {
+  type: TripType;
+  guestName: string;
+  roomLabel?: string;
+  checkInRef?: string;
+  route: string;
+  scheduledAt: string;
+  driverId: string;
+  vehicleId?: string;
+  priceInr: number;
 }

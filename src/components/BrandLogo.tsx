@@ -70,7 +70,6 @@ export function BrandLogo({
           imageClassName,
         )}
         decoding="async"
-        fetchPriority={variant === "header" ? "high" : "auto"}
         onError={() => {
           if (!usePng) setUsePng(true);
         }}

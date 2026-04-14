@@ -58,16 +58,6 @@ const LandingHeader = () => {
   const { user, isInitialized, logoutCurrentDevice, logoutAllDevices } = useAuth();
   const isMedTourismPage = location.pathname === "/med-tourism" || location.pathname.startsWith("/med-tourism/");
 
-  const [headerReady, setHeaderReady] = useState(isInitialized);
-  useEffect(() => {
-    if (isInitialized) {
-      setHeaderReady(true);
-      return;
-    }
-    const timer = setTimeout(() => setHeaderReady(true), 3000);
-    return () => clearTimeout(timer);
-  }, [isInitialized]);
-
   useEffect(() => {
     const onScroll = () => setHeaderElevated(window.scrollY > 10);
     onScroll();
@@ -366,7 +356,7 @@ const LandingHeader = () => {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              ) : headerReady ? (
+              ) : isInitialized ? (
                 <div className="flex items-center gap-1 lg:gap-1.5">
                   <CartButton
                     onProceedToCheckout={openAuth}
@@ -529,7 +519,7 @@ const LandingHeader = () => {
                             </Button>
                           </div>
                         </>
-                      ) : headerReady ? (
+                      ) : isInitialized ? (
                         <Button variant="outline" className="h-11 w-full rounded-full border-2 font-semibold" onClick={openAuth}>
                           {t("nav.login")}
                         </Button>

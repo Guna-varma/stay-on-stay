@@ -46,8 +46,11 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "cors": "^2.8.6",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.4.2",
     "embla-carousel-react": "^8.6.0",
+    "express": "^5.2.1",
     "framer-motion": "^12.35.2",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
@@ -63,6 +66,7 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "twilio": "^5.13.1",
     "vaul": "^0.9.9",
     "zod": "^3.25.76"
   },
@@ -89,5 +93,21 @@
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19",
     "vitest": "^3.2.4"
-  }
+  },
+  "description": "Hotel management application for medical travelers and hospitality operations.",
+  "main": "eslint.config.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Guna-varma/stay-on-stay.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Guna-varma/stay-on-stay/issues"
+  },
+  "homepage": "https://github.com/Guna-varma/stay-on-stay#readme"
 }

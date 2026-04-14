@@ -45,6 +45,17 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const hasSb = isSupabaseConfigured();
 
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" aria-hidden />
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </div>
+      </div>
+    );
+  }
+
   if (isInitialized && user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FDFBF0]">
@@ -135,7 +146,7 @@ export default function SignUp() {
         </div>
         <h1 className={cn(authTheme.title, "mt-4")}>Create your StayOnStay account</h1>
         <p className={cn(authTheme.subtitle, "mt-3")}>
-          Sign up with email and password, then verify your email before your first secure sign in.
+          Use your email and a password. We’ll send a quick link or code to confirm your email before you sign in.
         </p>
 
         {!hasSb ? (
@@ -176,7 +187,7 @@ export default function SignUp() {
               <Select value={gender || undefined} onValueChange={(v) => setGender(v as GenderValue)}>
                 <SelectTrigger
                   className={cn(
-                    "h-12 rounded-2xl border-border/70 bg-white pl-3 text-left text-foreground shadow-sm focus:ring-primary/10",
+                    "h-12 min-h-[48px] rounded-2xl border-white/60 bg-white/60 pl-3 text-left text-foreground shadow-sm backdrop-blur-sm focus:ring-primary/15 dark:bg-white/10",
                     !gender && "text-muted-foreground",
                   )}
                 >
