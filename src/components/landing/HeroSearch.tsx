@@ -123,7 +123,7 @@ const HeroSearch = () => {
       >
         <div className="mx-auto mb-6 max-w-3xl text-center sm:mb-8">
           <h1 className="mb-3 text-balance text-2xl font-semibold leading-[1.15] tracking-tight text-primary-foreground [text-shadow:0_2px_28px_rgba(0,0,0,0.5),0_1px_2px_rgba(0,0,0,0.4)] sm:text-3xl md:text-4xl lg:text-[2.5rem]">
-            {t("hero.title")}
+            Leading Medical Stay and Travel Support Company Serving India, UAE and Africa
           </h1>
           <p className="mx-auto max-w-2xl text-sm leading-relaxed text-primary-foreground/95 [text-shadow:0_1px_18px_rgba(0,0,0,0.45)] sm:text-base md:text-lg">
             {t("hero.subtitle")}

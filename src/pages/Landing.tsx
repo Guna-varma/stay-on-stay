@@ -16,6 +16,7 @@ import LandingCtaBanner from "@/components/landing/LandingCtaBanner";
 import LandingContactSection from "@/components/landing/LandingContactSection";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
 import LandingFooter from "@/components/landing/LandingFooter";
+import GlobalSeoSections from "@/components/landing/GlobalSeoSections";
 
 function LandingMain() {
   const reduce = useReducedMotion();
@@ -30,6 +31,7 @@ function LandingMain() {
       <HeroSearch />
       <HotelSearchSection sectionId="hotels" />
       <TrustBar />
+      <GlobalSeoSections />
       <ServicesSection />
       <CareTeamSection />
       <PatientJourneySection />

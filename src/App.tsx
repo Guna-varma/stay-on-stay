@@ -23,6 +23,7 @@ import HelpCenter from "./pages/HelpCenter";
 import ContactUs from "./pages/ContactUs";
 import WhatsAppSupport from "./pages/WhatsAppSupport";
 import ExploreIndia from "./pages/ExploreIndia";
+import ServicesRegion from "./pages/ServicesRegion";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -96,6 +97,9 @@ const App = () => (
               <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/whatsapp-support" element={<WhatsAppSupport />} />
               <Route path="/explore-india" element={<ExploreIndia />} />
+              <Route path="/services-in-india" element={<ServicesRegion region="india" />} />
+              <Route path="/services-in-uae" element={<ServicesRegion region="uae" />} />
+              <Route path="/services-in-africa" element={<ServicesRegion region="africa" />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
