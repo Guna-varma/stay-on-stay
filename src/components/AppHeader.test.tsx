@@ -34,12 +34,12 @@ vi.mock("@/components/ui/dropdown-menu", () => ({
 const customerUser: AuthUser = {
   id: "customer-1",
   email: "customer@stayonstay.com",
-  firstName: "Gunavarma",
-  lastName: "Meda",
-  displayName: "Gunavarma Meda",
-  initials: "GM",
+  firstName: "Anita",
+  lastName: "Rao",
+  displayName: "Anita Rao",
+  initials: "AR",
   role: "customer",
-  name: "Gunavarma Meda",
+  name: "Anita Rao",
   avatarUrl: "",
   avatar: "",
   loginTime: Date.now(),
@@ -64,7 +64,7 @@ describe("AppHeader", () => {
     expect(screen.getByText("Hotels")).toBeInTheDocument();
     expect(screen.getAllByText("My Bookings").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Emergency").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Gunavarma Meda").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Anita Rao").length).toBeGreaterThan(0);
     expect(screen.getByText("Personal")).toBeInTheDocument();
   });
 

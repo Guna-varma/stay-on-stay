@@ -24,7 +24,7 @@ export default function CareTeamSection() {
           </p>
         </Reveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {CARE_TEAM_MEMBERS.map((member, i) => (
             <Reveal key={member.nameKey} delay={i * 0.1}>
               <Card className="overflow-hidden border-border/60 shadow-card hover:shadow-premium transition-shadow duration-300 rounded-2xl h-full">

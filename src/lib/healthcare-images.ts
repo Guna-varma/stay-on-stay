@@ -43,12 +43,6 @@ export const CARE_TEAM_MEMBERS = [
     roleKey: "team.2.role",
     altKey: "team.2.alt",
   },
-  {
-    image: "/team/img3.jpg",
-    nameKey: "team.3.name",
-    roleKey: "team.3.role",
-    altKey: "team.3.alt",
-  },
 ] as const;
 
 export const TESTIMONIAL_PORTRAITS: Record<string, string> = {

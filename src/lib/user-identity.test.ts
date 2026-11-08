@@ -3,12 +3,12 @@ import { getDisplayName, getInitials } from "@/lib/user-identity";
 
 describe("user identity helpers", () => {
   it("prefers first and last name for display name and initials", () => {
-    expect(getDisplayName({ firstName: "Gunavarma", lastName: "Meda", email: "gm@example.com" })).toBe("Gunavarma Meda");
-    expect(getInitials({ firstName: "Gunavarma", lastName: "Meda", email: "gm@example.com" })).toBe("GM");
+    expect(getDisplayName({ firstName: "Anita", lastName: "Rao", email: "ar@example.com" })).toBe("Anita Rao");
+    expect(getInitials({ firstName: "Anita", lastName: "Rao", email: "ar@example.com" })).toBe("AR");
   });
 
   it("uses the first two letters for a single name", () => {
-    expect(getInitials({ firstName: "Gunavarma", email: "gunavarma@example.com" })).toBe("GU");
+    expect(getInitials({ firstName: "Anita", email: "anita@example.com" })).toBe("AN");
   });
 
   it("falls back to the email when names are unavailable", () => {
